@@ -5,6 +5,7 @@ namespace Nbj\RequestInsurance;
 use Illuminate\Support\ServiceProvider;
 use Nbj\RequestInsurance\Contracts\HttpRequest;
 use Nbj\RequestInsurance\Commands\InstallRequestInsurance;
+use Nbj\RequestInsurance\Commands\RequestInsuranceService;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
 {
@@ -24,14 +25,13 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             __DIR__ . '/../../config/request-insurance.php'         => config_path() . '/request-insurance.php',
             __DIR__ . '/../../models/RequestInsurance.php'          => app_path() . '/RequestInsurance.php',
             __DIR__ . '/../../models/RequestInsuranceLog.php'       => app_path() . '/RequestInsuranceLog.php',
-            __DIR__ . '/../../commands/RequestInsuranceService.php' => app_path() . '/Console/Commands/RequestInsuranceService.php',
         ]);
 
         // Add the installation command to Artisan
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallRequestInsurance::class,
-                \App\Console\Commands\RequestInsuranceService::class,
+                RequestInsuranceService::class,
             ]);
         }
     }

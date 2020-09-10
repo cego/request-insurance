@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Nbj\RequestInsurance\Commands;
 
 use Exception;
 use Carbon\Carbon;
