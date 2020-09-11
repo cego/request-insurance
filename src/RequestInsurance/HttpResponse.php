@@ -157,25 +157,3 @@ class HttpResponse
         return (float) $this->info->get('total_time');
     }
 }
-
-/**
- * "url"
- * "content_type"
- * "header_size"
- * "request_size"
- * "filetime"
- * "ssl_verify_result"
- * "redirect_count"
- * "total_time"
- * "namelookup_time"
- * "connect_time"
- * "pretransfer_time"
- * "size_upload"
- * "size_download"
- * "speed_download"
- * "speed_upload"
- * "download_content_length"
- * "upload_content_length"
- * "starttransfer_time"
- * "redirect_time"
- */

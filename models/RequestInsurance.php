@@ -3,13 +3,13 @@
 namespace App;
 
 use Carbon\Carbon;
+use JsonException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Nbj\RequestInsurance\Contracts\HttpRequest;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Nbj\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
-use function Couchbase\defaultDecoder;
 
 /**
  * Class RequestInsurance
@@ -18,19 +18,19 @@ use function Couchbase\defaultDecoder;
  * @property int $priority
  * @property string $url
  * @property string $method
- * @property string $headers
+ * @property string|array $headers
  * @property string $payload
- * @property string $response_headers
+ * @property string|array $response_headers
  * @property string $response_body
  * @property int $response_code
- * @property Carbon $completed_at
- * @property Carbon $locked_at
- * @property Carbon $paused_at
- * @property Carbon $abandoned_at
+ * @property Carbon|null $completed_at
+ * @property Carbon|null $locked_at
+ * @property Carbon|null $paused_at
+ * @property Carbon|null $abandoned_at
  * @property int $retry_count
  * @property int $retry_factor
  * @property int $retry_cap
- * @property Carbon $retry_at
+ * @property Carbon|null $retry_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
@@ -60,6 +60,8 @@ class RequestInsurance extends Model
      * Perform any actions required after the model boots.
      *
      * @return void
+     *
+     * @throws JsonException
      */
     protected static function booted()
     {
@@ -67,12 +69,12 @@ class RequestInsurance extends Model
         static::saving(function (RequestInsurance $request) {
             // We make sure to json encode headers to json if passed as an array
             if (is_array($request->headers)) {
-                $request->headers = json_encode($request->headers);
+                $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
             }
 
             // We make sure to json encode response headers to json if passed as an array
             if (is_array($request->response_headers)) {
-                $request->response_headers = json_encode($request->response_headers);
+                $request->response_headers = json_encode($request->response_headers, JSON_THROW_ON_ERROR);
             }
         });
     }

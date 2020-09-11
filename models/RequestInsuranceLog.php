@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Class RequestInsuranceLog
  *
  * @property int $id
- * @property string $response_headers
+ * @property string|array $response_headers
  * @property string $response_body
  * @property integer $response_code
  * @property Carbon $created_at
@@ -36,7 +36,7 @@ class RequestInsuranceLog extends Model
         static::saving(function (RequestInsuranceLog $request) {
             // We make sure to json encode response headers to json if passed as an array
             if (is_array($request->response_headers)) {
-                $request->response_headers = json_encode($request->response_headers);
+                $request->response_headers = json_encode($request->response_headers, JSON_THROW_ON_ERROR);
             }
         });
     }

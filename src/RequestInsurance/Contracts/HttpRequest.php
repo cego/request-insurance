@@ -73,12 +73,19 @@ abstract class HttpRequest
     /**
      * Sets the headers for the request
      *
-     * @param string $headers
+     * @param string|array $headers
      *
      * @return $this
      */
     public function setHeaders($headers)
     {
+        // If $headers is already an array we assume it is correct and pass it directly on
+        if (is_array($headers)) {
+            return $this->setOption(CURLOPT_HTTPHEADER, $headers);
+        }
+
+        // Otherwise it is a string and we assume it is json.
+        // An exception is thrown if we cannot decode the string
         $headers = collect(json_decode($headers, true, JSON_THROW_ON_ERROR))
             ->map(function ($value, $header) {
                 return sprintf('%s: %s', $header, $value);
