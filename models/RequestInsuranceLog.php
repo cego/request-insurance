@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property string|array $response_headers
  * @property string $response_body
- * @property integer $response_code
+ * @property int $response_code
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
