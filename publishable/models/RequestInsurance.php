@@ -3,6 +3,7 @@
 namespace App;
 
 use Carbon\Carbon;
+use Exception;
 use JsonException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -199,6 +200,11 @@ class RequestInsurance extends Model
         return $this->abandoned_at !== null;
     }
 
+    /**
+     * Syntactic sugar for negating isAbandoned()
+     *
+     * @return bool
+     */
     public function isNotAbandoned()
     {
         return ! $this->isAbandoned();
