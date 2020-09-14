@@ -4,6 +4,7 @@ namespace App;
 
 use Carbon\Carbon;
 use JsonException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -102,6 +103,53 @@ class RequestInsurance extends Model
     }
 
     /**
+     * Scopes the query according to the filter set by the request
+     *
+     * @param Builder $query
+     * @param Request $request
+     *
+     * @return Builder
+     */
+    public function scopeFilteredByRequest(Builder $query, Request $request)
+    {
+        $query = $query->where(function () use ($query, $request) {
+            if ($request->has('completed')) {
+                $query = $query->orWhere('completed_at', '!=', null);
+            }
+
+            if ($request->has('paused')) {
+                $query = $query->orWhere('paused_at', '!=', null);
+            }
+
+            if ($request->has('locked')) {
+                $query = $query->orWhere('locked_at', '!=', null);
+            }
+
+            if ($request->has('abandoned')) {
+                $query = $query->orWhere('abandoned_at', '!=', null);
+            }
+
+            return $query;
+        });
+
+        try {
+            if ($request->has('from') && $request->get('from') != null) {
+                $from = Carbon::parse($request->get('from'))->setHours(0)->setMinutes(0)->setSeconds(0);
+                $query = $query->whereDate('created_at', '>=', $from);
+            }
+
+            if ($request->has('to') && $request->get('to') != null) {
+                $to = Carbon::parse($request->get('to'))->setHours(23)->setMinutes(59)->setSeconds(59);
+                $query = $query->whereDate('created_at', '<=', $to);
+            }
+        } catch (Exception $exception) {
+            Log::notice('Failed parsing from or to date to Carbon instance in filter');
+        }
+
+        return $query;
+    }
+
+    /**
      * Unlocks the RequestInsurance instance
      *
      * @return $this
@@ -149,6 +197,11 @@ class RequestInsurance extends Model
     public function isAbandoned()
     {
         return $this->abandoned_at !== null;
+    }
+
+    public function isNotAbandoned()
+    {
+        return ! $this->isAbandoned();
     }
 
     /**

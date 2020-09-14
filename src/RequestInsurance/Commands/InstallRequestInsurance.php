@@ -39,7 +39,6 @@ class InstallRequestInsurance extends Command
         $pathToGitIgnoreFile = base_path() . DIRECTORY_SEPARATOR . '.gitignore';
 
         $filesThatNeedsToBeAdded = collect([
-            '/app/Console/Commands/RequestInsuranceService.php',
             '/app/RequestInsurance.php',
             '/app/RequestInsuranceLog.php',
             '/config/request-insurance.php',
