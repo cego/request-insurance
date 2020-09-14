@@ -114,9 +114,19 @@ class HttpResponse
      *
      * @return bool
      */
-    public function shouldNotBeRetried()
+    public function isNotRetryable()
     {
         return $this->getCode() >= 400 && $this->getCode() < 500;
+    }
+
+    /**
+     * Syntactic sugar for negating isNotRetryable()
+     *
+     * @return bool
+     */
+    public function isRetryable()
+    {
+        return ! $this->isNotRetryable();
     }
 
     /**

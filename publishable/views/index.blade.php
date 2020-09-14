@@ -75,7 +75,7 @@
                                     <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
                                     <td><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}" /></td>
                                     <td>{{ $requestInsurance->url }}</td>
-                                    <td><x-request-insurance-inline-json :json="sprintf('%s...', substr($requestInsurance->payload, 0, 125))" /></td>
+                                    <td><x-request-insurance-inline-json :json="$requestInsurance->getShortenedPayload()" /></td>
                                     <td>{{ $requestInsurance->retry_count }}</td>
                                     <td>{{ $requestInsurance->retry_at }}</td>
                                     <td>{{ $requestInsurance->completed_at }}</td>

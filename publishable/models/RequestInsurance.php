@@ -150,6 +150,15 @@ class RequestInsurance extends Model
         return $query;
     }
 
+    public function getShortenedPayload()
+    {
+        if (strlen($this->payload) <= 125) {
+            return $this->payload;
+        }
+
+        return sprintf('%s...', substr($this->payload, 0, 125));
+    }
+
     /**
      * Unlocks the RequestInsurance instance
      *
@@ -261,16 +270,6 @@ class RequestInsurance extends Model
     }
 
     /**
-     * Tells if the request is a GET request
-     *
-     * @return bool
-     */
-    public function isGetRequest()
-    {
-        return mb_strtoupper($this->method) == 'GET';
-    }
-
-    /**
      * Processes the RequestInsurance instance
      *
      * @return $this
@@ -303,7 +302,7 @@ class RequestInsurance extends Model
             'response_headers' => $response->getHeaders(),
         ]);
 
-        if ($response->shouldNotBeRetried()) {
+        if ($response->isNotRetryable()) {
             $this->paused_at = Carbon::now();
         }
 
@@ -311,7 +310,7 @@ class RequestInsurance extends Model
             $this->completed_at = Carbon::now();
         }
 
-        if ($this->isNotCompleted()) {
+        if ($this->isNotCompleted() && $response->isRetryable()) {
             $this->incrementRetryCount();
             $this->setNextRetryAt();
         }
