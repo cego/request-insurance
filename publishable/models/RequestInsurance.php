@@ -2,8 +2,8 @@
 
 namespace App;
 
-use Carbon\Carbon;
 use Exception;
+use Carbon\Carbon;
 use JsonException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
