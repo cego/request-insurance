@@ -5,6 +5,7 @@ namespace Nbj\RequestInsurance\Controllers;
 use Exception;
 use App\RequestInsurance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
 class RequestInsuranceController extends Controller
@@ -27,24 +28,15 @@ class RequestInsuranceController extends Controller
             ->filteredByRequest($request)
             ->paginate(25);
 
-        $requestInsurances = RequestInsurance::latest()
-            ->select([
-                'response_code',
-                'completed_at',
-                'paused_at',
-                'abandoned_at',
-                'locked_at',
-            ])
-            ->filteredByRequest($request)
-            ->get();
+        $segmentedNumberOfRequests = $this->getSegmentedNumberOfRequests();
 
         return view('request-insurance::index')->with([
             'requestInsurances'         => $paginator,
-            'numberOfActiveRequests'    => $requestInsurances->where('response_code', null)->count(),
-            'numberOfCompletedRequests' => $requestInsurances->where('completed_at', '!=', null)->count(),
-            'numberOfPausedRequests'    => $requestInsurances->where('paused_at', '!=', null)->count(),
-            'numberOfAbandonedRequests' => $requestInsurances->where('abandoned_at', '!=', null)->count(),
-            'numberOfLockedRequests'    => $requestInsurances->where('locked_at', '!=', null)->count(),
+            'numberOfActiveRequests'    => $segmentedNumberOfRequests->get('active'),
+            'numberOfCompletedRequests' => $segmentedNumberOfRequests->get('completed'),
+            'numberOfPausedRequests'    => $segmentedNumberOfRequests->get('paused'),
+            'numberOfAbandonedRequests' => $segmentedNumberOfRequests->get('abandoned'),
+            'numberOfLockedRequests'    => $segmentedNumberOfRequests->get('locked'),
         ]);
     }
 
@@ -102,5 +94,50 @@ class RequestInsuranceController extends Controller
         $requestInsurance->unlock();
 
         return redirect()->back();
+    }
+
+    /**
+     * Gets a collection of segmented number of requests
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getSegmentedNumberOfRequests()
+    {
+        $query = <<<SQL
+select 
+	a.active, 
+	b.completed,
+	c.paused,
+	d.abandoned,
+	e.locked
+from 
+	(
+		select count(*) as active 
+		from request_insurances 
+		where response_code is null
+	) as a,
+	(
+		select count(*) as completed 
+		from request_insurances 
+		where completed_at is not null
+	) as b,
+	(
+		select count(*) as paused 
+		from request_insurances 
+		where paused_at is not null
+	) as c,
+	(
+		select count(*) as abandoned 
+		from request_insurances 
+		where abandoned_at is not null
+	) as d,
+	(
+		select count(*) as locked 
+		from request_insurances 
+		where locked_at is not null
+	) as e
+SQL;
+
+        return collect(DB::select($query)[0]);
     }
 }
