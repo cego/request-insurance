@@ -6,8 +6,18 @@
             <div class="col-12">
 
                 <div class="pt-5">
-                    <div class="form-group form-inline pb-5">
+                    <div class="form-group form-inline">
                         <h1 class="">Request Insurance: </h1>
+                    </div>
+                    <div class="pb-5">
+                        <div class="mr-5">
+                            <div class="badge mr-2">{{ $requestInsurances->total() }}</div><span class="mr-5"><strong>Requests in total</strong></span>
+                            <div class="badge mr-2">{{ $numberOfActiveRequests }}</div><span class="mr-5"><strong>Active requests</strong></span>
+                            <div class="badge badge-success mr-2">{{ $numberOfCompletedRequests }}</div><span class="mr-4"><strong>Completed</strong></span>
+                            <div class="badge badge-warning mr-2">{{ $numberOfPausedRequests }}</div><span class="mr-4"><strong>Paused</strong></span>
+                            <div class="badge badge-danger mr-2">{{ $numberOfAbandonedRequests }}</div><span class="mr-4"><strong>Abandoned</strong></span>
+                            <div class="badge badge-secondary mr-2">{{ $numberOfLockedRequests }}</div><span class="mr-4"><strong>Locked</strong></span>
+                        </div>
                     </div>
 
                     <div>
@@ -91,6 +101,20 @@
                                                 {{ csrf_field() }}
                                                 <input type="hidden" name="_method" value="delete">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">Abandon</button>
+                                            </form>
+                                        @endif
+
+                                        @if ($requestInsurance->isRetryable())
+                                            <form method="POST" action="{{ route('request-insurances.retry', $requestInsurance) }}">
+                                                {{ csrf_field() }}
+                                                <button type="submit" class="btn btn-sm btn-outline-warning">Retry</button>
+                                            </form>
+                                        @endif
+
+                                        @if ($requestInsurance->isLocked())
+                                            <form method="POST" action="{{ route('request-insurances.unlock', $requestInsurance) }}">
+                                                {{ csrf_field() }}
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary">Unlock</button>
                                             </form>
                                         @endif
                                     </td>

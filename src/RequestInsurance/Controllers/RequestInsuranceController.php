@@ -23,11 +23,29 @@ class RequestInsuranceController extends Controller
         // Flash the request parameters, so we can redisplay the same filter parameters.
         $request->flash();
 
-        $requestInsurances = RequestInsurance::latest()
+        $paginator = RequestInsurance::latest()
             ->filteredByRequest($request)
             ->paginate(25);
 
-        return view('request-insurance::index')->with(['requestInsurances' => $requestInsurances]);
+        $requestInsurances = RequestInsurance::latest()
+            ->select([
+                'response_code',
+                'completed_at',
+                'paused_at',
+                'abandoned_at',
+                'locked_at',
+            ])
+            ->filteredByRequest($request)
+            ->get();
+
+        return view('request-insurance::index')->with([
+            'requestInsurances'         => $paginator,
+            'numberOfActiveRequests'    => $requestInsurances->where('response_code', null)->count(),
+            'numberOfCompletedRequests' => $requestInsurances->where('completed_at', '!=', null)->count(),
+            'numberOfPausedRequests'    => $requestInsurances->where('paused_at', '!=', null)->count(),
+            'numberOfAbandonedRequests' => $requestInsurances->where('abandoned_at', '!=', null)->count(),
+            'numberOfLockedRequests'    => $requestInsurances->where('locked_at', '!=', null)->count(),
+        ]);
     }
 
     /**
@@ -48,13 +66,40 @@ class RequestInsuranceController extends Controller
      * Abandons a request insurance
      *
      * @param RequestInsurance $requestInsurance
-     * @param Request $request
      *
      * @return mixed
      */
-    public function destroy(RequestInsurance $requestInsurance, Request $request)
+    public function destroy(RequestInsurance $requestInsurance)
     {
         $requestInsurance->abandon();
+
+        return redirect()->back();
+    }
+
+    /**
+     * Retries a request insurance
+     *
+     * @param RequestInsurance $requestInsurance
+     *
+     * @return mixed
+     */
+    public function retry(RequestInsurance $requestInsurance)
+    {
+        $requestInsurance->resume();
+
+        return redirect()->back();
+    }
+
+    /**
+     * Unlocks a request insurance
+     *
+     * @param RequestInsurance $requestInsurance
+     *
+     * @return mixed
+     */
+    public function unlock(RequestInsurance $requestInsurance)
+    {
+        $requestInsurance->unlock();
 
         return redirect()->back();
     }

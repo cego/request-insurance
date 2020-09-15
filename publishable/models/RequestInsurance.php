@@ -199,6 +199,8 @@ class RequestInsurance extends Model
         Log::debug(sprintf('Abandoning request with id: [%d]', $this->id));
 
         $this->abandoned_at = Carbon::now();
+        $this->retry_at = null;
+
         $this->save();
 
         return $this;
@@ -234,6 +236,8 @@ class RequestInsurance extends Model
         Log::debug(sprintf('Pausing request with id: [%d]', $this->id));
 
         $this->paused_at = Carbon::now();
+        $this->retry_at = null;
+
         $this->save();
 
         return $this;
@@ -249,9 +253,25 @@ class RequestInsurance extends Model
         Log::debug(sprintf('Resuming request with id: [%d]', $this->id));
 
         $this->paused_at = null;
+        $this->retry_at = Carbon::now();
+
+        if ($this->isAbandoned()) {
+            $this->abandoned_at = null;
+        }
+
         $this->save();
 
         return $this;
+    }
+
+    /**
+     * Tells is the request insurance is retryable
+     *
+     * @return bool
+     */
+    public function isRetryable()
+    {
+        return $this->isNotCompleted() && ($this->isPaused() || $this->isAbandoned());
     }
 
     /**
@@ -326,6 +346,26 @@ class RequestInsurance extends Model
     }
 
     /**
+     * Tells if the RequestInsurance instance has been completed
+     *
+     * @return bool
+     */
+    public function isCompleted()
+    {
+        return $this->completed_at !== null;
+    }
+
+    /**
+     * Syntactic sugar for negating isCompleted()
+     *
+     * @return bool
+     */
+    public function isNotCompleted()
+    {
+        return ! $this->isCompleted();
+    }
+
+    /**
      * Increments the retry count for the request
      *
      * @return $this
@@ -353,26 +393,6 @@ class RequestInsurance extends Model
         $this->retry_at = Carbon::now()->addSeconds($seconds);
 
         return $this;
-    }
-
-    /**
-     * Tells if the RequestInsurance instance has been completed
-     *
-     * @return bool
-     */
-    public function isCompleted()
-    {
-        return $this->completed_at !== null;
-    }
-
-    /**
-     * Syntactic sugar for negating isCompleted()
-     *
-     * @return bool
-     */
-    public function isNotCompleted()
-    {
-        return ! $this->isCompleted();
     }
 
     /**
