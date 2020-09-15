@@ -150,6 +150,11 @@ class RequestInsurance extends Model
         return $query;
     }
 
+    /**
+     * Gets the a shortened version of the payload
+     *
+     * @return string
+     */
     public function getShortenedPayload()
     {
         if (strlen($this->payload) <= 125) {
