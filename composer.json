@@ -1,6 +1,6 @@
 {
     "name": "cego/request-insurance",
-    "description": "Package that facilitates and ensures that http requests are sent",
+    "description": "Package for Laravel that facilitates and ensures that http requests are sent",
     "type": "project",
     "license": "MIT",
     "minimum-stability": "dev",
