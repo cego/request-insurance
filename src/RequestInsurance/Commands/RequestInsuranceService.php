@@ -4,7 +4,7 @@ namespace Cego\RequestInsurance\Commands;
 
 use Exception;
 use Carbon\Carbon;
-use Cego\Stopwatch;
+use Nbj\Stopwatch;
 use App\RequestInsurance;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
