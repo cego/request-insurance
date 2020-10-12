@@ -1,6 +1,6 @@
 <?php
 
-namespace Nbj\RequestInsurance\Exceptions;
+namespace Cego\RequestInsurance\Exceptions;
 
 use Exception;
 use Throwable;

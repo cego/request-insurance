@@ -1,6 +1,6 @@
 <?php
 
-namespace Nbj\RequestInsurance\Commands;
+namespace Cego\RequestInsurance\Commands;
 
 use Illuminate\Console\Command;
 
@@ -31,7 +31,7 @@ class InstallRequestInsurance extends Command
 
         // Publish files
         $this->call('vendor:publish', [
-            '--provider' => "Nbj\RequestInsurance\RequestInsuranceServiceProvider",
+            '--provider' => "Cego\RequestInsurance\RequestInsuranceServiceProvider",
             '--force'    => true
         ]);
 

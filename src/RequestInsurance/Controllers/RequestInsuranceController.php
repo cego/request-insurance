@@ -1,6 +1,6 @@
 <?php
 
-namespace Nbj\RequestInsurance\Controllers;
+namespace Cego\RequestInsurance\Controllers;
 
 use Exception;
 use App\RequestInsurance;

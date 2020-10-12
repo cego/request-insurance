@@ -1,6 +1,6 @@
 <?php
 
-namespace Nbj\RequestInsurance\ViewComponents;
+namespace Cego\RequestInsurance\ViewComponents;
 
 use Illuminate\View\Component;
 

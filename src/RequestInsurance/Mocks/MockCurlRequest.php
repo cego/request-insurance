@@ -1,8 +1,8 @@
 <?php
 
-namespace Nbj\RequestInsurance\Mocks;
+namespace Cego\RequestInsurance\Mocks;
 
-use Nbj\RequestInsurance\Contracts\HttpRequest;
+use Cego\RequestInsurance\Contracts\HttpRequest;
 
 class MockCurlRequest extends HttpRequest
 {

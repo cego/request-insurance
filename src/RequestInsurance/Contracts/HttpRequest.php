@@ -1,9 +1,9 @@
 <?php
 
-namespace Nbj\RequestInsurance\Contracts;
+namespace Cego\RequestInsurance\Contracts;
 
-use Nbj\RequestInsurance\HttpResponse;
-use Nbj\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
+use Cego\RequestInsurance\HttpResponse;
+use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
 abstract class HttpRequest
 {

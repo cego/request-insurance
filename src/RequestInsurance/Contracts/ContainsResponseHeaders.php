@@ -1,6 +1,6 @@
 <?php
 
-namespace Nbj\RequestInsurance\Contracts;
+namespace Cego\RequestInsurance\Contracts;
 
 interface ContainsResponseHeaders
 {

@@ -1,15 +1,15 @@
 <?php
 
-namespace Nbj\RequestInsurance;
+namespace Cego\RequestInsurance;
 
 use Illuminate\Support\ServiceProvider;
-use Nbj\RequestInsurance\Contracts\HttpRequest;
-use Nbj\RequestInsurance\ViewComponents\Status;
-use Nbj\RequestInsurance\ViewComponents\HttpCode;
-use Nbj\RequestInsurance\ViewComponents\InlineJson;
-use Nbj\RequestInsurance\ViewComponents\PrettyJson;
-use Nbj\RequestInsurance\Commands\InstallRequestInsurance;
-use Nbj\RequestInsurance\Commands\RequestInsuranceService;
+use Cego\RequestInsurance\Contracts\HttpRequest;
+use Cego\RequestInsurance\ViewComponents\Status;
+use Cego\RequestInsurance\ViewComponents\HttpCode;
+use Cego\RequestInsurance\ViewComponents\InlineJson;
+use Cego\RequestInsurance\ViewComponents\PrettyJson;
+use Cego\RequestInsurance\Commands\InstallRequestInsurance;
+use Cego\RequestInsurance\Commands\RequestInsuranceService;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
 {

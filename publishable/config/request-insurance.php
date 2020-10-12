@@ -54,5 +54,5 @@ return [
      | Set the concrete implementation for HttpRequest
      */
 
-    'httpRequestClass' => env('REQUEST_INSURANCE_HTTP_REQUEST_CLASS', \Nbj\RequestInsurance\CurlRequest::class)
+    'httpRequestClass' => env('REQUEST_INSURANCE_HTTP_REQUEST_CLASS', \Cego\RequestInsurance\CurlRequest::class)
 ];

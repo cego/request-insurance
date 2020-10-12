@@ -1,10 +1,10 @@
 <?php
 
-namespace Nbj\RequestInsurance;
+namespace Cego\RequestInsurance;
 
 use Illuminate\Support\Collection;
-use Nbj\RequestInsurance\Contracts\HttpRequest;
-use Nbj\RequestInsurance\Contracts\ContainsResponseHeaders;
+use Cego\RequestInsurance\Contracts\HttpRequest;
+use Cego\RequestInsurance\Contracts\ContainsResponseHeaders;
 
 class HttpResponse
 {

@@ -1,16 +1,16 @@
 <?php
 
-namespace Nbj\RequestInsurance\Commands;
+namespace Cego\RequestInsurance\Commands;
 
 use Exception;
 use Carbon\Carbon;
-use Nbj\Stopwatch;
+use Cego\Stopwatch;
 use App\RequestInsurance;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
-use Nbj\RequestInsurance\Exceptions\FailedToLockRequestInsurances;
+use Cego\RequestInsurance\Exceptions\FailedToLockRequestInsurances;
 
 class RequestInsuranceService extends Command
 {

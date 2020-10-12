@@ -1,5 +1,5 @@
 {
-    "name": "nbj/request-insurance",
+    "name": "cego/request-insurance",
     "description": "Package that facilitates and ensures that http requests are sent",
     "type": "project",
     "license": "MIT",
@@ -20,13 +20,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Nbj\\": "src/"
+            "Cego\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Nbj\\RequestInsurance\\RequestInsuranceServiceProvider"
+                "Cego\\RequestInsurance\\RequestInsuranceServiceProvider"
             ]
         }
     }
