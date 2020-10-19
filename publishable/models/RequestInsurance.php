@@ -9,9 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Nbj\RequestInsurance\Contracts\HttpRequest;
+use Cego\RequestInsurance\Contracts\HttpRequest;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Nbj\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
+use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
 /**
  * Class RequestInsurance
