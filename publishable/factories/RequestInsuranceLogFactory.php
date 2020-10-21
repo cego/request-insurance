@@ -2,9 +2,9 @@
 
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 
-use App\RequestInsurance;
-use App\RequestInsuranceLog;
 use Faker\Generator as Faker;
+use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\RequestInsurance\Models\RequestInsuranceLog;
 
 $factory->define(RequestInsuranceLog::class, function (Faker $faker) {
     return [

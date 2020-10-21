@@ -2,8 +2,8 @@
 
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 
-use App\RequestInsurance;
 use Faker\Generator as Faker;
+use Cego\RequestInsurance\Models\RequestInsurance;
 
 $factory->define(RequestInsurance::class, function (Faker $faker) {
     return [
