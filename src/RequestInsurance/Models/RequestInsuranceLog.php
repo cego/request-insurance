@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace Cego\RequestInsurance\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;

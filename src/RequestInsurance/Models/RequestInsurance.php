@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace Cego\RequestInsurance\Models;
 
 use Exception;
 use Carbon\Carbon;

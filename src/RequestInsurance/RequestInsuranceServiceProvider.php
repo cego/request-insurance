@@ -2,14 +2,14 @@
 
 namespace Cego\RequestInsurance;
 
+use Cego\RequestInsurance\Commands;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\ViewComponents\Status;
 use Cego\RequestInsurance\ViewComponents\HttpCode;
 use Cego\RequestInsurance\ViewComponents\InlineJson;
 use Cego\RequestInsurance\ViewComponents\PrettyJson;
-use Cego\RequestInsurance\Commands\InstallRequestInsurance;
-use Cego\RequestInsurance\Commands\RequestInsuranceService;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
 {
@@ -26,9 +26,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
 
         // Makes sure essential files are published to the consuming project
         $this->publishes([
-            __DIR__ . '/../../publishable/config/request-insurance.php'   => config_path() . '/request-insurance.php',
-            __DIR__ . '/../../publishable/models/RequestInsurance.php'    => app_path() . '/RequestInsurance.php',
-            __DIR__ . '/../../publishable/models/RequestInsuranceLog.php' => app_path() . '/RequestInsuranceLog.php',
+            __DIR__ . '/../../publishable/config/request-insurance.php' => config_path() . '/request-insurance.php',
         ]);
 
         // Make sure that routes are added
@@ -43,13 +41,20 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             Status::class,
         ]);
 
-        // Add the installation command to Artisan
+        // Add all commands to Artisan
         if ($this->app->runningInConsole()) {
             $this->commands([
-                InstallRequestInsurance::class,
-                RequestInsuranceService::class,
+                Commands\RequestInsuranceService::class,
+                Commands\UnlockBlockedRequestInsurances::class,
+                Commands\CleanUpRequestInsurances::class,
             ]);
         }
+
+        // Add specific commands to the schedule
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+            $schedule->command('unlock:request-insurances')->everyFiveMinutes();
+            $schedule->command('clean:request-insurances')->dailyAt('03:00');
+        });
     }
 
     /**
