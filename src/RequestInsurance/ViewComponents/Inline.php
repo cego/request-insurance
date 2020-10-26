@@ -12,9 +12,9 @@ class Inline extends Component
     /**
      * Holds the json to be printed
      *
-     * @var string $data
+     * @var string $content
      */
-    public $data;
+    public $content;
 
     /**
      * PrettyJson constructor.
@@ -25,7 +25,7 @@ class Inline extends Component
      */
     public function __construct($content)
     {
-        $this->data = $content;
+        $this->$content = $content;
     }
 
     /**
