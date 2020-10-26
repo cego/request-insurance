@@ -57,8 +57,21 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             $schedule->command('clean:request-insurances')->dailyAt('03:00');
         });
 
-        // Use bootstrap for the paginator instead of tailwind, since the rest of the interface uses bootstrap
-        Paginator::useBootstrap();
+        $this->setPaginatorStyling();
+    }
+
+    /**
+     * Sets the paginator styling to bootstrap if using Laravel 8
+     */
+    private function setPaginatorStyling()
+    {
+        $app = app();
+
+        // If Laravel version 8
+        if (version_compare($app::VERSION, '8.0.0', '>=') === true) {
+            // Use bootstrap for the paginator instead of tailwind, since the rest of the interface uses bootstrap
+            Paginator::useBootstrap();
+        }
     }
 
     /**
