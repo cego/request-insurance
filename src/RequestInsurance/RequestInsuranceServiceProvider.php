@@ -8,7 +8,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\ViewComponents\Status;
 use Cego\RequestInsurance\ViewComponents\HttpCode;
-use Cego\RequestInsurance\ViewComponents\Inline;
+use Cego\RequestInsurance\ViewComponents\InlinePrint;
 use Cego\RequestInsurance\ViewComponents\PrettyPrint;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
@@ -37,7 +37,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
         $this->loadViewComponentsAs('request-insurance', [
             HttpCode::class,
             PrettyPrint::class,
-            Inline::class,
+            InlinePrint::class,
             Status::class,
         ]);
 

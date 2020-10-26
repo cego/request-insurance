@@ -7,7 +7,7 @@ use Illuminate\View\View;
 use Illuminate\View\Component;
 use Illuminate\Contracts\View\Factory;
 
-class Inline extends Component
+class InlinePrint extends Component
 {
     /**
      * Holds the json to be printed

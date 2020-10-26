@@ -128,8 +128,8 @@
                                     <tr>
                                         <td>{{ $log->id }}</td>
                                         <td><x-request-insurance-http-code httpCode="{{ $log->response_code }}" /></td>
-                                        <td><x-request-insurance-inline :content="$log->response_headers"/></td>
-                                        <td><x-request-insurance-inline :content="$log->response_body"/></td>
+                                        <td><x-request-insurance-inline-print :content="$log->response_headers"/></td>
+                                        <td><x-request-insurance-inline-print :content="$log->response_body"/></td>
                                         <td>{{ $log->created_at }}</td>
                                     </tr>
                                 @endforeach
