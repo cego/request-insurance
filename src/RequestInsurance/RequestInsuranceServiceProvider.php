@@ -8,8 +8,8 @@ use Illuminate\Console\Scheduling\Schedule;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\ViewComponents\Status;
 use Cego\RequestInsurance\ViewComponents\HttpCode;
-use Cego\RequestInsurance\ViewComponents\InlineJson;
-use Cego\RequestInsurance\ViewComponents\PrettyJson;
+use Cego\RequestInsurance\ViewComponents\Inline;
+use Cego\RequestInsurance\ViewComponents\PrettyPrint;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
 {
@@ -36,8 +36,8 @@ class RequestInsuranceServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../../publishable/views', 'request-insurance');
         $this->loadViewComponentsAs('request-insurance', [
             HttpCode::class,
-            PrettyJson::class,
-            InlineJson::class,
+            PrettyPrint::class,
+            Inline::class,
             Status::class,
         ]);
 

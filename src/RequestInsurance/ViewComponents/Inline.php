@@ -7,14 +7,14 @@ use Illuminate\View\View;
 use Illuminate\View\Component;
 use Illuminate\Contracts\View\Factory;
 
-class InlineJson extends Component
+class Inline extends Component
 {
     /**
      * Holds the json to be printed
      *
-     * @var string $json
+     * @var string $data
      */
-    public $json;
+    public $data;
 
     /**
      * PrettyJson constructor.
@@ -23,9 +23,9 @@ class InlineJson extends Component
      *
      * @throws JsonException
      */
-    public function __construct($json)
+    public function __construct($data)
     {
-        $this->json = $json;
+        $this->data = $data;
     }
 
     /**
@@ -35,6 +35,6 @@ class InlineJson extends Component
      */
     public function render()
     {
-        return view('request-insurance::components.pretty-json');
+        return view('request-insurance::components.pretty-print');
     }
 }
