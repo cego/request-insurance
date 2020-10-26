@@ -65,10 +65,8 @@ class RequestInsuranceServiceProvider extends ServiceProvider
      */
     private function setPaginatorStyling()
     {
-        $app = app();
-
         // If Laravel version 8
-        if (version_compare($app::VERSION, '8.0.0', '>=') === true) {
+        if (version_compare(app()->version(), '8.0.0', '>=') === true) {
             // Use bootstrap for the paginator instead of tailwind, since the rest of the interface uses bootstrap
             Paginator::useBootstrap();
         }
