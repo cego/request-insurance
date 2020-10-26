@@ -14,18 +14,18 @@ class PrettyPrint extends Component
      *
      * @var string
      */
-    public $data;
+    public $content;
 
     /**
      * Create a new component instance.
      *
-     * @param object|array|string $data
+     * @param object|array|string $content
      *
      * @throws \JsonException
      */
-    public function __construct($data)
+    public function __construct($content)
     {
-        $this->data = $this->prettyPrint($data);
+        $this->content = $this->prettyPrint($content);
     }
 
     /**
@@ -39,45 +39,45 @@ class PrettyPrint extends Component
     }
 
     /**
-     * @param object|array|string $data
+     * @param object|array|string $content
      *
      * @return string
      */
-    private function prettyPrint($data)
+    private function prettyPrint($content)
     {
         try {
             // Try to pretty print as json
-            return $this->prettyPrintJson($data);
+            return $this->prettyPrintJson($content);
         } catch (Exception $jsonException) {
             // If invalid json then just display the data
-            return print_r($data, true);
+            return print_r($content, true);
         }
     }
 
     /**
      * Takes either a json string or some data, and returns a json string that has been pretty printed.
      *
-     * @param object|array|string $data
+     * @param object|array|string $content
      *
      * @return string
      *
      * @throws \JsonException
      */
-    private function prettyPrintJson($data)
+    private function prettyPrintJson($content)
     {
-        if ( ! is_string($data) && ! is_array($data) && ! is_object($data)) {
+        if ( ! is_string($content) && ! is_array($content) && ! is_object($content)) {
             return '{}';
         }
 
-        if (is_string($data) && mb_strtolower($data) === 'null') {
+        if (is_string($content) && mb_strtolower($content) === 'null') {
             return '{}';
         }
 
         // If it is already in json format, we then need to turn it into an object, so it can be reformatted in pretty print
-        if (is_string($data)) {
-            $data = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+        if (is_string($content)) {
+            $content = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
         }
 
-        return json_encode($data, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
+        return json_encode($content, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
     }
 }

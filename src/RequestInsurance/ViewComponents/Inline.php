@@ -23,9 +23,9 @@ class Inline extends Component
      *
      * @throws JsonException
      */
-    public function __construct($data)
+    public function __construct($content)
     {
-        $this->data = $data;
+        $this->data = $content;
     }
 
     /**
