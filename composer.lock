@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bb9a195b492262938f5b30b89b48793d",
+    "content-hash": "33238fa33d37fcf6f51689a73f0d33b3",
     "packages": [
         {
             "name": "doctrine/inflector",
@@ -653,6 +653,65 @@
                 }
             ],
             "description": "The Illuminate Pipeline package.",
+            "homepage": "https://laravel.com",
+            "time": "2020-10-19T14:08:41+00:00"
+        },
+        {
+            "name": "illuminate/routing",
+            "version": "v8.11.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/illuminate/routing.git",
+                "reference": "ccf53ff2047d19c2538c36c7afaedc6461aab202"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/illuminate/routing/zipball/ccf53ff2047d19c2538c36c7afaedc6461aab202",
+                "reference": "ccf53ff2047d19c2538c36c7afaedc6461aab202",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "illuminate/collections": "^8.0",
+                "illuminate/container": "^8.0",
+                "illuminate/contracts": "^8.0",
+                "illuminate/http": "^8.0",
+                "illuminate/macroable": "^8.0",
+                "illuminate/pipeline": "^8.0",
+                "illuminate/session": "^8.0",
+                "illuminate/support": "^8.0",
+                "php": "^7.3",
+                "symfony/http-foundation": "^5.1",
+                "symfony/http-kernel": "^5.1",
+                "symfony/routing": "^5.1"
+            },
+            "suggest": {
+                "illuminate/console": "Required to use the make commands (^8.0).",
+                "nyholm/psr7": "Required to use PSR-7 bridging features (^1.2).",
+                "symfony/psr-http-message-bridge": "Required to use PSR-7 bridging features (^2.0)."
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "8.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Illuminate\\Routing\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "The Illuminate Routing package.",
             "homepage": "https://laravel.com",
             "time": "2020-10-19T14:08:41+00:00"
         },
@@ -2624,6 +2683,98 @@
                 }
             ],
             "time": "2020-09-02T16:23:27+00:00"
+        },
+        {
+            "name": "symfony/routing",
+            "version": "v5.1.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/routing.git",
+                "reference": "720348c2ae011f8c56964c0fc3e992840cb60ccf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/routing/zipball/720348c2ae011f8c56964c0fc3e992840cb60ccf",
+                "reference": "720348c2ae011f8c56964c0fc3e992840cb60ccf",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2.5",
+                "symfony/deprecation-contracts": "^2.1",
+                "symfony/polyfill-php80": "^1.15"
+            },
+            "conflict": {
+                "symfony/config": "<5.0",
+                "symfony/dependency-injection": "<4.4",
+                "symfony/yaml": "<4.4"
+            },
+            "require-dev": {
+                "doctrine/annotations": "~1.2",
+                "psr/log": "~1.0",
+                "symfony/config": "^5.0",
+                "symfony/dependency-injection": "^4.4|^5.0",
+                "symfony/expression-language": "^4.4|^5.0",
+                "symfony/http-foundation": "^4.4|^5.0",
+                "symfony/yaml": "^4.4|^5.0"
+            },
+            "suggest": {
+                "doctrine/annotations": "For using the annotation loader",
+                "symfony/config": "For using the all-in-one router or any loader",
+                "symfony/expression-language": "For using expression matching",
+                "symfony/http-foundation": "For using a Symfony Request object",
+                "symfony/yaml": "For using the YAML loader"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "5.1-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Routing\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Routing Component",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "router",
+                "routing",
+                "uri",
+                "url"
+            ],
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2020-10-02T13:05:43+00:00"
         },
         {
             "name": "symfony/service-contracts",
