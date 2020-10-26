@@ -37,11 +37,11 @@
                                 </tr>
                                 <tr>
                                     <td>Payload:</td>
-                                    <td><x-request-insurance-pretty-json :json="$requestInsurance->payload"/></td>
+                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->payload"/></td>
                                 </tr>
                                 <tr>
                                     <td>Headers:</td>
-                                    <td><x-request-insurance-pretty-json :json="$requestInsurance->headers"/></td>
+                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->headers"/></td>
                                 </tr>
                                 <tr>
                                     <td>Completed at:</td>
@@ -91,11 +91,11 @@
                                 </tr>
                                 <tr>
                                     <td>Response headers:</td>
-                                    <td><x-request-insurance-pretty-json :json="$requestInsurance->response_headers"/></td>
+                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->response_headers"/></td>
                                 </tr>
                                 <tr>
                                     <td>Response body</td>
-                                    <td><x-request-insurance-pretty-json :json="$requestInsurance->response_body"/></td>
+                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->response_body"/></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -128,8 +128,8 @@
                                     <tr>
                                         <td>{{ $log->id }}</td>
                                         <td><x-request-insurance-http-code httpCode="{{ $log->response_code }}" /></td>
-                                        <td><x-request-insurance-inline-json :json="$log->response_headers"/></td>
-                                        <td><x-request-insurance-inline-json :json="$log->response_body"/></td>
+                                        <td><x-request-insurance-inline-print :content="$log->response_headers"/></td>
+                                        <td><x-request-insurance-inline-print :content="$log->response_body"/></td>
                                         <td>{{ $log->created_at }}</td>
                                     </tr>
                                 @endforeach
