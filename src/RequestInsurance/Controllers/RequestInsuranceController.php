@@ -24,7 +24,7 @@ class RequestInsuranceController extends Controller
         // Flash the request parameters, so we can redisplay the same filter parameters.
         $request->flash();
 
-        $paginator = RequestInsurance::latest()
+        $paginator = RequestInsurance::latest('id')
             ->filteredByRequest($request)
             ->paginate(25);
 
