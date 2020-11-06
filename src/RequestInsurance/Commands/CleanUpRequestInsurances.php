@@ -5,6 +5,7 @@ namespace Cego\RequestInsurance\Commands;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\RequestInsurance\Models\RequestInsuranceLog;
 
 class CleanUpRequestInsurances extends Command
 {
@@ -29,7 +30,11 @@ class CleanUpRequestInsurances extends Command
      */
     public function handle()
     {
+        // Clean up RequestInsurances table
         RequestInsurance::whereResponseCode(200)->where('created_at', '<', Carbon::now()->subHours(48))->delete();
+
+        // Clean up RequestInsuranceLogs table
+        RequestInsuranceLog::doesntHave('parent')->delete();
 
         return 0;
     }
