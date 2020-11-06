@@ -6,7 +6,9 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
 class RequestInsuranceController extends Controller
 {
@@ -94,6 +96,46 @@ class RequestInsuranceController extends Controller
         $requestInsurance->unlock();
 
         return redirect()->back();
+    }
+
+    /**
+     * Gets json representation of service load
+     *
+     * @return array
+     */
+    public function load()
+    {
+        $files = Storage::disk('local')->files('load-statistics');
+
+        $loadFiveMinutes = 0;
+        $loadTenMinutes = 0;
+        $loadFifteenMinutes = 0;
+
+        foreach ($files as $file) {
+            try {
+                $loadStatistics = json_decode(Storage::disk('local')->get($file));
+
+                $loadFiveMinutes += $loadStatistics->loadFiveMinutes;
+                $loadTenMinutes += $loadStatistics->loadTenMinutes;
+                $loadFifteenMinutes += $loadStatistics->loadFifteenMinutes;
+            } catch (FileNotFoundException $exception) {
+                // Ignore for now
+            }
+        }
+
+        if (config('request-insurance.condenseLoad')) {
+            $numberOfFiles = count($files);
+
+            $loadFiveMinutes = $loadFiveMinutes / $numberOfFiles;
+            $loadTenMinutes = $loadTenMinutes / $numberOfFiles;
+            $loadFifteenMinutes = $loadFifteenMinutes / $numberOfFiles;
+        }
+
+        return [
+            'loadFiveMinutes'    => $loadFiveMinutes,
+            'loadTenMinutes'     => $loadTenMinutes,
+            'loadFifteenMinutes' => $loadFifteenMinutes,
+        ];
     }
 
     /**
