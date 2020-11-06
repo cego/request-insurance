@@ -3,6 +3,11 @@
 use Illuminate\Support\Facades\Route;
 
 Route::namespace('Cego\RequestInsurance\Controllers')->prefix('vendor')->group(function () {
+    Route::get('request-insurances/load', [
+        'uses' => 'RequestInsuranceController@load',
+        'as'   => 'request-insurances.load',
+    ])->middleware('api');
+
     Route::resource('request-insurances', 'RequestInsuranceController')
         ->only(['index', 'show', 'destroy'])
         ->middleware('web');
