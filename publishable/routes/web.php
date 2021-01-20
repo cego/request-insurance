@@ -16,4 +16,14 @@ Route::namespace('Cego\RequestInsurance\Controllers')->prefix('vendor')->group(f
         'uses' => 'RequestInsuranceController@unlock',
         'as'   => 'request-insurances.unlock',
     ])->middleware('web');
+
+    Route::get('request-insurances/load', [
+        'uses' => 'RequestInsuranceController@load',
+        'as'   => 'request-insurances.load',
+    ])->middleware('api');
+
+    Route::get('request-insurances/monitor', [
+        'uses' => 'RequestInsuranceController@monitor',
+        'as'   => 'request-insurances.monitor',
+    ])->middleware('api');
 });
