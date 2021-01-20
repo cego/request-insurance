@@ -33,12 +33,12 @@ class RequestInsuranceController extends Controller
         $segmentedNumberOfRequests = $this->getSegmentedNumberOfRequests();
 
         return view('request-insurance::index')->with([
-            'requestInsurances'         => $paginator,
-            'numberOfActiveRequests'    => $segmentedNumberOfRequests->get('active'),
+            'requestInsurances' => $paginator,
+            'numberOfActiveRequests' => $segmentedNumberOfRequests->get('active'),
             'numberOfCompletedRequests' => $segmentedNumberOfRequests->get('completed'),
-            'numberOfPausedRequests'    => $segmentedNumberOfRequests->get('paused'),
+            'numberOfPausedRequests' => $segmentedNumberOfRequests->get('paused'),
             'numberOfAbandonedRequests' => $segmentedNumberOfRequests->get('abandoned'),
-            'numberOfLockedRequests'    => $segmentedNumberOfRequests->get('locked'),
+            'numberOfLockedRequests' => $segmentedNumberOfRequests->get('locked'),
         ]);
     }
 
@@ -132,10 +132,27 @@ class RequestInsuranceController extends Controller
         }
 
         return [
-            'loadFiveMinutes'    => $loadFiveMinutes,
-            'loadTenMinutes'     => $loadTenMinutes,
+            'loadFiveMinutes' => $loadFiveMinutes,
+            'loadTenMinutes' => $loadTenMinutes,
             'loadFifteenMinutes' => $loadFifteenMinutes,
         ];
+    }
+
+    public function monitor()
+    {
+        $activeCount = RequestInsurance::where('completed_at', null)
+            ->where('resolved_at', null)
+            ->where(function ($query) {
+                $query->where('response_code', '>', 499)
+                    ->orWhere('response_code', null);
+            })->count();
+
+        $failCount = RequestInsurance::where('response_code', '>', 399)
+            ->where('response_code', '<', 500)
+            ->where('resolved_at', null)
+            ->count();
+
+        return compact('activeCount', 'failCount');
     }
 
     /**
