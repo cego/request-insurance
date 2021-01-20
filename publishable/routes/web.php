@@ -11,7 +11,7 @@ Route::namespace('Cego\RequestInsurance\Controllers')->prefix('vendor')->group(f
     Route::get('request-insurances/monitor', [
         'uses' => 'RequestInsuranceController@monitor',
         'as'   => 'request-insurances.monitor',
-    ])->middleware('web');
+    ])->middleware('api');
 
     Route::resource('request-insurances', 'RequestInsuranceController')
         ->only(['index', 'show', 'destroy'])
