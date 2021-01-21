@@ -138,6 +138,11 @@ class RequestInsuranceController extends Controller
         ];
     }
 
+    /**
+     * Gets json representation of failed and active requests
+     *
+     * @return array
+     */
     public function monitor()
     {
         $activeCount = RequestInsurance::where('completed_at', null)
@@ -149,7 +154,10 @@ class RequestInsuranceController extends Controller
             ->where('paused_at', '!=', null)
             ->count();
 
-        return compact('activeCount', 'failCount');
+        return [
+            'activeCount' => $activeCount,
+            'failCount'   => $failCount,
+        ];
     }
 
     /**
