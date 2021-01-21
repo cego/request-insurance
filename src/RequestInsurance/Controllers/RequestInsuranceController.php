@@ -33,12 +33,12 @@ class RequestInsuranceController extends Controller
         $segmentedNumberOfRequests = $this->getSegmentedNumberOfRequests();
 
         return view('request-insurance::index')->with([
-            'requestInsurances' => $paginator,
-            'numberOfActiveRequests' => $segmentedNumberOfRequests->get('active'),
+            'requestInsurances'         => $paginator,
+            'numberOfActiveRequests'    => $segmentedNumberOfRequests->get('active'),
             'numberOfCompletedRequests' => $segmentedNumberOfRequests->get('completed'),
-            'numberOfPausedRequests' => $segmentedNumberOfRequests->get('paused'),
+            'numberOfPausedRequests'    => $segmentedNumberOfRequests->get('paused'),
             'numberOfAbandonedRequests' => $segmentedNumberOfRequests->get('abandoned'),
-            'numberOfLockedRequests' => $segmentedNumberOfRequests->get('locked'),
+            'numberOfLockedRequests'    => $segmentedNumberOfRequests->get('locked'),
         ]);
     }
 
@@ -132,8 +132,8 @@ class RequestInsuranceController extends Controller
         }
 
         return [
-            'loadFiveMinutes' => $loadFiveMinutes,
-            'loadTenMinutes' => $loadTenMinutes,
+            'loadFiveMinutes'    => $loadFiveMinutes,
+            'loadTenMinutes'     => $loadTenMinutes,
             'loadFifteenMinutes' => $loadFifteenMinutes,
         ];
     }
