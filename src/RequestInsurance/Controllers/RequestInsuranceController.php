@@ -139,6 +139,28 @@ class RequestInsuranceController extends Controller
     }
 
     /**
+     * Gets json representation of failed and active requests
+     *
+     * @return array
+     */
+    public function monitor()
+    {
+        $activeCount = RequestInsurance::where('completed_at', null)
+            ->where('abandoned_at', null)
+            ->where('paused_at', null)
+            ->count();
+
+        $failCount = RequestInsurance::where('abandoned_at', null)
+            ->where('paused_at', '!=', null)
+            ->count();
+
+        return [
+            'activeCount' => $activeCount,
+            'failCount'   => $failCount,
+        ];
+    }
+
+    /**
      * Gets a collection of segmented number of requests
      *
      * @return \Illuminate\Support\Collection
