@@ -14,7 +14,7 @@ class SetDefaultValueForPayloadRequestInsurance extends Migration
     public function up(): void
     {
         Schema::table('request_insurances', function (Blueprint $table) {
-            $table->longText('payload')->nullable()->default(null);
+            $table->longText('payload')->nullable()->default(null)->change();
         });
     }
 
