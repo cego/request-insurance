@@ -82,14 +82,14 @@ class RequestInsuranceService extends Command
     {
         // Bail-out early if request insurance is not enabled
         if (config('request-insurance.enabled') == false) {
-            Log::info('RequestInsuranceService is not enabled. Enable it before starting again.');
+            Log::debug('RequestInsuranceService is not enabled. Enable it before starting again.');
 
             return 0;
         }
 
         $this->microSecondsToWait = config('request-insurance.microSecondsToWait', 100000);
 
-        Log::info(sprintf('[%s] RequestInsuranceService has started. Running interval is [%d] microseconds', $this->runningHash, $this->microSecondsToWait));
+        Log::debug(sprintf('[%s] RequestInsuranceService has started. Running interval is [%d] microseconds', $this->runningHash, $this->microSecondsToWait));
 
         do {
             $executionTime = Stopwatch::time(function () {
@@ -102,7 +102,7 @@ class RequestInsuranceService extends Command
             usleep($waitTime);
         } while ( ! $onlyOnce);
 
-        Log::info('[%s] RequestInsuranceService has stopped.', $this->runningHash);
+        Log::debug('[%s] RequestInsuranceService has stopped.', $this->runningHash);
 
         return 0;
     }
@@ -117,7 +117,7 @@ class RequestInsuranceService extends Command
         // RequestInsurance rows for processing.
         $requestIds = DB::transaction(function () {
             $requestIds = $this->getIdsOfReadyRequests();
-            Log::info(sprintf('[%s] Found [%s] requests ready for processing!', $this->runningHash, $requestIds->count()));
+            Log::debug(sprintf('[%s] Found [%s] requests ready for processing!', $this->runningHash, $requestIds->count()));
 
             if ($requestIds->isEmpty()) {
                 return $requestIds;
@@ -142,7 +142,7 @@ class RequestInsuranceService extends Command
 
         // Process each RequestInsurance making sure to unlock it
         // whether it fails or completes successfully
-        Log::info(sprintf('[%s] Processing started...', $this->runningHash));
+        Log::debug(sprintf('[%s] Processing started...', $this->runningHash));
 
         $requests->each(function (RequestInsurance $request) {
             try {
@@ -156,7 +156,7 @@ class RequestInsuranceService extends Command
             }
         });
 
-        Log::info(sprintf('[%s] Processing of %s requests has completed!', $this->runningHash, $requests->count()));
+        Log::debug(sprintf('[%s] Processing of %s requests has completed!', $this->runningHash, $requests->count()));
     }
 
     /**
