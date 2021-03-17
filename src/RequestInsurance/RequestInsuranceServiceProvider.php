@@ -2,7 +2,6 @@
 
 namespace Cego\RequestInsurance;
 
-use Cego\RequestInsurance\Commands;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
@@ -29,6 +28,13 @@ class RequestInsuranceServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../../publishable/config/request-insurance.php' => config_path() . '/request-insurance.php',
         ]);
+
+        // Merge default config into the published
+        // This allows for default values, and should autoload the config
+        $this->mergeConfigFrom(
+            __DIR__ . '/../publishable/config/request-insurance.php',
+            'request-insurance'
+        );
 
         // Make sure that routes are added
         $this->loadRoutesFrom(__DIR__ . '/../../publishable/routes/web.php');
