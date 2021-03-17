@@ -32,7 +32,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
         // Merge default config into the published
         // This allows for default values, and should autoload the config
         $this->mergeConfigFrom(
-            __DIR__ . '/../publishable/config/request-insurance.php',
+            __DIR__ . '/../../publishable/config/request-insurance.php',
             'request-insurance'
         );
 
