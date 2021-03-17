@@ -74,6 +74,11 @@ class RequestInsurance extends Model
                 $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
             }
 
+            // We make sure to json encode payload to json if passed as an array
+            if (is_array($request->payload)) {
+                $request->payload = json_encode($request->payload, JSON_THROW_ON_ERROR);
+            }
+
             // We make sure to json encode response headers to json if passed as an array
             if (is_array($request->response_headers)) {
                 $request->response_headers = json_encode($request->response_headers, JSON_THROW_ON_ERROR);
