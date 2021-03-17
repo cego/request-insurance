@@ -36,8 +36,8 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
- * @method RequestInsurance create($attributes = [])
- * @method RequestInsurance|null first(array|string $columns)
+ * @method static RequestInsurance create($attributes = [])
+ * @method static RequestInsurance|null first(array|string $columns)
  */
 class RequestInsurance extends Model
 {
