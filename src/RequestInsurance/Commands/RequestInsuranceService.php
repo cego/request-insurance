@@ -150,7 +150,7 @@ class RequestInsuranceService extends Command
             try {
                 $request->process();
             } catch (Exception $exception) {
-                Log::error(sprintf('Failed to process RequestInsurance with id [%d] - ErrorMessage: %s', $request->id, $exception->getTraceAsString()));
+                Log::error(sprintf("Failed to process RequestInsurance with id [%d] - ErrorMessage: %s \n %s", $request->id, $exception->getMessage(), $exception->getTraceAsString()));
 
                 $request->pause();
             } finally {
