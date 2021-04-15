@@ -8,6 +8,7 @@ use Nbj\Stopwatch;
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -115,6 +116,7 @@ class RequestInsuranceService extends Command
         // Fetch all RequestInsurances ready to be processed and lock them
         // This prevents other processing instances of selecting the same
         // RequestInsurance rows for processing.
+        /** @var Collection|int[] $requestIds */
         $requestIds = DB::transaction(function () {
             $requestIds = $this->getIdsOfReadyRequests();
             Log::debug(sprintf('[%s] Found [%s] requests ready for processing!', $this->runningHash, $requestIds->count()));
@@ -162,18 +164,30 @@ class RequestInsuranceService extends Command
     /**
      * Gets a collection of RequestInsurances ready to be processed
      *
-     * @return mixed
+     * @return Collection|int[]
      */
     public function getIdsOfReadyRequests()
     {
         $batchSize = Config::get('request-log.batchSize', 100);
 
+        // Multiple workers might try to acquire a DB lock for the exact same rows.
+        // Because of this, once this worker actually acquires the DB lock
+        // the rows we just tried to lock, might have been column locked by another worker
+        // by setting the locked_at column to something other than null.
+        //
+        // Therefore to avoid processing the same row multiple times, or getting
+        // a dead lock, we need to add this seemingly redundant ->whereNull('locked_at') check.
+        //
+        // It is VERY important that this whereNull check is done in-memory, and not as part of the query!
+        // This is because, the query is executed before the lock is acquired, and would not give the
+        // wanted effect if not done in-memory!
         return RequestInsurance::query()
             ->select('id')
             ->readyToBeProcessed()
             ->take($batchSize)
             ->lockForUpdate()
             ->get()
+            ->whereNull('locked_at')
             ->pluck('id');
     }
 
