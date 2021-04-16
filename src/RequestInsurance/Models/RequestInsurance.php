@@ -358,7 +358,8 @@ class RequestInsurance extends Model
                 $this->save();
             } catch (Exception $exception) {
                 if ($tries < 3) {
-                    usleep(10000); // Sleep 10ms
+                    // Sleep 10ms
+                    usleep(10000);
 
                     continue;
                 }
