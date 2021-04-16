@@ -373,11 +373,11 @@ class RequestInsurance extends Model
      */
     public function saveWithRetries($maxTries = 3): bool
     {
-        for ($tries = $maxTries; $tries < 3; $tries++) {
+        for ($tries = 0; $tries < $maxTries; $tries++) {
             try {
                 return $this->save();
             } catch (Exception $exception) {
-                if ($tries < 3) {
+                if ($tries < $maxTries) {
                     // Sleep 10ms
                     usleep(10000);
 
