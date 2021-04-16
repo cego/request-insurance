@@ -182,7 +182,7 @@ class RequestInsurance extends Model
         Log::debug(sprintf('Unlocking request with id: [%d]', $this->id));
 
         $this->locked_at = null;
-        $this->save();
+        $this->saveWithRetries();
 
         return $this;
     }
@@ -247,7 +247,7 @@ class RequestInsurance extends Model
         $this->paused_at = $this->wasSuccessful() ? null : Carbon::now();
         $this->retry_at = null;
 
-        $this->save();
+        $this->saveWithRetries();
 
         return $this;
     }
@@ -329,12 +329,16 @@ class RequestInsurance extends Model
         $this->response_code = $response->getCode();
         $this->response_headers = $response->getHeaders();
 
-        // Create a log for the request to we track of all attempts
-        $this->logs()->create([
-            'response_body'    => $response->getBody(),
-            'response_code'    => $response->getCode(),
-            'response_headers' => $response->getHeaders(),
-        ]);
+        // Create a log for the request to track all attempts
+        try {
+            $this->logs()->create([
+                'response_body'    => $response->getBody(),
+                'response_code'    => $response->getCode(),
+                'response_headers' => $response->getHeaders(),
+            ]);
+        } catch (Exception $exception) {
+            Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
+        }
 
         if ($response->isNotRetryable()) {
             $this->paused_at = Carbon::now();
@@ -353,9 +357,25 @@ class RequestInsurance extends Model
         // since this is not really a logic error, we add this retry logic
         // so the data is persisted.
         // This will most likely in almost all cases catch the problem before an exception is thrown.
-        for ($tries = 0; $tries < 3; $tries++) {
+        $this->saveWithRetries();
+
+        return $this;
+    }
+
+    /**
+     * Method for calling ->save() with retry logic
+     *
+     * @param int $maxTries
+     *
+     * @return bool
+     *
+     * @throws Exception
+     */
+    public function saveWithRetries($maxTries = 3): bool
+    {
+        for ($tries = $maxTries; $tries < 3; $tries++) {
             try {
-                $this->save();
+                return $this->save();
             } catch (Exception $exception) {
                 if ($tries < 3) {
                     // Sleep 10ms
@@ -367,8 +387,6 @@ class RequestInsurance extends Model
                 throw $exception;
             }
         }
-
-        return $this;
     }
 
     /**
