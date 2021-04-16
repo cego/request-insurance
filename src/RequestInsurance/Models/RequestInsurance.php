@@ -243,7 +243,8 @@ class RequestInsurance extends Model
     {
         Log::debug(sprintf('Pausing request with id: [%d]', $this->id));
 
-        $this->paused_at = Carbon::now();
+        // To avoid marking successful requests as failed, we add this successful check
+        $this->paused_at = $this->wasSuccessful() ? null : Carbon::now();
         $this->retry_at = null;
 
         $this->save();
@@ -348,9 +349,35 @@ class RequestInsurance extends Model
             $this->setNextRetryAt();
         }
 
-        $this->save();
+        // It happens that a ->save() causes a deadlock problem,
+        // since this is not really a logic error, we add this retry logic
+        // so the data is persisted.
+        // This will most likely in almost all cases catch the problem before an exception is thrown.
+        for ($tries = 0; $tries < 3; $tries++) {
+            try {
+                $this->save();
+            } catch (Exception $exception) {
+                if ($tries < 3) {
+                    usleep(10000); // Sleep 10ms
+
+                    continue;
+                }
+
+                throw $exception;
+            }
+        }
 
         return $this;
+    }
+
+    /**
+     * Returns true if the response code was 2XX
+     *
+     * @return bool
+     */
+    public function wasSuccessful(): bool
+    {
+        return 200 <= $this->response_code && $this->response_code < 300;
     }
 
     /**
