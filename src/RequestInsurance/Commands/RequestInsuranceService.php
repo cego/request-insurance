@@ -170,24 +170,12 @@ class RequestInsuranceService extends Command
     {
         $batchSize = Config::get('request-log.batchSize', 100);
 
-        // Multiple workers might try to acquire a DB lock for the exact same rows.
-        // Because of this, once this worker actually acquires the DB lock
-        // the rows we just tried to lock, might have been column locked by another worker
-        // by setting the locked_at column to something other than null.
-        //
-        // Therefore to avoid processing the same row multiple times, or getting
-        // a dead lock, we need to add this seemingly redundant ->whereNull('locked_at') check.
-        //
-        // It is VERY important that this whereNull check is done in-memory, and not as part of the query!
-        // This is because, the query is executed before the lock is acquired, and would not give the
-        // wanted effect if not done in-memory!
         return RequestInsurance::query()
             ->select('id')
             ->readyToBeProcessed()
             ->take($batchSize)
             ->lockForUpdate()
             ->get()
-            ->whereNull('locked_at')
             ->pluck('id');
     }
 
