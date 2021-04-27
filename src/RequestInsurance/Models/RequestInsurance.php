@@ -62,6 +62,17 @@ class RequestInsurance extends Model
     ];
 
     /**
+     * Get the table associated with the model.
+     *
+     * @return string
+     */
+    public function getTable(): string
+    {
+        // Use the one defined in the config, or the whatever is default
+        return config('request-insurance.table') ?? parent::getTable();
+    }
+
+    /**
      * Perform any actions required after the model boots.
      *
      * @return void
@@ -206,6 +217,7 @@ class RequestInsurance extends Model
     {
         Log::debug(sprintf('Abandoning request with id: [%d]', $this->id));
 
+        $this->paused_at = null;
         $this->abandoned_at = Carbon::now();
         $this->retry_at = null;
 

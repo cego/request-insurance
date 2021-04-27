@@ -64,4 +64,9 @@ return [
     */
 
     'condenseLoad' => env('REQUEST_INSURANCE_CONDENSE_LOAD', true),
+
+    /*
+     | Sets the table name to look for request insurances
+     */
+    'table' => null,
 ];
