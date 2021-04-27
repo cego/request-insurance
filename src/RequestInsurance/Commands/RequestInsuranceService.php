@@ -8,6 +8,7 @@ use Nbj\Stopwatch;
 use Illuminate\Support\Str;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -115,6 +116,7 @@ class RequestInsuranceService extends Command
         // Fetch all RequestInsurances ready to be processed and lock them
         // This prevents other processing instances of selecting the same
         // RequestInsurance rows for processing.
+        /** @var Collection|int[] $requestIds */
         $requestIds = DB::transaction(function () {
             $requestIds = $this->getIdsOfReadyRequests();
             Log::debug(sprintf('[%s] Found [%s] requests ready for processing!', $this->runningHash, $requestIds->count()));
@@ -148,7 +150,7 @@ class RequestInsuranceService extends Command
             try {
                 $request->process();
             } catch (Exception $exception) {
-                Log::error(sprintf('Failed to process RequestInsurance with id [%d] - ErrorMessage: %s', $request->id, $exception->getTraceAsString()));
+                Log::error(sprintf("Failed to process RequestInsurance with id [%d] - ErrorMessage: %s \n %s", $request->id, $exception->getMessage(), $exception->getTraceAsString()));
 
                 $request->pause();
             } finally {
@@ -162,7 +164,7 @@ class RequestInsuranceService extends Command
     /**
      * Gets a collection of RequestInsurances ready to be processed
      *
-     * @return mixed
+     * @return Collection|int[]
      */
     public function getIdsOfReadyRequests()
     {
