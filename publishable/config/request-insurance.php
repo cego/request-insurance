@@ -68,5 +68,6 @@ return [
     /*
      | Sets the table name to look for request insurances
      */
-    'table' => null,
+    'table'        => null,
+    'table_logs'   => null,
 ];

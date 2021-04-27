@@ -167,6 +167,8 @@ class RequestInsuranceController extends Controller
      */
     protected function getSegmentedNumberOfRequests()
     {
+        $table = RequestInsurance::make()->getTable();
+
         $query = <<<SQL
 select 
 	a.active, 
@@ -177,27 +179,27 @@ select
 from 
 	(
 		select count(*) as active 
-		from request_insurances 
+		from $table 
 		where response_code is null
 	) as a,
 	(
 		select count(*) as completed 
-		from request_insurances 
+		from $table 
 		where completed_at is not null
 	) as b,
 	(
 		select count(*) as paused 
-		from request_insurances 
+		from $table 
 		where paused_at is not null
 	) as c,
 	(
 		select count(*) as abandoned 
-		from request_insurances 
+		from $table 
 		where abandoned_at is not null
 	) as d,
 	(
 		select count(*) as locked 
-		from request_insurances 
+		from $table 
 		where locked_at is not null
 	) as e
 SQL;

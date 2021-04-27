@@ -26,6 +26,17 @@ class RequestInsuranceLog extends Model
     protected static $unguarded = true;
 
     /**
+     * Get the table associated with the model.
+     *
+     * @return string
+     */
+    public function getTable(): string
+    {
+        // Use the one defined in the config, or the whatever is default
+        return config('request-insurance.table_logs') ?? parent::getTable();
+    }
+
+    /**
      * Perform any actions required after the model boots.
      *
      * @return void
