@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance\Models;
 
 use Exception;
+use UnexpectedValueException;
 use Carbon\Carbon;
 use JsonException;
 use Illuminate\Http\Request;
@@ -83,16 +84,16 @@ class RequestInsurance extends Model
     {
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {
-            // Do not save the RI if method is not set
+            // Throw exception if method is not set
             if(!$request->method) {
-                Log::error(sprintf("Error saving Request Insurance. The 'method' property must not be empty. The following Request Insurance was not saved in DB: %s.", $request->toJson()));
-                return false;
+                $message = sprintf("Error saving Request Insurance. The 'method' property must not be empty. The following Request Insurance was not saved in DB: %s.", $request->toJson());
+                throw new UnexpectedValueException($message, 500);
             }
 
-            // Do not save the RI if url is not set
+            // Throw exception if url is not set
             if(!$request->url) {
-                Log::error(sprintf("Error saving Request Insurance. The 'url' property must not be empty. The following Request Insurance was not saved in DB: %s.", $request->toJson()));
-                return false;
+                $message = sprintf("Error saving Request Insurance. The 'url' property must not be empty. The following Request Insurance was not saved in DB: %s.", $request->toJson());
+                throw new UnexpectedValueException($message, 500);
             }
 
             // We make sure to json encode headers to json if passed as an array
