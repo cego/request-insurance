@@ -81,8 +81,20 @@ class RequestInsurance extends Model
      */
     protected static function booted()
     {
-        // We need to hook into the saving event to manipulate data before it is stored in the database
+        // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {
+            // Do not save the RI if method is not set
+            if(!$request->method) {
+                Log::error(sprintf("Error saving Request Insurance. The 'method' property must not be empty. The following Request Insurance was not saved in DB: %s.", $request->toJson()));
+                return false;
+            }
+
+            // Do not save the RI if url is not set
+            if(!$request->url) {
+                Log::error(sprintf("Error saving Request Insurance. The 'url' property must not be empty. The following Request Insurance was not saved in DB: %s.", $request->toJson()));
+                return false;
+            }
+
             // We make sure to json encode headers to json if passed as an array
             if (is_array($request->headers)) {
                 $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
