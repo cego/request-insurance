@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\Models;
 
+use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
 use UnexpectedValueException;
 use Carbon\Carbon;
@@ -84,16 +85,15 @@ class RequestInsurance extends Model
     {
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {
+
             // Throw exception if method is not set
             if(!$request->method) {
-                $message = sprintf("Error saving Request Insurance. The 'method' property must not be empty. The following Request Insurance was not saved in DB: %s.", $request->toJson());
-                throw new UnexpectedValueException($message, 500);
+                throw new EmptyPropertyException('method', $request);
             }
 
             // Throw exception if url is not set
             if(!$request->url) {
-                $message = sprintf("Error saving Request Insurance. The 'url' property must not be empty. The following Request Insurance was not saved in DB: %s.", $request->toJson());
-                throw new UnexpectedValueException($message, 500);
+                throw new EmptyPropertyException('url', $request);
             }
 
             // We make sure to json encode headers to json if passed as an array
