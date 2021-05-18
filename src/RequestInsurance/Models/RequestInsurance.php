@@ -2,7 +2,9 @@
 
 namespace Cego\RequestInsurance\Models;
 
+use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
+use UnexpectedValueException;
 use Carbon\Carbon;
 use JsonException;
 use Illuminate\Http\Request;
@@ -81,8 +83,19 @@ class RequestInsurance extends Model
      */
     protected static function booted()
     {
-        // We need to hook into the saving event to manipulate data before it is stored in the database
+        // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {
+
+            // Throw exception if method is not set
+            if(!$request->method) {
+                throw new EmptyPropertyException('method', $request);
+            }
+
+            // Throw exception if url is not set
+            if(!$request->url) {
+                throw new EmptyPropertyException('url', $request);
+            }
+
             // We make sure to json encode headers to json if passed as an array
             if (is_array($request->headers)) {
                 $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
