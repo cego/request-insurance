@@ -389,7 +389,7 @@ class RequestInsurance extends Model
             try {
                 return $this->save();
             } catch (Exception $exception) {
-                if ($tries < $maxTries) {
+                if ($tries + 1 < $maxTries) {
                     // Sleep 10ms
                     usleep(10000);
 
