@@ -42,6 +42,12 @@ return [
 
     'maximumNumberOfRetries' => 10,
 
+    /*
+    | The number of days to keep 2xx rows, before deletion
+    */
+
+    'cleanUpKeepDays' => 14,
+
 
     /*
     | Set the number of requests in each batch
