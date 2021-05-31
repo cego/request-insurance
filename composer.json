@@ -26,11 +26,17 @@
         "illuminate/pagination": "^7.0|^8.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "*"
+        "friendsofphp/php-cs-fixer": "*",
+        "orchestra/testbench": "^6.18"
     },
     "autoload": {
         "psr-4": {
             "Cego\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
         }
     },
     "extra": {
