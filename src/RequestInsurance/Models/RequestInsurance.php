@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\Models;
 
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
 use UnexpectedValueException;
@@ -71,7 +72,7 @@ class RequestInsurance extends Model
     public function getTable(): string
     {
         // Use the one defined in the config, or the whatever is default
-        return config('request-insurance.table') ?? parent::getTable();
+        return Config::get('request-insurance.table') ?? parent::getTable();
     }
 
     /**
@@ -81,7 +82,7 @@ class RequestInsurance extends Model
      *
      * @throws JsonException
      */
-    protected static function booted()
+    protected static function booted(): void
     {
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {

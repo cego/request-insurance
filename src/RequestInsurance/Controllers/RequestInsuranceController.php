@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
@@ -123,7 +124,7 @@ class RequestInsuranceController extends Controller
             }
         }
 
-        if (config('request-insurance.condenseLoad')) {
+        if (Config::get('request-insurance.condenseLoad')) {
             $numberOfFiles = count($files);
 
             $loadFiveMinutes = $loadFiveMinutes / $numberOfFiles;

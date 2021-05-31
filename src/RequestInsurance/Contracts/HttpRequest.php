@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\Contracts;
 
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
@@ -19,7 +20,7 @@ abstract class HttpRequest
      *
      * @return static
      */
-    public static function create()
+    public static function create(): self
     {
         $class = app()->get(HttpRequest::class);
 
@@ -28,8 +29,8 @@ abstract class HttpRequest
             ->setOption(CURLOPT_USERAGENT, 'RequestInsurance CurlRequest')
             ->setOption(CURLOPT_RETURNTRANSFER, true)
             ->setOption(CURLOPT_FOLLOWLOCATION, true)
-            ->setOption(CURLOPT_TCP_KEEPALIVE, config('request-insurance.keepAlive', true))
-            ->setOption(CURLOPT_TIMEOUT, config('request-insurance.timeoutInSeconds', 5));
+            ->setOption(CURLOPT_TCP_KEEPALIVE, Config::get('request-insurance.keepAlive', true))
+            ->setOption(CURLOPT_TIMEOUT, Config::get('request-insurance.timeoutInSeconds', 5));
 
         return $instance;
     }

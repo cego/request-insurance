@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance\Models;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -33,7 +34,7 @@ class RequestInsuranceLog extends Model
     public function getTable(): string
     {
         // Use the one defined in the config, or the whatever is default
-        return config('request-insurance.table_logs') ?? parent::getTable();
+        return Config::get('request-insurance.table_logs') ?? parent::getTable();
     }
 
     /**
