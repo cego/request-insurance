@@ -25,6 +25,9 @@
                             <form method="get" class="float-right form-inline">
                                 <div class="form-group mr-5">
                                     <label class="form-check-label mr-3">
+                                        Url: <input class="form-control ml-2" type="text" name="url" style="width: 250px" placeholder="% (SQL LIKE)" value="{{ old("url") }}">
+                                    </label>
+                                    <label class="form-check-label mr-3">
                                         From: <input class="form-control ml-2" type="date" name="from" style="width: 200px" placeholder="dd-mm-yyyy" value="{{ old("from") }}">
                                     </label>
                                     <label class="form-check-label">
@@ -32,6 +35,7 @@
                                     </label>
                                 </div>
 
+                                <span class="mr-3">State:</span>
                                 <div class="form-check form-check-inline">
                                     <label class="form-check-label">
                                         <input class="form-check-input check-lg" type="radio" name="group" value="Active" {{ old("group") == "Active" ? "checked" : "" }}> Active
