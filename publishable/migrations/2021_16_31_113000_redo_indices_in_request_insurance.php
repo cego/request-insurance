@@ -17,7 +17,7 @@ class RedoIndicesInRequestInsurance extends Migration
             // First we delete all the unnecessary single indexes
             $table->dropIndex('retry_at');
             $table->dropIndex('completed_at');
-            $table->dropIndex('retry_at');
+            $table->dropIndex('locked_at');
             $table->dropIndex('abandoned_at');
             $table->dropIndex('paused_at');
 
@@ -32,6 +32,7 @@ class RedoIndicesInRequestInsurance extends Migration
             // Date range:          ['created_at']
             // Url and date range:  ['url', 'created_at']
             // Failed Rows:         ['paused_at', 'abandoned_at']
+            // Status:              ['response_code', 'created_at']
             //
             // Our most used queries for the interface are the following
             //
@@ -40,8 +41,9 @@ class RedoIndicesInRequestInsurance extends Migration
             // Failed Rows:         ['paused_at', 'abandoned_at']
             // Completed:           ['completed_at', 'created_at']
             // Abandoned:           ['abandoned_at', 'created_at']
-            $table->index(['completed_at', 'abandoned_at', 'paused_at', 'locked_at', 'retry_at', 'priority']);  // Worker row locking query + Active Rows + Failed Rows
-            $table->index(['url', 'created_at']);                                                               // Url and date range
+            $table->index(['paused_at', 'abandoned_at', 'completed_at', 'locked_at', 'retry_at', 'priority']);  // Worker row locking query + Active Rows + Failed Rows
+            $table->index(['url', 'created_at']);                                                               // Manual Url and date range
+            $table->index(['response_code', 'created_at']);                                                     // Manual - response_code
             $table->index(['completed_at', 'created_at']);                                                      // Interface search - created_at
             $table->index(['abandoned_at', 'created_at']);                                                      // Interface search - abandoned_at
             // An index on created_at already exists
