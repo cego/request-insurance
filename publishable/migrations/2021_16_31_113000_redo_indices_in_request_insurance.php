@@ -15,11 +15,11 @@ class RedoIndicesInRequestInsurance extends Migration
     {
         Schema::table('request_insurances', function (Blueprint $table) {
             // First we delete all the unnecessary single indexes
-            $table->dropIndex('retry_at');
-            $table->dropIndex('completed_at');
-            $table->dropIndex('locked_at');
-            $table->dropIndex('abandoned_at');
-            $table->dropIndex('paused_at');
+            $table->dropIndex(['retry_at']);
+            $table->dropIndex(['completed_at']);
+            $table->dropIndex(['abandoned_at']);
+            $table->dropIndex(['locked_at']);
+            $table->dropIndex(['paused_at']);
 
             // Our most used package queries are the following:
             //
