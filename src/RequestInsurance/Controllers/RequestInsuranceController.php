@@ -171,38 +171,13 @@ class RequestInsuranceController extends Controller
         $table = RequestInsurance::make()->getTable();
 
         $query = <<<SQL
-select 
-	a.active, 
-	b.completed,
-	c.paused,
-	d.abandoned,
-	e.locked
-from 
-	(
-		select count(*) as active 
-		from $table 
-		where response_code is null
-	) as a,
-	(
-		select count(*) as completed 
-		from $table 
-		where completed_at is not null
-	) as b,
-	(
-		select count(*) as paused 
-		from $table 
-		where paused_at is not null
-	) as c,
-	(
-		select count(*) as abandoned 
-		from $table 
-		where abandoned_at is not null
-	) as d,
-	(
-		select count(*) as locked 
-		from $table 
-		where locked_at is not null
-	) as e
+SELECT 
+    sum(case when response_code IS NULL then 1 else 0 end) AS active,
+    sum(case when completed_at IS NOT NULL then 1 else 0 end) AS completed,
+    sum(case when paused_at IS NOT NULL then 1 else 0 end) AS paused,
+    sum(case when abandoned_at IS NOT NULL then 1 else 0 end) AS abandoned,
+    sum(case when locked_at IS NOT NULL then 1 else 0 end) AS locked
+FROM $table
 SQL;
 
         return collect(DB::select($query)[0]);
