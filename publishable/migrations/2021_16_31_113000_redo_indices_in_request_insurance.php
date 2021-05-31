@@ -34,7 +34,7 @@ class RedoIndicesInRequestInsurance extends Migration
             // Failed Rows:         ['paused_at', 'abandoned_at']
             // Status:              ['response_code', 'created_at']
             //
-            // Our most used queries for the interface are the following
+            // Our most used interface queries are the following
             //
             // Date range:          ['created_at']
             // Active Rows:         ['paused_at', 'abandoned_at', 'completed_at']
