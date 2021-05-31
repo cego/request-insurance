@@ -86,12 +86,12 @@ class RequestInsurance extends SaveRetryingModel
         static::saving(function (RequestInsurance $request) {
 
             // Throw exception if method is not set
-            if(!$request->method) {
+            if ( ! $request->method) {
                 throw new EmptyPropertyException('method', $request);
             }
 
             // Throw exception if url is not set
-            if(!$request->url) {
+            if ( ! $request->url) {
                 throw new EmptyPropertyException('url', $request);
             }
 
@@ -145,20 +145,29 @@ class RequestInsurance extends SaveRetryingModel
     public function scopeFilteredByRequest(Builder $query, Request $request)
     {
         $query = $query->where(function () use ($query, $request) {
-            if ($request->has('completed')) {
-                $query = $query->orWhere('completed_at', '!=', null);
+            $group = $request->get('group');
+
+            if ($group == 'Active') {
+                return $query->whereNull('paused_at')
+                    ->whereNull('abandoned_at')
+                    ->whereNull('completed_at');
             }
 
-            if ($request->has('paused')) {
-                $query = $query->orWhere('paused_at', '!=', null);
+            if ($group == 'Completed') {
+                return $query->whereNotNull('completed_at');
             }
 
-            if ($request->has('locked')) {
-                $query = $query->orWhere('locked_at', '!=', null);
+            if ($group == 'Abandoned') {
+                return $query->whereNotNull('abandoned_at');
             }
 
-            if ($request->has('abandoned')) {
-                $query = $query->orWhere('abandoned_at', '!=', null);
+            if ($group == 'Failed') {
+                return $query->whereNotNull('paused_at')
+                    ->whereNull('abandoned_at');
+            }
+
+            if ($group == 'Locked') {
+                return $query->whereNotNull('locked_at');
             }
 
             return $query;
@@ -232,6 +241,7 @@ class RequestInsurance extends SaveRetryingModel
         $this->paused_at = null;
         $this->abandoned_at = Carbon::now();
         $this->retry_at = null;
+        $this->completed_at = null;
 
         $this->save();
 
@@ -271,6 +281,7 @@ class RequestInsurance extends SaveRetryingModel
         $this->paused_at = $this->wasSuccessful() ? null : Carbon::now();
         $this->retry_at = null;
         $this->abandoned_at = null;
+        $this->completed_at = null;
 
         $this->save();
 
@@ -289,6 +300,7 @@ class RequestInsurance extends SaveRetryingModel
         $this->paused_at = null;
         $this->retry_at = Carbon::now();
         $this->abandoned_at = null;
+        $this->completed_at = null;
 
         $this->save();
 

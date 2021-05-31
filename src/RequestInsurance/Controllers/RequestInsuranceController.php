@@ -3,7 +3,9 @@
 namespace Cego\RequestInsurance\Controllers;
 
 use Exception;
+use Illuminate\View\View;
 use Illuminate\Http\Request;
+use Illuminate\View\Factory;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Config;
@@ -27,7 +29,8 @@ class RequestInsuranceController extends Controller
         // Flash the request parameters, so we can redisplay the same filter parameters.
         $request->flash();
 
-        $paginator = RequestInsurance::latest()
+        $paginator = RequestInsurance::query()
+            ->orderByDesc('id')
             ->filteredByRequest($request)
             ->paginate(25);
 
@@ -36,8 +39,8 @@ class RequestInsuranceController extends Controller
         return view('request-insurance::index')->with([
             'requestInsurances'         => $paginator,
             'numberOfActiveRequests'    => $segmentedNumberOfRequests->get('active'),
+            'numberOfFailedRequests'    => $segmentedNumberOfRequests->get('failed'),
             'numberOfCompletedRequests' => $segmentedNumberOfRequests->get('completed'),
-            'numberOfPausedRequests'    => $segmentedNumberOfRequests->get('paused'),
             'numberOfAbandonedRequests' => $segmentedNumberOfRequests->get('abandoned'),
             'numberOfLockedRequests'    => $segmentedNumberOfRequests->get('locked'),
         ]);
@@ -172,14 +175,14 @@ class RequestInsuranceController extends Controller
 
         $query = <<<SQL
 SELECT 
-    sum(case when response_code IS NULL then 1 else 0 end) AS active,
+    sum(case when paused_at IS NULL AND abandoned_at IS NULL AND completed_at IS NULL then 1 else 0 end) AS active,
+    sum(case when paused_at IS NOT NULL AND abandoned_at IS NULL then 1 else 0 end) AS failed,
     sum(case when completed_at IS NOT NULL then 1 else 0 end) AS completed,
-    sum(case when paused_at IS NOT NULL then 1 else 0 end) AS paused,
     sum(case when abandoned_at IS NOT NULL then 1 else 0 end) AS abandoned,
     sum(case when locked_at IS NOT NULL then 1 else 0 end) AS locked
 FROM $table
 SQL;
 
-        return collect(DB::select($query)[0]);
+        return collect(DB::select($query)[0])->map(fn ($value) => $value ?? 0);
     }
 }
