@@ -5,7 +5,7 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
-class SomeTest extends TestCase
+class RequestInsuranceTest extends TestCase
 {
     /** @test */
     public function it_can_create_a_request_insurance(): void
