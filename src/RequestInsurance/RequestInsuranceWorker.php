@@ -50,6 +50,7 @@ class RequestInsuranceWorker
     {
         $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
+        $this->runningHash = Str::random(8);
     }
 
     /**
@@ -64,7 +65,6 @@ class RequestInsuranceWorker
         Log::info(sprintf('RequestInsurance Worker (#%s) has started', $this->runningHash));
 
         $this->setupShutdownSignalHandler();
-        $this->runningHash = Str::random(8);
 
         do {
             $executionTime = Stopwatch::time(function () {
