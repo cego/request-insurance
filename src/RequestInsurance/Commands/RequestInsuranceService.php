@@ -73,10 +73,10 @@ class RequestInsuranceService extends Command
 
             return 0;
         }
-        
+
+        // Run the service
         (new RequestInsuranceWorker)->run();
         
-        // Run the service
         return 1;
     }
 
