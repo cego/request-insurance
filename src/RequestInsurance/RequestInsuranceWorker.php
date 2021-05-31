@@ -61,6 +61,8 @@ class RequestInsuranceWorker
      */
     public function run(bool $runOnlyOnce = false): void
     {
+        Log::info(sprintf('RequestInsurance Worker (#%s) has started', $this->runningHash));
+
         $this->setupShutdownSignalHandler();
         $this->runningHash = Str::random(8);
 
@@ -75,6 +77,8 @@ class RequestInsuranceWorker
 
             pcntl_signal_dispatch();
         } while (! $runOnlyOnce && ! $this->shutdownSignalReceived);
+
+        Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
     }
 
     /**
