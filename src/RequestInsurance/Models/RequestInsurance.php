@@ -5,12 +5,10 @@ namespace Cego\RequestInsurance\Models;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
-use UnexpectedValueException;
 use Carbon\Carbon;
 use JsonException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -42,7 +40,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @method static RequestInsurance create($attributes = [])
  * @method static RequestInsurance|null first(array|string $columns = [])
  */
-class RequestInsurance extends Model
+class RequestInsurance extends SaveRetryingModel
 {
     /**
      * Indicates if all mass assignment is enabled.
@@ -207,7 +205,7 @@ class RequestInsurance extends Model
         Log::debug(sprintf('Unlocking request with id: [%d]', $this->id));
 
         $this->locked_at = null;
-        $this->saveWithRetries();
+        $this->save();
 
         return $this;
     }
@@ -272,8 +270,9 @@ class RequestInsurance extends Model
         // To avoid marking successful requests as failed, we add this successful check
         $this->paused_at = $this->wasSuccessful() ? null : Carbon::now();
         $this->retry_at = null;
+        $this->abandoned_at = null;
 
-        $this->saveWithRetries();
+        $this->save();
 
         return $this;
     }
@@ -289,10 +288,7 @@ class RequestInsurance extends Model
 
         $this->paused_at = null;
         $this->retry_at = Carbon::now();
-
-        if ($this->isAbandoned()) {
-            $this->abandoned_at = null;
-        }
+        $this->abandoned_at = null;
 
         $this->save();
 
@@ -383,36 +379,9 @@ class RequestInsurance extends Model
         // since this is not really a logic error, we add this retry logic
         // so the data is persisted.
         // This will most likely in almost all cases catch the problem before an exception is thrown.
-        $this->saveWithRetries();
+        $this->save();
 
         return $this;
-    }
-
-    /**
-     * Method for calling ->save() with retry logic
-     *
-     * @param int $maxTries
-     *
-     * @return bool
-     *
-     * @throws Exception
-     */
-    public function saveWithRetries($maxTries = 3): bool
-    {
-        for ($tries = 0; $tries < $maxTries; $tries++) {
-            try {
-                return $this->save();
-            } catch (Exception $exception) {
-                if ($tries + 1 < $maxTries) {
-                    // Sleep 10ms
-                    usleep(10000);
-
-                    continue;
-                }
-
-                throw $exception;
-            }
-        }
     }
 
     /**

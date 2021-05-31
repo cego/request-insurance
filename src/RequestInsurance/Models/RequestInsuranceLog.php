@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
-class RequestInsuranceLog extends Model
+class RequestInsuranceLog extends SaveRetryingModel
 {
     /**
      * Indicates if all mass assignment is enabled.
