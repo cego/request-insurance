@@ -60,6 +60,6 @@ class RequestInsuranceLog extends SaveRetryingModel
      */
     public function parent()
     {
-        return $this->belongsTo(RequestInsurance::class, 'request_insurance_id');
+        return $this->belongsTo(get_class(resolve(RequestInsurance::class)), 'request_insurance_id');
     }
 }
