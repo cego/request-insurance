@@ -145,29 +145,37 @@ class RequestInsurance extends SaveRetryingModel
     public function scopeFilteredByRequest(Builder $query, Request $request)
     {
         $query = $query->where(function () use ($query, $request) {
-            $group = $request->get('group');
-
-            if ($group == 'Active') {
-                return $query->whereNull('paused_at')
-                    ->whereNull('abandoned_at')
-                    ->whereNull('completed_at');
+            if ($request->get('Active') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNull('paused_at')
+                        ->whereNull('abandoned_at')
+                        ->whereNull('completed_at');
+                });
             }
 
-            if ($group == 'Completed') {
-                return $query->whereNotNull('completed_at');
+            if ($request->get('Completed') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNotNull('completed_at');
+                });
             }
 
-            if ($group == 'Abandoned') {
-                return $query->whereNotNull('abandoned_at');
+            if ($request->get('Abandoned') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNotNull('abandoned_at');
+                });
             }
 
-            if ($group == 'Failed') {
-                return $query->whereNotNull('paused_at')
-                    ->whereNull('abandoned_at');
+            if ($request->get('Failed') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNotNull('paused_at')
+                        ->whereNull('abandoned_at');
+                });
             }
 
-            if ($group == 'Locked') {
-                return $query->whereNotNull('locked_at');
+            if ($request->get('Locked') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNotNull('locked_at');
+                });
             }
 
             return $query;
