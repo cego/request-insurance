@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance;
 
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Cego\RequestInsurance\Contracts\HttpRequest;
@@ -69,7 +70,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
     /**
      * Sets the paginator styling to bootstrap if using Laravel 8
      */
-    private function setPaginatorStyling()
+    private function setPaginatorStyling(): void
     {
         // If Laravel version 8
         if (version_compare(app()->version(), '8.0.0', '>=') === true) {
@@ -83,10 +84,10 @@ class RequestInsuranceServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
         $this->app->bind(HttpRequest::class, function () {
-            return config('request-insurance.httpRequestClass');
+            return Config::get('request-insurance.httpRequestClass');
         });
     }
 }

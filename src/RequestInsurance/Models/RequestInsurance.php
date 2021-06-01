@@ -2,14 +2,13 @@
 
 namespace Cego\RequestInsurance\Models;
 
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
-use UnexpectedValueException;
 use Carbon\Carbon;
 use JsonException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -41,7 +40,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @method static RequestInsurance create($attributes = [])
  * @method static RequestInsurance|null first(array|string $columns = [])
  */
-class RequestInsurance extends Model
+class RequestInsurance extends SaveRetryingModel
 {
     /**
      * Indicates if all mass assignment is enabled.
@@ -71,7 +70,7 @@ class RequestInsurance extends Model
     public function getTable(): string
     {
         // Use the one defined in the config, or the whatever is default
-        return config('request-insurance.table') ?? parent::getTable();
+        return Config::get('request-insurance.table') ?? parent::getTable();
     }
 
     /**
@@ -81,18 +80,18 @@ class RequestInsurance extends Model
      *
      * @throws JsonException
      */
-    protected static function booted()
+    protected static function booted(): void
     {
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {
 
             // Throw exception if method is not set
-            if(!$request->method) {
+            if ( ! $request->method) {
                 throw new EmptyPropertyException('method', $request);
             }
 
             // Throw exception if url is not set
-            if(!$request->url) {
+            if ( ! $request->url) {
                 throw new EmptyPropertyException('url', $request);
             }
 
@@ -146,24 +145,45 @@ class RequestInsurance extends Model
     public function scopeFilteredByRequest(Builder $query, Request $request)
     {
         $query = $query->where(function () use ($query, $request) {
-            if ($request->has('completed')) {
-                $query = $query->orWhere('completed_at', '!=', null);
+            if ($request->get('Active') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNull('paused_at')
+                        ->whereNull('abandoned_at')
+                        ->whereNull('completed_at');
+                });
             }
 
-            if ($request->has('paused')) {
-                $query = $query->orWhere('paused_at', '!=', null);
+            if ($request->get('Completed') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNotNull('completed_at');
+                });
             }
 
-            if ($request->has('locked')) {
-                $query = $query->orWhere('locked_at', '!=', null);
+            if ($request->get('Abandoned') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNotNull('abandoned_at');
+                });
             }
 
-            if ($request->has('abandoned')) {
-                $query = $query->orWhere('abandoned_at', '!=', null);
+            if ($request->get('Failed') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNotNull('paused_at')
+                        ->whereNull('abandoned_at');
+                });
+            }
+
+            if ($request->get('Locked') == 'on') {
+                $query->orWhere(function (Builder $builder) {
+                    return $builder->whereNotNull('locked_at');
+                });
             }
 
             return $query;
         });
+
+        if ($request->has('url') && trim($request->get('url'))) {
+            $query = $query->where('url', 'like', $request->get('url'));
+        }
 
         try {
             if ($request->has('from') && $request->get('from') != null) {
@@ -206,7 +226,7 @@ class RequestInsurance extends Model
         Log::debug(sprintf('Unlocking request with id: [%d]', $this->id));
 
         $this->locked_at = null;
-        $this->saveWithRetries();
+        $this->save();
 
         return $this;
     }
@@ -233,6 +253,7 @@ class RequestInsurance extends Model
         $this->paused_at = null;
         $this->abandoned_at = Carbon::now();
         $this->retry_at = null;
+        $this->completed_at = null;
 
         $this->save();
 
@@ -271,8 +292,10 @@ class RequestInsurance extends Model
         // To avoid marking successful requests as failed, we add this successful check
         $this->paused_at = $this->wasSuccessful() ? null : Carbon::now();
         $this->retry_at = null;
+        $this->abandoned_at = null;
+        $this->completed_at = null;
 
-        $this->saveWithRetries();
+        $this->save();
 
         return $this;
     }
@@ -288,10 +311,8 @@ class RequestInsurance extends Model
 
         $this->paused_at = null;
         $this->retry_at = Carbon::now();
-
-        if ($this->isAbandoned()) {
-            $this->abandoned_at = null;
-        }
+        $this->abandoned_at = null;
+        $this->completed_at = null;
 
         $this->save();
 
@@ -382,36 +403,9 @@ class RequestInsurance extends Model
         // since this is not really a logic error, we add this retry logic
         // so the data is persisted.
         // This will most likely in almost all cases catch the problem before an exception is thrown.
-        $this->saveWithRetries();
+        $this->save();
 
         return $this;
-    }
-
-    /**
-     * Method for calling ->save() with retry logic
-     *
-     * @param int $maxTries
-     *
-     * @return bool
-     *
-     * @throws Exception
-     */
-    public function saveWithRetries($maxTries = 3): bool
-    {
-        for ($tries = 0; $tries < $maxTries; $tries++) {
-            try {
-                return $this->save();
-            } catch (Exception $exception) {
-                if ($tries + 1 < $maxTries) {
-                    // Sleep 10ms
-                    usleep(10000);
-
-                    continue;
-                }
-
-                throw $exception;
-            }
-        }
     }
 
     /**

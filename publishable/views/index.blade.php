@@ -14,8 +14,8 @@
                             <div class="badge mr-2">{{ $requestInsurances->total() }}</div><span class="mr-5"><strong>Requests in total</strong></span>
                             <div class="badge mr-2">{{ $numberOfActiveRequests }}</div><span class="mr-5"><strong>Active requests</strong></span>
                             <div class="badge badge-success mr-2">{{ $numberOfCompletedRequests }}</div><span class="mr-4"><strong>Completed</strong></span>
-                            <div class="badge badge-warning mr-2">{{ $numberOfPausedRequests }}</div><span class="mr-4"><strong>Paused</strong></span>
-                            <div class="badge badge-danger mr-2">{{ $numberOfAbandonedRequests }}</div><span class="mr-4"><strong>Abandoned</strong></span>
+                            <div class="badge badge-warning mr-2">{{ $numberOfAbandonedRequests }}</div><span class="mr-4"><strong>Abandoned</strong></span>
+                            <div class="badge badge-danger mr-2">{{ $numberOfFailedRequests }}</div><span class="mr-4"><strong>Failed</strong></span>
                             <div class="badge badge-secondary mr-2">{{ $numberOfLockedRequests }}</div><span class="mr-4"><strong>Locked</strong></span>
                         </div>
                     </div>
@@ -25,6 +25,9 @@
                             <form method="get" class="float-right form-inline">
                                 <div class="form-group mr-5">
                                     <label class="form-check-label mr-3">
+                                        Url: <input class="form-control ml-2" type="text" name="url" style="width: 250px" placeholder="% (SQL LIKE)" value="{{ old("url") }}">
+                                    </label>
+                                    <label class="form-check-label mr-3">
                                         From: <input class="form-control ml-2" type="date" name="from" style="width: 200px" placeholder="dd-mm-yyyy" value="{{ old("from") }}">
                                     </label>
                                     <label class="form-check-label">
@@ -32,24 +35,30 @@
                                     </label>
                                 </div>
 
+                                <span class="mr-3">State:</span>
                                 <div class="form-check form-check-inline">
                                     <label class="form-check-label">
-                                        <input class="form-check-input check-lg" type="checkbox" name="completed" {{ old("completed") == "on" ? "checked" : "" }}> completed
+                                        <input class="form-check-input check-lg" type="checkbox" name="Active" {{ old("Active") == "on" ? "checked" : "" }}> Active
                                     </label>
                                 </div>
                                 <div class="form-check form-check-inline">
                                     <label class="form-check-label">
-                                        <input class="form-check-input check-lg" type="checkbox" name="paused" {{ old("paused") == "on" ? "checked" : "" }}> paused
+                                        <input class="form-check-input check-lg" type="checkbox" name="Completed" {{ old("Completed") == "on" ? "checked" : "" }}> Completed
                                     </label>
                                 </div>
                                 <div class="form-check form-check-inline">
                                     <label class="form-check-label">
-                                        <input class="form-check-input check-lg" type="checkbox" name="locked" {{ old("locked") == "on" ? "checked" : "" }}> locked
+                                        <input class="form-check-input check-lg" type="checkbox" name="Abandoned" {{ old("Abandoned") == "on" ? "checked" : "" }}> Abandoned
                                     </label>
                                 </div>
                                 <div class="form-check form-check-inline">
                                     <label class="form-check-label">
-                                        <input class="form-check-input check-lg" type="checkbox" name="abandoned" {{ old("abandoned") == "on" ? "checked" : "" }}> abandoned
+                                        <input class="form-check-input check-lg" type="checkbox" name="Failed" {{ old("Failed") == "on" ? "checked" : "" }}> Failed
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <label class="form-check-label">
+                                        <input class="form-check-input check-lg" type="checkbox" name="Locked" {{ old("Locked") == "on" ? "checked" : "" }}> Locked
                                     </label>
                                 </div>
 
