@@ -96,7 +96,8 @@ class HttpResponse
      */
     public function wasSuccessful()
     {
-        return $this->getCode() == 200;
+        return $this->getCode() >= 200
+            && $this->getCode() <= 299;
     }
 
     /**
