@@ -107,7 +107,6 @@
 
                                         @if ($requestInsurance->isNotCompleted() && $requestInsurance->isNotAbandoned())
                                             <form method="POST" action="{{ route('request-insurances.destroy', $requestInsurance) }}">
-                                                {{ csrf_field() }}
                                                 <input type="hidden" name="_method" value="delete">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">Abandon</button>
                                             </form>
@@ -115,14 +114,12 @@
 
                                         @if ($requestInsurance->isRetryable())
                                             <form method="POST" action="{{ route('request-insurances.retry', $requestInsurance) }}">
-                                                {{ csrf_field() }}
                                                 <button type="submit" class="btn btn-sm btn-outline-warning">Retry</button>
                                             </form>
                                         @endif
 
                                         @if ($requestInsurance->isLocked())
                                             <form method="POST" action="{{ route('request-insurances.unlock', $requestInsurance) }}">
-                                                {{ csrf_field() }}
                                                 <button type="submit" class="btn btn-sm btn-outline-secondary">Unlock</button>
                                             </form>
                                         @endif
