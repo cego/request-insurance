@@ -23,7 +23,7 @@ class RequestInsuranceCleaner
             /** @var Collection $idsToDelete */
             $idsToDelete = resolve(RequestInsurance::class)::whereBetween('response_code', [200, 299])
                 ->where('created_at', '<', $daysToKeepRecords)
-                ->forUpdate()
+                ->lockForUpdate()
                 ->get(['id'])
                 ->pluck('id');
 
