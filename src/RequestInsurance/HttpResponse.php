@@ -96,8 +96,7 @@ class HttpResponse
      */
     public function wasSuccessful()
     {
-        return $this->getCode() >= 200
-            && $this->getCode() <= 299;
+        return $this->isResponseCodeBetween(200, 299);
     }
 
     /**
@@ -117,7 +116,7 @@ class HttpResponse
      */
     public function isNotRetryable()
     {
-        return $this->getCode() >= 400 && $this->getCode() < 500;
+        return $this->isResponseCodeBetween(400, 499);
     }
 
     /**
@@ -166,5 +165,42 @@ class HttpResponse
     public function getExecutionTime()
     {
         return (float) $this->info->get('total_time');
+    }
+
+    /**
+     * Returns true if the response was a client error
+     *
+     * Code range [400;499]
+     *
+     * @return bool
+     */
+    public function isCodeClientError(): bool
+    {
+        return $this->isResponseCodeBetween(400, 499);
+    }
+
+    /**
+     * Returns true if the response was a server error
+     *
+     * Code range [500;599]
+     *
+     * @return bool
+     */
+    public function isCodeServerError(): bool
+    {
+        return $this->isResponseCodeBetween(500, 599);
+    }
+
+    /**
+     * Checks if the response code is between a given range INCLUSIVE in both ends
+     *
+     * @param int $start
+     * @param int $end
+     *
+     * @return bool
+     */
+    protected function isResponseCodeBetween(int $start, int $end): bool
+    {
+        return $start <= $this->getCode() && $this->getCode() <= $end;
     }
 }
