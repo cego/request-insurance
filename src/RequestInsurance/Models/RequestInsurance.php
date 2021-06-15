@@ -4,11 +4,7 @@ namespace Cego\RequestInsurance\Models;
 
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
-use Cego\RequestInsurance\Events\RequestFailed;
-use Cego\RequestInsurance\Events\RequestSuccessful;
-use Cego\RequestInsurance\Events\RequestRedirection;
-use Cego\RequestInsurance\Events\RequestClientError;
-use Cego\RequestInsurance\Events\RequestServerError;
+use Cego\RequestInsurance\Events;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
 use Carbon\Carbon;
@@ -18,7 +14,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Cego\RequestInsurance\Events\RequestInformationalResponse;
 use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
 /**
@@ -425,17 +420,17 @@ class RequestInsurance extends SaveRetryingModel
     protected function dispatchPostProcessEvents(HttpResponse $response): void
     {
         if ($response->wasSuccessful()) {
-            RequestSuccessful::dispatch($this);
+            Events\RequestSuccessful::dispatch($this);
         } else {
-            RequestFailed::dispatch($this);
+            Events\RequestFailed::dispatch($this);
         }
 
-        if ($response->isCodeClientError()) {
-            RequestClientError::dispatch($this);
+        if ($response->isClientError()) {
+            Events\RequestClientError::dispatch($this);
         }
 
-        if ($response->isCodeServerError()) {
-            RequestServerError::dispatch($this);
+        if ($response->isServerError()) {
+            Events\RequestServerError::dispatch($this);
         }
     }
 

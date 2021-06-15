@@ -174,7 +174,7 @@ class HttpResponse
      *
      * @return bool
      */
-    public function isCodeClientError(): bool
+    public function isClientError(): bool
     {
         return $this->isResponseCodeBetween(400, 499);
     }
@@ -186,7 +186,7 @@ class HttpResponse
      *
      * @return bool
      */
-    public function isCodeServerError(): bool
+    public function isServerError(): bool
     {
         return $this->isResponseCodeBetween(500, 599);
     }
