@@ -501,6 +501,9 @@ class RequestInsurance extends SaveRetryingModel
             $seconds = $this->retry_cap;
         }
 
+        $this->paused_at = null;
+        $this->abandoned_at = null;
+        $this->completed_at = null;
         $this->retry_at = Carbon::now()->addSeconds($seconds);
 
         return $this;
