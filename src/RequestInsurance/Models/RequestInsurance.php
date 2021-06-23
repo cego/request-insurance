@@ -397,8 +397,7 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         if ($this->isNotCompleted() && $response->isRetryable()) {
-            $this->incrementRetryCount();
-            $this->setNextRetryAt();
+            $this->retry();
         }
 
         // It happens that a ->save() causes a deadlock problem,
@@ -462,6 +461,19 @@ class RequestInsurance extends SaveRetryingModel
     public function isNotCompleted()
     {
         return ! $this->isCompleted();
+    }
+
+    /**
+     * Increments the retry count for the request, and updates the retry at field
+     *
+     * @return $this
+     */
+    public function retry()
+    {
+        $this->incrementRetryCount();
+        $this->setNextRetryAt();
+
+        return $this;
     }
 
     /**
