@@ -14,6 +14,13 @@ class MockCurlRequest extends HttpRequest
     public $options = [];
 
     /**
+     * Holds the next mocked response to return
+     *
+     * @var array
+     */
+    public static $mockedResponse;
+
+    /**
      * Sets an option
      *
      * @param int $option
@@ -30,7 +37,7 @@ class MockCurlRequest extends HttpRequest
 
     public function getInfo()
     {
-        return [
+        return static::$mockedResponse['info'] ?? [
             'http_code'  => 200,
             'total_time' => 1.0
         ];
@@ -38,21 +45,26 @@ class MockCurlRequest extends HttpRequest
 
     public function getErrorNumber()
     {
-        return 0;
+        return static::$mockedResponse['error_number'] ?? 0;
     }
 
     public function getError()
     {
-        return 'no errors';
+        return static::$mockedResponse['error'] ?? 'no errors';
     }
 
     public function getResponse()
     {
-        return 'mock-response';
+        return static::$mockedResponse['response'] ?? 'mock-response';
     }
 
     public function close()
     {
-        // TODO: Implement close() method.
+        // No active connection to close, so just do nothing
+    }
+
+    public static function setNextResponse(array $response)
+    {
+        static::$mockedResponse = $response;
     }
 }
