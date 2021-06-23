@@ -3,6 +3,8 @@
 namespace Cego\RequestInsurance\Models;
 
 use Illuminate\Support\Facades\Config;
+use Cego\RequestInsurance\HttpResponse;
+use Cego\RequestInsurance\Events;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
 use Carbon\Carbon;
@@ -405,7 +407,31 @@ class RequestInsurance extends SaveRetryingModel
         // This will most likely in almost all cases catch the problem before an exception is thrown.
         $this->save();
 
+        $this->dispatchPostProcessEvents($response);
+
         return $this;
+    }
+
+    /**
+     * Dispatches events depending on the request response
+     *
+     * @param HttpResponse $response
+     */
+    protected function dispatchPostProcessEvents(HttpResponse $response): void
+    {
+        if ($response->wasSuccessful()) {
+            Events\RequestSuccessful::dispatch($this);
+        } else {
+            Events\RequestFailed::dispatch($this);
+        }
+
+        if ($response->isClientError()) {
+            Events\RequestClientError::dispatch($this);
+        }
+
+        if ($response->isServerError()) {
+            Events\RequestServerError::dispatch($this);
+        }
     }
 
     /**
