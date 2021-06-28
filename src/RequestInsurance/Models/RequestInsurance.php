@@ -5,6 +5,7 @@ namespace Cego\RequestInsurance\Models;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Cego\RequestInsurance\Events;
+use Cego\RequestInsurance\RequestInsuranceBuilder;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
 use Carbon\Carbon;
@@ -533,6 +534,16 @@ class RequestInsurance extends SaveRetryingModel
         $this->retry_at = Carbon::now()->addSeconds($seconds);
 
         return $this;
+    }
+
+    /**
+     * Returns an empty request insurance builder instance
+     *
+     * @return RequestInsuranceBuilder
+     */
+    public static function builder(): RequestInsuranceBuilder
+    {
+        return RequestInsuranceBuilder::begin();
     }
 
     /**
