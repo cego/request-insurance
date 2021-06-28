@@ -5,6 +5,7 @@ namespace Cego\RequestInsurance\Models;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Cego\RequestInsurance\Events;
+use Cego\RequestInsurance\RequestInsuranceBuilder;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
 use Carbon\Carbon;
@@ -25,6 +26,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property string $method
  * @property string|array $headers
  * @property string $payload
+ * @property int|null $timeout_ms
  * @property string|array $response_headers
  * @property string $response_body
  * @property int $response_code
@@ -362,17 +364,10 @@ class RequestInsurance extends SaveRetryingModel
     {
         Log::debug(sprintf('Processing request with id: [%d]', $this->id));
 
-        // Prepare headers by json decoding them and flatten them
-        // to an array of header strings
-        // Create the request instance, set its options and send it
-        $response = HttpRequest::create()
-            ->setUrl($this->url)
-            ->setMethod($this->method)
-            ->setHeaders($this->headers)
-            ->setPayload($this->payload)
-            ->send();
+        // Send the request and receive the response
+        $response = $this->sendRequest();
 
-        // Update the quest with the latest response
+        // Update the request with the latest response
         $this->response_body = $response->getBody();
         $this->response_code = $response->getCode();
         $this->response_headers = $response->getHeaders();
@@ -410,6 +405,33 @@ class RequestInsurance extends SaveRetryingModel
         $this->dispatchPostProcessEvents($response);
 
         return $this;
+    }
+
+    /**
+     * Sends the request to the target URL and returns the response
+     *
+     * @return HttpResponse
+     *
+     * @throws MethodNotAllowedForRequestInsurance
+     */
+    protected function sendRequest()
+    {
+        // Prepare headers by json decoding them and flatten them
+        // to an array of header strings
+        // Create the request instance, set its options and send it
+        $request = HttpRequest::create()
+            ->setUrl($this->url)
+            ->setMethod($this->method)
+            ->setHeaders($this->headers)
+            ->setPayload($this->payload);
+
+        // If a custom timeout is set for this specific request
+        // then override the default timeout with the chosen timeout
+        if ($this->timeout_ms !== null) {
+            $request->setTimeoutMs($this->timeout_ms);
+        }
+
+        return $request->send();
     }
 
     /**
@@ -512,6 +534,16 @@ class RequestInsurance extends SaveRetryingModel
         $this->retry_at = Carbon::now()->addSeconds($seconds);
 
         return $this;
+    }
+
+    /**
+     * Returns an empty request insurance builder instance
+     *
+     * @return RequestInsuranceBuilder
+     */
+    public static function getBuilder(): RequestInsuranceBuilder
+    {
+        return RequestInsuranceBuilder::new();
     }
 
     /**
