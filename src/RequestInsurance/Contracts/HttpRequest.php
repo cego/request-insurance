@@ -30,7 +30,7 @@ abstract class HttpRequest
             ->setOption(CURLOPT_RETURNTRANSFER, true)
             ->setOption(CURLOPT_FOLLOWLOCATION, true)
             ->setOption(CURLOPT_TCP_KEEPALIVE, Config::get('request-insurance.keepAlive', true))
-            ->setOption(CURLOPT_TIMEOUT, Config::get('request-insurance.timeoutInSeconds', 5));
+            ->setOption(CURLOPT_TIMEOUT_MS, Config::get('request-insurance.timeoutInSeconds', 5) * 1000);
 
         return $instance;
     }
