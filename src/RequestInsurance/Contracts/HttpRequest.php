@@ -25,12 +25,13 @@ abstract class HttpRequest
         $class = app()->get(HttpRequest::class);
 
         /** @var HttpRequest $instance */
-        $instance = (new $class)
-            ->setOption(CURLOPT_USERAGENT, 'RequestInsurance CurlRequest')
+        $instance = (new $class);
+
+        $instance->setOption(CURLOPT_USERAGENT, 'RequestInsurance CurlRequest')
             ->setOption(CURLOPT_RETURNTRANSFER, true)
             ->setOption(CURLOPT_FOLLOWLOCATION, true)
             ->setOption(CURLOPT_TCP_KEEPALIVE, Config::get('request-insurance.keepAlive', true))
-            ->setOption(CURLOPT_TIMEOUT_MS, Config::get('request-insurance.timeoutInSeconds', 5) * 1000);
+            ->setTimeoutMs(Config::get('request-insurance.timeoutInSeconds', 5) * 1000);
 
         return $instance;
     }
@@ -45,6 +46,30 @@ abstract class HttpRequest
     public function setUrl($url)
     {
         return $this->setOption(CURLOPT_URL, $url);
+    }
+
+    /**
+     * Sets the timeout in ms
+     *
+     * @param int $timeout
+     *
+     * @return $this
+     */
+    public function setTimeoutMs(int $timeout)
+    {
+        if ($timeout < 1000) {
+            /**
+             * There is a bug with the CURLOPT_TIMEOUT_MS variant, if the timeout is less than a second.
+             * To get around this, we need to set the CURLOPT_NOSIGNAL to 1.
+             *
+             * See the link below for an explanation.
+             *
+             * @url https://www.php.net/manual/en/function.curl-setopt.php#104597
+             */
+            $this->setOption(CURLOPT_NOSIGNAL, 1);
+        }
+
+        return $this->setOption(CURLOPT_TIMEOUT_MS, $timeout);
     }
 
     /**
