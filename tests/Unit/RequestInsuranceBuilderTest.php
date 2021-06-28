@@ -15,7 +15,7 @@ class RequestInsuranceBuilderTest extends TestCase
         // Arrange
 
         // Act
-        RequestInsurance::builder()
+        RequestInsurance::getBuilder()
             ->method('POST')
             ->url('https://MyDev.lupinsdev.dk')
             ->headers(['Content-Type' => 'application/json'])
@@ -39,7 +39,7 @@ class RequestInsuranceBuilderTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         // Act
-        RequestInsurance::builder()
+        RequestInsurance::getBuilder()
             ->payload(['data' => [1, 2, 3]])
             ->headers(['Content-Type' => 'application/json'])
             ->method('')
@@ -54,7 +54,7 @@ class RequestInsuranceBuilderTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         // Act
-        RequestInsurance::builder()
+        RequestInsurance::getBuilder()
             ->payload(['data' => [1, 2, 3]])
             ->headers(['Content-Type' => 'application/json'])
             ->method('POST')
@@ -68,7 +68,7 @@ class RequestInsuranceBuilderTest extends TestCase
         // Arrange
 
         // Act
-        RequestInsurance::builder()
+        RequestInsurance::getBuilder()
             ->payload(['data' => [1, 2, 3]])
             ->headers(['Content-Type' => 'application/json'])
             ->method('POST')

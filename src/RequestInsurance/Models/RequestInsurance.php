@@ -541,9 +541,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @return RequestInsuranceBuilder
      */
-    public static function builder(): RequestInsuranceBuilder
+    public static function getBuilder(): RequestInsuranceBuilder
     {
-        return RequestInsuranceBuilder::begin();
+        return RequestInsuranceBuilder::new();
     }
 
     /**

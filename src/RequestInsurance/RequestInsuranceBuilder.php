@@ -21,7 +21,7 @@ class RequestInsuranceBuilder
      *
      * @return static
      */
-    public static function begin() {
+    public static function new() {
         return new static();
     }
 
