@@ -16,10 +16,10 @@ class RequestInsuranceBuilderTest extends TestCase
 
         // Act
         RequestInsurance::builder()
-            ->payload(['data' => [1, 2, 3]])
-            ->headers(['Content-Type' => 'application/json'])
             ->method('POST')
             ->url('https://MyDev.lupinsdev.dk')
+            ->headers(['Content-Type' => 'application/json'])
+            ->payload(['data' => [1, 2, 3]])
             ->create();
 
         // Assert
