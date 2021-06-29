@@ -364,6 +364,14 @@ class RequestInsurance extends SaveRetryingModel
     {
         Log::debug(sprintf('Processing request with id: [%d]', $this->id));
 
+        // An event is dispatched before processing begins
+        // allowing the application to abandon/complete/paused the requests before processing.
+        Events\RequestBeforeProcess::dispatch($this);
+
+        if ($this->isAbandoned() || $this->isCompleted() || $this->isPaused()) {
+            return $this;
+        }
+
         // Send the request and receive the response
         $response = $this->sendRequest();
 
