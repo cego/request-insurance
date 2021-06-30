@@ -119,8 +119,9 @@ class RequestInsurance extends SaveRetryingModel
                 $request->headers = json_decode($request->headers, true, 512, JSON_THROW_ON_ERROR);
             }
 
-            $request->headers['X-Request-Trace-Id'] = $request->trace_id;
-            $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
+            $request->headers = json_encode(array_merge($request->headers, [
+                'X-Request-Trace-Id' => $request->trace_id,
+            ]), JSON_THROW_ON_ERROR);
 
             // We make sure to json encode payload to json if passed as an array
             if (is_array($request->payload)) {
