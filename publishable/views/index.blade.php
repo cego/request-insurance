@@ -25,6 +25,9 @@
                             <form method="get" class="float-right form-inline">
                                 <div class="form-group mr-5">
                                     <label class="form-check-label mr-3">
+                                        Trace ID: <input class="form-control ml-2" type="text" name="trace_id" style="width: 250px" placeholder="trace_id" value="{{ old("trace_id") }}">
+                                    </label>
+                                    <label class="form-check-label mr-3">
                                         Url: <input class="form-control ml-2" type="text" name="url" style="width: 250px" placeholder="% (SQL LIKE)" value="{{ old("url") }}">
                                     </label>
                                     <label class="form-check-label mr-3">

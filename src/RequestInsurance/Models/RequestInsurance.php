@@ -207,6 +207,10 @@ class RequestInsurance extends SaveRetryingModel
             $query = $query->where('url', 'like', $request->get('url'));
         }
 
+        if ($request->has('trace_id') && trim($request->get('trace_id'))) {
+            $query = $query->where('trace_id', $request->get('trace_id'));
+        }
+
         try {
             if ($request->has('from') && $request->get('from') != null) {
                 $from = Carbon::parse($request->get('from'))->setHours(0)->setMinutes(0)->setSeconds(0);
