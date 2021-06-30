@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\Models;
 
+use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Cego\RequestInsurance\Events;
@@ -27,6 +28,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property string|array $headers
  * @property string $payload
  * @property int|null $timeout_ms
+ * @property string|null $trace_id
  * @property string|array $response_headers
  * @property string $response_body
  * @property int $response_code
@@ -97,6 +99,15 @@ class RequestInsurance extends SaveRetryingModel
             // Throw exception if url is not set
             if ( ! $request->url) {
                 throw new EmptyPropertyException('url', $request);
+            }
+
+            // Throw exception if url is not set
+            if ( ! $request->trace_id) {
+                if (request()->hasHeader('x-request-trace-id')) {
+                    $request->trace_id = request()->header('x-request-trace-id');
+                } else {
+                    $request->trace_id = Uuid::uuid1()->toString();
+                }
             }
 
             // We make sure to json encode headers to json if passed as an array
