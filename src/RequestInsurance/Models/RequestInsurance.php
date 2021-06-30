@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\Models;
 
+use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Cego\RequestInsurance\Events;
@@ -27,6 +28,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property string|array $headers
  * @property string $payload
  * @property int|null $timeout_ms
+ * @property string|null $trace_id
  * @property string|array $response_headers
  * @property string $response_body
  * @property int $response_code
@@ -99,10 +101,27 @@ class RequestInsurance extends SaveRetryingModel
                 throw new EmptyPropertyException('url', $request);
             }
 
-            // We make sure to json encode headers to json if passed as an array
-            if (is_array($request->headers)) {
-                $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
+            /** @var Request $httpRequest */
+            $httpRequest = request();
+
+            if (! $request->trace_id) {
+                if ($httpRequest->hasHeader('X-Request-Trace-Id')) {
+                    $request->trace_id = $httpRequest->header('X-Request-Trace-Id');
+                } else {
+                    // Use cloudflare unique request id if present, or fallback to a uuid.
+                    // We use cloudflare so that we can find the origin request that spawned the trace.
+                    $request->trace_id = $httpRequest->header('cf-request-id', Uuid::uuid6()->toString());
+                }
             }
+
+            // Make sure the headers contains the X-Request-Trace-Id header, and that they are json encoded
+            if (! is_array($request->headers)) {
+                $request->headers = json_decode($request->headers, true, 512, JSON_THROW_ON_ERROR);
+            }
+
+            $request->headers = json_encode(array_merge($request->headers, [
+                'X-Request-Trace-Id' => $request->trace_id,
+            ]), JSON_THROW_ON_ERROR);
 
             // We make sure to json encode payload to json if passed as an array
             if (is_array($request->payload)) {
@@ -187,6 +206,10 @@ class RequestInsurance extends SaveRetryingModel
 
         if ($request->has('url') && trim($request->get('url'))) {
             $query = $query->where('url', 'like', $request->get('url'));
+        }
+
+        if ($request->has('trace_id') && trim($request->get('trace_id'))) {
+            $query = $query->where('trace_id', $request->get('trace_id'));
         }
 
         try {
