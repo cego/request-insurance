@@ -101,19 +101,26 @@ class RequestInsurance extends SaveRetryingModel
                 throw new EmptyPropertyException('url', $request);
             }
 
-            // Throw exception if url is not set
-            if ( ! $request->trace_id) {
-                if (request()->hasHeader('x-request-trace-id')) {
-                    $request->trace_id = request()->header('x-request-trace-id');
+            /** @var Request $httpRequest */
+            $httpRequest = request();
+
+            if (! $request->trace_id) {
+                if ($httpRequest->hasHeader('X-Request-Trace-Id')) {
+                    $request->trace_id = $httpRequest->header('X-Request-Trace-Id');
                 } else {
-                    $request->trace_id = Uuid::uuid1()->toString();
+                    // Use cloudflare unique request id if present, or fallback to a uuid.
+                    // We use cloudflare so that we can find the origin request that spawned the trace.
+                    $request->trace_id = $httpRequest->header('cf-request-id', Uuid::uuid6()->toString());
                 }
             }
 
-            // We make sure to json encode headers to json if passed as an array
-            if (is_array($request->headers)) {
-                $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
+            // Make sure the headers contains the X-Request-Trace-Id header, and that they are json encoded
+            if (! is_array($request->headers)) {
+                $request->headers = json_decode($request->headers, true, 512, JSON_THROW_ON_ERROR);
             }
+
+            $request->headers['X-Request-Trace-Id'] = $request->trace_id;
+            $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
 
             // We make sure to json encode payload to json if passed as an array
             if (is_array($request->payload)) {
