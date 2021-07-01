@@ -43,11 +43,16 @@ return [
     'maximumNumberOfRetries' => 10,
 
     /*
-    | The number of days to keep 2xx rows, before deletion
+    | The number of days to keep completed rows, before deletion
     */
 
     'cleanUpKeepDays' => 14,
 
+    /*
+    | The number of rows to chunk delete between slight delays, if you experience OOM errors, then reduce this number.
+    */
+
+    'cleanChunkSize' => 1000,
 
     /*
     | Set the number of requests in each batch

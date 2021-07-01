@@ -23,7 +23,6 @@ class RequestInsuranceServiceProvider extends ServiceProvider
     {
         // Make sure migrations and factories are published to the project consuming this package
         $this->loadMigrationsFrom(__DIR__ . '/../../publishable/migrations');
-        $this->loadFactoriesFrom(__DIR__ . '/../../publishable/factories');
 
         // Makes sure essential files are published to the consuming project
         $this->publishes([
