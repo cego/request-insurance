@@ -19,7 +19,19 @@ class RequestInsuranceServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
+    public function boot(): void
+    {
+        $this->publishAndLoadPackageComponents();
+
+        $this->registerAndScheduleCommands();
+
+        $this->setPaginatorStyling();
+    }
+
+    /**
+     * Publishes and loads package components so they are available to the application
+     */
+    protected function publishAndLoadPackageComponents(): void
     {
         // Make sure migrations and factories are published to the project consuming this package
         $this->loadMigrationsFrom(__DIR__ . '/../../publishable/migrations');
@@ -47,23 +59,30 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             InlinePrint::class,
             Status::class,
         ]);
+    }
+
+    /**
+     * Registers all package commands, and schedules the required ones
+     */
+    protected function registerAndScheduleCommands(): void
+    {
+        // Only register and schedule commands if we are running in CLI mode
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
 
         // Add all commands to Artisan
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                Commands\RequestInsuranceService::class,
-                Commands\UnlockBlockedRequestInsurances::class,
-                Commands\CleanUpRequestInsurances::class,
-            ]);
-        }
+        $this->commands([
+            Commands\RequestInsuranceService::class,
+            Commands\UnlockBlockedRequestInsurances::class,
+            Commands\CleanUpRequestInsurances::class,
+        ]);
 
         // Add specific commands to the schedule
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('unlock:request-insurances')->everyFiveMinutes();
-            $schedule->command('clean:request-insurances')->dailyAt('03:00');
+            $schedule->command('clean:request-insurances')->everyTenMinutes();
         });
-
-        $this->setPaginatorStyling();
     }
 
     /**
