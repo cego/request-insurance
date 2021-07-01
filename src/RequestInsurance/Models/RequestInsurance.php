@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Cego\RequestInsurance\Events;
 use Cego\RequestInsurance\RequestInsuranceBuilder;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Exception;
 use Carbon\Carbon;
@@ -16,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Cego\RequestInsurance\Factories\RequestInsuranceFactory;
 use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
 /**
@@ -48,6 +51,8 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  */
 class RequestInsurance extends SaveRetryingModel
 {
+    use HasFactory;
+
     /**
      * Indicates if all mass assignment is enabled.
      *
@@ -585,5 +590,15 @@ class RequestInsurance extends SaveRetryingModel
     public function logs()
     {
         return $this->hasMany(RequestInsuranceLog::class);
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return Factory
+     */
+    protected static function newFactory()
+    {
+        return new RequestInsuranceFactory();
     }
 }

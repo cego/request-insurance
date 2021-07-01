@@ -4,8 +4,10 @@ namespace Cego\RequestInsurance\Models;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Cego\RequestInsurance\Factories\RequestInsuranceLogFactory;
 
 /**
  * Class RequestInsuranceLog
@@ -19,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class RequestInsuranceLog extends SaveRetryingModel
 {
+    use HasFactory;
+
     /**
      * Indicates if all mass assignment is enabled.
      *
@@ -61,5 +65,15 @@ class RequestInsuranceLog extends SaveRetryingModel
     public function parent()
     {
         return $this->belongsTo(get_class(resolve(RequestInsurance::class)), 'request_insurance_id');
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return Factory
+     */
+    protected static function newFactory()
+    {
+        return new RequestInsuranceLogFactory();
     }
 }
