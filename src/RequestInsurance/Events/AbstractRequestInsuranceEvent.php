@@ -2,9 +2,7 @@
 
 namespace Cego\RequestInsurance\Events;
 
-use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 /**
@@ -16,7 +14,7 @@ use Cego\RequestInsurance\Models\RequestInsurance;
  */
 abstract class AbstractRequestInsuranceEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
 
     /**
      * The order instance.
