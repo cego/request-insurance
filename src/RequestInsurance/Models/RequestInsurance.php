@@ -120,6 +120,8 @@ class RequestInsurance extends SaveRetryingModel
             }
 
             // Make sure the headers contains the X-Request-Trace-Id header, and that they are json encoded
+            $request->headers ??= [];
+
             if (! is_array($request->headers)) {
                 $request->headers = json_decode($request->headers, true, 512, JSON_THROW_ON_ERROR);
             }
