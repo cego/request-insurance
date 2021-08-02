@@ -113,9 +113,9 @@ class RequestInsurance extends SaveRetryingModel
                 if ($httpRequest->hasHeader('X-Request-Trace-Id')) {
                     $request->trace_id = $httpRequest->header('X-Request-Trace-Id');
                 } else {
-                    // Use cloudflare unique request id if present, or fallback to a uuid.
+                    // Use cloudflare unique request id if present, or fallback to an uuid.
                     // We use cloudflare so that we can find the origin request that spawned the trace.
-                    $request->trace_id = $httpRequest->header('cf-request-id', Uuid::uuid6()->toString());
+                    $request->trace_id = $httpRequest->header('cf-ray', Uuid::uuid6()->toString());
                 }
             }
 
