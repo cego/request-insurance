@@ -99,7 +99,7 @@ class RequestInsuranceWorker
      * @param int $signo
      * @param mixed $siginfo
      */
-    protected function sig_handler(int $signo, $siginfo): void
+    public function sig_handler(int $signo, $siginfo): void
     {
         Log::info(sprintf('RequestInsurance Worker (#%s) received a shutdown signal - Beginning graceful shutdown', $this->runningHash));
 
