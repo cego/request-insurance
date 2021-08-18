@@ -17,8 +17,8 @@ class RequestInsuranceTest extends TestCase
         RequestInsurance::create([
             'payload' => ['data' => [1, 2, 3]],
             'headers' => ['Content-Type' => 'application/json'],
-            'method' => 'POST',
-            'url' => 'https://MyDev.lupinsdev.dk',
+            'method'  => 'POST',
+            'url'     => 'https://MyDev.lupinsdev.dk',
         ]);
 
         // Assert
@@ -35,8 +35,8 @@ class RequestInsuranceTest extends TestCase
         RequestInsurance::create([
             'payload' => ['data' => [1, 2, 3]],
             'headers' => ['Content-Type' => 'application/json'],
-            'method' => '',
-            'url' => 'https://MyDev.lupinsdev.dk',
+            'method'  => '',
+            'url'     => 'https://MyDev.lupinsdev.dk',
         ]);
     }
 
@@ -50,8 +50,8 @@ class RequestInsuranceTest extends TestCase
         RequestInsurance::create([
             'payload' => ['data' => [1, 2, 3]],
             'headers' => ['Content-Type' => 'application/json'],
-            'method' => 'POST',
-            'url' => '',
+            'method'  => 'POST',
+            'url'     => '',
         ]);
     }
 
@@ -62,10 +62,11 @@ class RequestInsuranceTest extends TestCase
 
         // Act
         RequestInsurance::create([
-            'payload' => ['data' => [1, 2, 3]],
-            'headers' => ['Content-Type' => 'application/json'],
-            'method' => 'POST',
-            'url' => 'https://MyDev.lupinsdev.dk',
+            'payload'  => ['data' => [1, 2, 3]],
+            'headers'  => ['Content-Type' => 'application/json'],
+            'method'   => 'POST',
+            'url'      => 'https://MyDev.lupinsdev.dk',
+            'trace_id' => '123',
         ]);
 
         // Assert
@@ -75,6 +76,6 @@ class RequestInsuranceTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         $this->assertEquals(json_encode(['data' => [1, 2, 3]], JSON_THROW_ON_ERROR), $requestInsurance->payload);
-        $this->assertEquals(json_encode(['Content-Type' => 'application/json'], JSON_THROW_ON_ERROR), $requestInsurance->headers);
+        $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123'], JSON_THROW_ON_ERROR), $requestInsurance->headers);
     }
 }

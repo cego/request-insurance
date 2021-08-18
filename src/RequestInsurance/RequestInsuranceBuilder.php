@@ -96,6 +96,18 @@ class RequestInsuranceBuilder
     }
 
     /**
+     * Sets the trace id field
+     *
+     * @param string $traceId
+     *
+     * @return $this
+     */
+    public function traceId(string $traceId): RequestInsuranceBuilder
+    {
+        return $this->set('trace_id', $traceId);
+    }
+
+    /**
      * Sets the priority field
      *
      * @param int $priority
