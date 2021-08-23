@@ -99,17 +99,16 @@ class RequestInsuranceWorker
      */
     protected function ensureDbIsReachableBeforeWorkerStarts(): void
     {
-        do {
+        while (true) {
             try {
                 DB::connection()->getPdo();
-                $databaseIsNotReachable = false;
-            } catch (Exception $exception) {
-                $databaseIsNotReachable = true;
 
+                return;
+            } catch (Exception $exception) {
                 Log::error($exception);
                 sleep(5); // Sleep for a little while to not overly spam the log
             }
-        } while ($databaseIsNotReachable);
+        }
     }
 
     /**
