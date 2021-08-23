@@ -101,7 +101,7 @@ class RequestInsuranceWorker
     {
         do {
             try {
-                DB::connection();
+                DB::connection()->getPdo();
                 $databaseIsNotReachable = false;
             } catch (Exception $exception) {
                 $databaseIsNotReachable = true;
