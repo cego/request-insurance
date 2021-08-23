@@ -65,6 +65,7 @@ class RequestInsuranceWorker
         Log::info(sprintf('RequestInsurance Worker (#%s) has started', $this->runningHash));
 
         $this->setupShutdownSignalHandler();
+        $this->ensureDbIsReachableBeforeWorkerStarts();
 
         do {
             $executionTime = Stopwatch::time(function () {
@@ -91,6 +92,23 @@ class RequestInsuranceWorker
     {
         pcntl_signal(SIGQUIT, [$this, 'sig_handler']); // Code 3
         pcntl_signal(SIGTERM, [$this, 'sig_handler']); // Code 15
+    }
+
+    /**
+     * Ensures that the DB can be reached without throwing exceptions, before continuing
+     */
+    protected function ensureDbIsReachableBeforeWorkerStarts(): void
+    {
+        while (true) {
+            try {
+                DB::connection()->getPdo();
+
+                return;
+            } catch (Exception $exception) {
+                Log::error($exception);
+                sleep(5); // Sleep for a little while to not overly spam the log
+            }
+        }
     }
 
     /**
