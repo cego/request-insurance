@@ -65,7 +65,6 @@ class RequestInsuranceWorker
         Log::info(sprintf('RequestInsurance Worker (#%s) has started', $this->runningHash));
 
         $this->setupShutdownSignalHandler();
-
         $this->ensureDbIsReachableBeforeWorkerStarts();
 
         do {
