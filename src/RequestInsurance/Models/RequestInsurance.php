@@ -32,6 +32,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property string $payload
  * @property int|null $timeout_ms
  * @property string|null $trace_id
+ * @property string|null $encrypted_fields
  * @property string|array $response_headers
  * @property string $response_body
  * @property int $response_code
