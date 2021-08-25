@@ -14,7 +14,7 @@ class AddEncryptedFieldsToRequestInsurance extends Migration
     public function up(): void
     {
         Schema::table('request_insurances', function (Blueprint $table) {
-            $table->string('encrypted_fields')->default(null)->after('trace_id');
+            $table->string('encrypted_fields')->nullable()->default(null)->after('trace_id');
         });
     }
 

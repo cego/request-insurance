@@ -116,7 +116,6 @@ class RequestInsurance extends SaveRetryingModel
 
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {
-
             // Throw exception if method is not set
             if ( ! $request->method) {
                 throw new EmptyPropertyException('method', $request);
@@ -151,7 +150,7 @@ class RequestInsurance extends SaveRetryingModel
 
             // We make sure to json encode encrypted_fields to json if passed as an array
             if (is_array($request->encrypted_fields)) {
-                $request->encrypted_fields = json_encode($request->headers, JSON_THROW_ON_ERROR);
+                $request->encrypted_fields = json_encode($request->encrypted_fields, JSON_THROW_ON_ERROR);
             }
 
             // Make sure we never save an unencrypted RI to the database
@@ -160,7 +159,7 @@ class RequestInsurance extends SaveRetryingModel
             }
 
             // We make sure to json encode headers to json if passed as an array
-            if (is_array($request->payload)) {
+            if (is_array($request->headers)) {
                 $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
             }
 
@@ -172,6 +171,13 @@ class RequestInsurance extends SaveRetryingModel
             // We make sure to json encode response headers to json if passed as an array
             if (is_array($request->response_headers)) {
                 $request->response_headers = json_encode($request->response_headers, JSON_THROW_ON_ERROR);
+            }
+        });
+
+        static::saved(function (RequestInsurance $request) {
+            // After the model have been saved, then decrypt it again
+            if ($request->usesEncryption()) {
+                $request->decrypt();
             }
         });
     }
@@ -194,7 +200,7 @@ class RequestInsurance extends SaveRetryingModel
                 if (Arr::has($headers, $encryptedHeaderKey)) {
                     $unencryptedHeaderValue = Arr::get($headers, $encryptedHeaderKey);
 
-                    Arr::set($headers, $encryptedHeaderKey, Crypt::encryptString($unencryptedHeaderValue));
+                    Arr::set($headers, $encryptedHeaderKey, Crypt::encrypt($unencryptedHeaderValue));
                 }
             }
 
@@ -232,7 +238,7 @@ class RequestInsurance extends SaveRetryingModel
                 if (Arr::has($headers, $encryptedHeaderKey)) {
                     $encryptedHeaderValue = Arr::get($headers, $encryptedHeaderKey);
 
-                    Arr::set($headers, $encryptedHeaderKey, Crypt::decryptString($encryptedHeaderValue));
+                    Arr::set($headers, $encryptedHeaderKey, Crypt::decrypt($encryptedHeaderValue));
                 }
             }
 
@@ -253,7 +259,7 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @throws JsonException
      */
-    protected function getHeadersCastToArray(): array
+    public function getHeadersCastToArray(): array
     {
         return is_array($this->headers)
             ? $this->headers
