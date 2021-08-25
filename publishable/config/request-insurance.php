@@ -80,7 +80,7 @@ return [
     | Sets the fields which should always be encrypted.
     */
 
-    'autoEncrypt' => [
+    'fieldsToAutoEncrypt' => [
         'headers' => ['Authorization', 'authorization']
     ],
 
