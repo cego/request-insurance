@@ -77,6 +77,14 @@ return [
     'condenseLoad' => env('REQUEST_INSURANCE_CONDENSE_LOAD', true),
 
     /*
+    | Sets the fields which should always be encrypted.
+    */
+
+    'fieldsToAutoEncrypt' => [
+        'headers' => ['Authorization', 'authorization']
+    ],
+
+    /*
      | Sets the table name to look for request insurances
      */
     'table'        => null,

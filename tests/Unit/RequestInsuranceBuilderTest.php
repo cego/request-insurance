@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use InvalidArgumentException;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 
@@ -197,7 +198,6 @@ class RequestInsuranceBuilderTest extends TestCase
 
         // Assert
 
-
         // An RI should be left decryoted after creation
         $this->assertEquals(['a' => 1, 'b' => 2], $requestInsurance->getHeadersCastToArray()['x-test']);
 
@@ -275,5 +275,82 @@ class RequestInsuranceBuilderTest extends TestCase
         // Assert that it is encrypted in DB
         $this->assertEquals('application/json', $requestInsurance->getHeadersCastToArray()['Content-Type']);
         $this->assertEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
+    }
+
+    /** @test */
+    public function it_adds_auto_encrypted_headers(): void
+    {
+        // Arrange
+        Config::set('request-insurance.fieldsToAutoEncrypt', [
+            'headers' => ['x-test'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
+            ->encryptHeaders([])
+            ->create();
+
+        // Assert
+        $this->assertContains('x-test', json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR)['headers']);
+    }
+
+    /** @test */
+    public function it_can_handle_duplicate_encryption_headers(): void
+    {
+        // Arrange
+        Config::set('request-insurance.fieldsToAutoEncrypt', [
+            'headers' => ['x-test'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
+            ->encryptHeader('x-test')
+            ->create();
+
+        // Assert
+
+        // An RI should be left decrypted after creation
+        $this->assertEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
+
+        $this->assertCount(1, RequestInsurance::all());
+
+        // Extract it from the DB
+        $requestInsurance = RequestInsurance::first();
+
+        // Assert that it is decrypted correctly in DB
+        $this->assertEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
+        $this->assertCount(0, RequestInsurance::query()->where('headers', 'like', '%abc%')->get());
+    }
+
+    /** @test */
+    public function it_can_merge_auto_encryption(): void
+    {
+        // Arrange
+        Config::set('request-insurance.fieldsToAutoEncrypt', [
+            'headers' => ['x-test'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
+            ->encryptHeader('Content-Type')
+            ->create();
+
+        $encryptedFields = json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertEquals([
+            'headers' => [
+                'Content-Type',
+                'x-test',
+            ],
+        ], $encryptedFields);
     }
 }
