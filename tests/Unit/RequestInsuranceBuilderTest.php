@@ -281,7 +281,7 @@ class RequestInsuranceBuilderTest extends TestCase
     public function it_adds_auto_encrypted_headers(): void
     {
         // Arrange
-        Config::set('request-insurance.auto_encrypt', [
+        Config::set('request-insurance.autoEncrypt', [
             'headers' => ['x-test'],
         ]);
 
@@ -301,7 +301,7 @@ class RequestInsuranceBuilderTest extends TestCase
     public function it_can_handle_duplicate_encryption_headers(): void
     {
         // Arrange
-        Config::set('request-insurance.auto_encrypt', [
+        Config::set('request-insurance.autoEncrypt', [
             'headers' => ['x-test'],
         ]);
 
@@ -332,7 +332,7 @@ class RequestInsuranceBuilderTest extends TestCase
     public function it_can_merge_auto_encryption(): void
     {
         // Arrange
-        Config::set('request-insurance.auto_encrypt', [
+        Config::set('request-insurance.autoEncrypt', [
             'headers' => ['x-test'],
         ]);
 

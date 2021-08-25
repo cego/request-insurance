@@ -154,7 +154,7 @@ class RequestInsurance extends SaveRetryingModel
                 $request->encrypted_fields = json_decode($request->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
             }
 
-            $request->encrypted_fields = array_merge_recursive($request->encrypted_fields, Config::get('request-insurance.auto_encrypt', []));
+            $request->encrypted_fields = array_merge_recursive($request->encrypted_fields, Config::get('request-insurance.autoEncrypt', []));
 
             // Make sure we never save an unencrypted RI to the database
             if ($request->usesEncryption()) {
