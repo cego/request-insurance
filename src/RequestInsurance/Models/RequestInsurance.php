@@ -62,6 +62,13 @@ class RequestInsurance extends SaveRetryingModel
     protected static $unguarded = true;
 
     /**
+     * Variable which marks if the model is currently encrypted.
+     *
+     * @var bool
+     */
+    protected bool $isEncrypted = false;
+
+    /**
      * The attributes that should be mutated to dates.
      *
      * @var array
@@ -83,6 +90,59 @@ class RequestInsurance extends SaveRetryingModel
     {
         // Use the one defined in the config, or the whatever is default
         return Config::get('request-insurance.table') ?? parent::getTable();
+    }
+
+    /**
+     * Encrypts the RI if it has not already been encrypted
+     *
+     * @return $this
+     */
+    public function encrypt(): self
+    {
+        if ($this->isEncrypted()) {
+            return $this;
+        }
+
+        $this->isEncrypted = true;
+
+
+        return $this;
+    }
+
+    /**
+     * Decrypts the RI if it has not already been decrypted
+     *
+     * @return $this
+     */
+    public function decrypt(): self
+    {
+        if ($this->isUnencrypted()) {
+            return $this;
+        }
+
+        $this->isEncrypted = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns true if the mode is currently encrypted
+     *
+     * @return bool
+     */
+    public function isEncrypted(): bool
+    {
+        return $this->isEncrypted;
+    }
+
+    /**
+     * Returns true if the model is currently unencrypted
+     *
+     * @return bool
+     */
+    public function isUnencrypted(): bool
+    {
+        return ! $this->isEncrypted();
     }
 
     /**
