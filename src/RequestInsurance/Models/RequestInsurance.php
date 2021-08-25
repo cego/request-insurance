@@ -3,6 +3,8 @@
 namespace Cego\RequestInsurance\Models;
 
 use Ramsey\Uuid\Uuid;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Cego\RequestInsurance\Events;
@@ -138,16 +140,24 @@ class RequestInsurance extends SaveRetryingModel
                 }
             }
 
-            // Make sure the headers contains the X-Request-Trace-Id header, and that they are json encoded
+            // Make sure the headers contains the X-Request-Trace-Id header
             $request->headers ??= [];
 
             if (! is_array($request->headers)) {
                 $request->headers = json_decode($request->headers, true, 512, JSON_THROW_ON_ERROR);
             }
 
-            $request->headers = json_encode(array_merge($request->headers, [
-                'X-Request-Trace-Id' => $request->trace_id,
-            ]), JSON_THROW_ON_ERROR);
+            $request->headers = array_merge($request->headers, ['X-Request-Trace-Id' => $request->trace_id]);
+
+            // Make sure we never save an unencrypted RI to the database
+            if ($request->usesEncryption()) {
+                $request->encrypt();
+            }
+
+            // We make sure to json encode headers to json if passed as an array
+            if (is_array($request->payload)) {
+                $request->headers = json_encode($request->headers, JSON_THROW_ON_ERROR);
+            }
 
             // We make sure to json encode payload to json if passed as an array
             if (is_array($request->payload)) {
@@ -157,11 +167,6 @@ class RequestInsurance extends SaveRetryingModel
             // We make sure to json encode response headers to json if passed as an array
             if (is_array($request->response_headers)) {
                 $request->response_headers = json_encode($request->response_headers, JSON_THROW_ON_ERROR);
-            }
-
-            // Make sure we never save an unencrypted RI to the database
-            if ($request->usesEncryption()) {
-                $request->encrypt();
             }
         });
     }
@@ -177,8 +182,23 @@ class RequestInsurance extends SaveRetryingModel
             return $this;
         }
 
-        $this->isEncrypted = true;
+        try {
+            $headers = $this->getHeadersCastToArray();
 
+            foreach ($this->getEncryptedHeaders() as $encryptedHeaderKey) {
+                if (Arr::has($headers, $encryptedHeaderKey)) {
+                    $unencryptedHeaderValue = Arr::get($headers, $encryptedHeaderKey);
+
+                    Arr::set($headers, $encryptedHeaderKey, Crypt::encryptString($unencryptedHeaderValue));
+                }
+            }
+
+            $this->headers = $headers;
+
+            $this->isEncrypted = true;
+        } catch (Exception $exception) {
+            Log::error(sprintf('Could not encrypt RI: %s', (string) $exception));
+        }
 
         return $this;
     }
@@ -194,9 +214,66 @@ class RequestInsurance extends SaveRetryingModel
             return $this;
         }
 
-        $this->isEncrypted = false;
+        try {
+            $headers = $this->getHeadersCastToArray();
+
+            // We reverse the order of the returned array, so that if we encrypt in order A -> B -> C
+            // then we also decrypt in the order of C -> B -> A.
+            //
+            // The reason for this is if there is a bug, which allows the same field to be
+            // encrypted multiple times, then it is important that we decrypt
+            // in the reverse order.
+            foreach ($this->getEncryptedHeaders(true) as $encryptedHeaderKey) {
+                if (Arr::has($headers, $encryptedHeaderKey)) {
+                    $encryptedHeaderValue = Arr::get($headers, $encryptedHeaderKey);
+
+                    Arr::set($headers, $encryptedHeaderKey, Crypt::decryptString($encryptedHeaderValue));
+                }
+            }
+
+            $this->headers = $headers;
+
+            $this->isEncrypted = false;
+        } catch (Exception $exception) {
+            Log::error(sprintf('Could not encrypt RI: %s', (string) $exception));
+        }
 
         return $this;
+    }
+
+    /**
+     * Returns the headers cast to array
+     *
+     * @return array
+     *
+     * @throws JsonException
+     */
+    protected function getHeadersCastToArray(): array
+    {
+        return is_array($this->headers)
+            ? $this->headers
+            : json_decode($this->headers, true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns the flat array of the headers which should be encrypted, using the dot notation for nested levels of encryption.
+     *
+     * @param bool $reversed
+     *
+     * @return array
+     *
+     * @throws JsonException
+     */
+    protected function getEncryptedHeaders(bool $reversed = false): array
+    {
+        $encryptedFields = json_decode($this->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
+        $headers = $encryptedFields['headers'];
+
+        if ($reversed) {
+            $headers = array_reverse($headers);
+        }
+
+        return $headers;
     }
 
     /**
