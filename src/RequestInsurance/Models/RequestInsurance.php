@@ -34,7 +34,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property string $payload
  * @property int|null $timeout_ms
  * @property string|null $trace_id
- * @property string|null $encrypted_fields
+ * @property string|array|null $encrypted_fields
  * @property string|array $response_headers
  * @property string $response_body
  * @property int $response_code
@@ -148,14 +148,22 @@ class RequestInsurance extends SaveRetryingModel
 
             $request->headers = array_merge($request->headers, ['X-Request-Trace-Id' => $request->trace_id]);
 
-            // We make sure to json encode encrypted_fields to json if passed as an array
-            if (is_array($request->encrypted_fields)) {
-                $request->encrypted_fields = json_encode($request->encrypted_fields, JSON_THROW_ON_ERROR);
+            $request->encrypted_fields ??= [];
+
+            if (! is_array($request->encrypted_fields)) {
+                $request->encrypted_fields = json_decode($request->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
             }
+
+            $request->encrypted_fields = array_merge_recursive($request->encrypted_fields, Config::get('request-insurance.auto_encrypt', []));
 
             // Make sure we never save an unencrypted RI to the database
             if ($request->usesEncryption()) {
                 $request->encrypt();
+            }
+
+            // We make sure to json encode encrypted_fields to json if passed as an array
+            if (is_array($request->encrypted_fields)) {
+                $request->encrypted_fields = json_encode($request->encrypted_fields, JSON_THROW_ON_ERROR);
             }
 
             // We make sure to json encode headers to json if passed as an array
@@ -207,7 +215,7 @@ class RequestInsurance extends SaveRetryingModel
                 }
             }
 
-            $this->headers = $headers;
+            $this->headers = json_encode($headers, JSON_THROW_ON_ERROR);
 
             $this->isEncrypted = true;
         } catch (Exception $exception) {
@@ -245,7 +253,7 @@ class RequestInsurance extends SaveRetryingModel
                 }
             }
 
-            $this->headers = $headers;
+            $this->headers = json_encode($headers, JSON_THROW_ON_ERROR);
 
             $this->isEncrypted = false;
         } catch (Exception $exception) {
@@ -280,7 +288,10 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected function getEncryptedHeaders(bool $reversed = false): array
     {
-        $encryptedFields = json_decode($this->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
+        $encryptedFields = is_array($this->encrypted_fields ?? [])
+            ? $this->encrypted_fields ?? []
+            : json_decode($this->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
+
         $headers = $encryptedFields['headers'];
 
         if ($reversed) {
