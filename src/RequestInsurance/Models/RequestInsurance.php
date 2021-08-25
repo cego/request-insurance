@@ -160,7 +160,7 @@ class RequestInsurance extends SaveRetryingModel
             }
 
             // Make sure we never save an unencrypted RI to the database
-            if ($request->isUnencrypted()) {
+            if ($request->usesEncryption()) {
                 $request->encrypt();
             }
         });
