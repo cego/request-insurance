@@ -175,7 +175,10 @@ class RequestInsurance extends SaveRetryingModel
         });
 
         static::saved(function (RequestInsurance $request) {
-            // After the model have been saved, then decrypt it again
+            // After the model have been saved, then decrypt it again locally.
+            // It is NOT decrypted in the DB, it is only decrypted so that
+            // when the person who created the RI accesses the model instance
+            // can read the unencrypted data
             if ($request->usesEncryption()) {
                 $request->decrypt();
             }

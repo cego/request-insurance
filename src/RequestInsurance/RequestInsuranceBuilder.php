@@ -134,6 +134,9 @@ class RequestInsuranceBuilder
      */
     public function encryptHeader(string $headerKey): RequestInsuranceBuilder
     {
+        // We put the encrypted headers into the sub-key 'headers'
+        // so that this implementation is forward compatible with increased encryption
+        // support for things like the payload.
         return $this->append('encrypted_fields.headers', $headerKey);
     }
 
