@@ -146,7 +146,7 @@ class RequestInsuranceBuilder
     public function encryptHeaders(array $headerKeys): RequestInsuranceBuilder
     {
         foreach ($headerKeys as $headerKey) {
-            $this->append('encrypted_fields.headers', $headerKey);
+            $this->encryptHeader($headerKey);
         }
 
         return $this;
