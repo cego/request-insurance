@@ -93,59 +93,6 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Encrypts the RI if it has not already been encrypted
-     *
-     * @return $this
-     */
-    public function encrypt(): self
-    {
-        if ($this->isEncrypted()) {
-            return $this;
-        }
-
-        $this->isEncrypted = true;
-
-
-        return $this;
-    }
-
-    /**
-     * Decrypts the RI if it has not already been decrypted
-     *
-     * @return $this
-     */
-    public function decrypt(): self
-    {
-        if ($this->isUnencrypted()) {
-            return $this;
-        }
-
-        $this->isEncrypted = false;
-
-        return $this;
-    }
-
-    /**
-     * Returns true if the mode is currently encrypted
-     *
-     * @return bool
-     */
-    public function isEncrypted(): bool
-    {
-        return $this->isEncrypted;
-    }
-
-    /**
-     * Returns true if the model is currently unencrypted
-     *
-     * @return bool
-     */
-    public function isUnencrypted(): bool
-    {
-        return ! $this->isEncrypted();
-    }
-
-    /**
      * Perform any actions required after the model boots.
      *
      * @return void
@@ -154,6 +101,17 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected static function booted(): void
     {
+        static::retrieved(function (RequestInsurance $request) {
+            // A model retrieved from the database will always be encrypted at the time of extraction
+            // unless the encrypted fields is equal to null.
+            $request->isEncrypted = $request->usesEncryption();
+
+            // And we therefore want to decrypt it, before the user/worker accesses the request
+            if ($request->isEncrypted()) {
+                $request->decrypt();
+            }
+        });
+
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {
 
@@ -200,7 +158,75 @@ class RequestInsurance extends SaveRetryingModel
             if (is_array($request->response_headers)) {
                 $request->response_headers = json_encode($request->response_headers, JSON_THROW_ON_ERROR);
             }
+
+            // Make sure we never save an unencrypted RI to the database
+            if ($request->isUnencrypted()) {
+                $request->encrypt();
+            }
         });
+    }
+
+    /**
+     * Encrypts the RI if it has not already been encrypted
+     *
+     * @return $this
+     */
+    public function encrypt(): self
+    {
+        if (! $this->usesEncryption() || $this->isEncrypted()) {
+            return $this;
+        }
+
+        $this->isEncrypted = true;
+
+
+        return $this;
+    }
+
+    /**
+     * Decrypts the RI if it has not already been decrypted
+     *
+     * @return $this
+     */
+    public function decrypt(): self
+    {
+        if (! $this->usesEncryption() || $this->isUnencrypted()) {
+            return $this;
+        }
+
+        $this->isEncrypted = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns true if the mode is currently encrypted
+     *
+     * @return bool
+     */
+    public function isEncrypted(): bool
+    {
+        return $this->isEncrypted;
+    }
+
+    /**
+     * Returns true if the model is currently unencrypted
+     *
+     * @return bool
+     */
+    public function isUnencrypted(): bool
+    {
+        return ! $this->isEncrypted();
+    }
+
+    /**
+     * Returns true if this RI is using encryption
+     *
+     * @return bool
+     */
+    protected function usesEncryption(): bool
+    {
+        return $this->encrypted_fields != null;
     }
 
     /**
