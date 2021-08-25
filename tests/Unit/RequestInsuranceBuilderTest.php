@@ -327,4 +327,30 @@ class RequestInsuranceBuilderTest extends TestCase
         $this->assertEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
         $this->assertCount(0, RequestInsurance::query()->where('headers', 'like', '%abc%')->get());
     }
+
+    /** @test */
+    public function it_can_merge_auto_encryption(): void
+    {
+        // Arrange
+        Config::set('request-insurance.auto_encrypt', [
+            'headers' => ['x-test'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
+            ->encryptHeader('Content-Type')
+            ->create();
+
+        $encryptedFields = json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertEquals([
+            'headers' => [
+                'Content-Type',
+                'x-test',
+            ],
+        ], $encryptedFields);
+    }
 }
