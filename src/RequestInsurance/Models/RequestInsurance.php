@@ -149,6 +149,11 @@ class RequestInsurance extends SaveRetryingModel
 
             $request->headers = array_merge($request->headers, ['X-Request-Trace-Id' => $request->trace_id]);
 
+            // We make sure to json encode encrypted_fields to json if passed as an array
+            if (is_array($request->encrypted_fields)) {
+                $request->encrypted_fields = json_encode($request->headers, JSON_THROW_ON_ERROR);
+            }
+
             // Make sure we never save an unencrypted RI to the database
             if ($request->usesEncryption()) {
                 $request->encrypt();
