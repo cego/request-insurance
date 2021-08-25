@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance;
 
+use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
@@ -124,6 +125,37 @@ class RequestInsuranceBuilder
     }
 
     /**
+     * Adds a header to the list of headers to encrypt.
+     * The key supports dot notation.
+     *
+     * @param string $headerKey
+     *
+     * @return RequestInsuranceBuilder
+     */
+    public function encryptHeader(string $headerKey): RequestInsuranceBuilder
+    {
+        // We put the encrypted headers into the sub-key 'headers'
+        // so that this implementation is forward compatible with increased encryption
+        // support for things like the payload.
+        return $this->append('encrypted_fields.headers', $headerKey);
+    }
+
+    /**
+     * Adds a list of headers to the list of headers to encrypt.
+     * The keys support dot notation.
+     *
+     * @param string[] $headerKeys
+     */
+    public function encryptHeaders(array $headerKeys): RequestInsuranceBuilder
+    {
+        foreach ($headerKeys as $headerKey) {
+            $this->encryptHeader($headerKey);
+        }
+
+        return $this;
+    }
+
+    /**
      * Finishes the builder and creates an instance of a persisted Request Insurance row
      *
      * @return RequestInsurance
@@ -143,7 +175,33 @@ class RequestInsuranceBuilder
      */
     protected function set($field, $value): RequestInsuranceBuilder
     {
-        $this->data[$field] = $value;
+        Arr::set($this->data, $field, $value);
+
+        return $this;
+    }
+
+    /**
+     * Appends a value to the end of an array
+     *
+     * @param $field
+     * @param $value
+     *
+     * @return $this
+     */
+    protected function append($field, $value): RequestInsuranceBuilder
+    {
+        if (! Arr::has($this->data, $field)) {
+            return $this->set($field, [$value]);
+        }
+
+        $data = Arr::get($this->data, $field);
+
+        if (! is_array($data)) {
+            throw new InvalidArgumentException('Cannot append to a non-array index');
+        }
+
+        $data[] = $value;
+        Arr::set($this->data, $field, $data);
 
         return $this;
     }
