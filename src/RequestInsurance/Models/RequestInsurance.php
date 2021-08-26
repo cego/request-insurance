@@ -446,8 +446,6 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function unlock()
     {
-        Log::debug(sprintf('Unlocking request with id: [%d]', $this->id));
-
         $this->locked_at = null;
         $this->save();
 
@@ -471,8 +469,6 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function abandon()
     {
-        Log::debug(sprintf('Abandoning request with id: [%d]', $this->id));
-
         $this->paused_at = null;
         $this->abandoned_at = Carbon::now();
         $this->retry_at = null;
@@ -510,8 +506,6 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function pause()
     {
-        Log::debug(sprintf('Pausing request with id: [%d]', $this->id));
-
         // To avoid marking successful requests as failed, we add this successful check
         $this->paused_at = $this->wasSuccessful() ? null : Carbon::now();
         $this->retry_at = null;
@@ -530,8 +524,6 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function resume()
     {
-        Log::debug(sprintf('Resuming request with id: [%d]', $this->id));
-
         $this->paused_at = null;
         $this->retry_at = Carbon::now();
         $this->abandoned_at = null;
@@ -581,8 +573,6 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function process()
     {
-        Log::debug(sprintf('Processing request with id: [%d]', $this->id));
-
         // An event is dispatched before processing begins
         // allowing the application to abandon/complete/paused the requests before processing.
         Events\RequestBeforeProcess::dispatch($this);
