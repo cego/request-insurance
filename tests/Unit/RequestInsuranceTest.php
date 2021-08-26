@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 
@@ -77,5 +78,28 @@ class RequestInsuranceTest extends TestCase
 
         $this->assertEquals(json_encode(['data' => [1, 2, 3]], JSON_THROW_ON_ERROR), $requestInsurance->payload);
         $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123'], JSON_THROW_ON_ERROR), $requestInsurance->headers);
+    }
+
+    /** @test */
+    public function it_can_mask_encrypted_headers(): void
+    {
+        // Arrange
+        Config::set('request-insurance.fieldsToAutoEncrypt', [
+            'headers' => ['x-test'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc123'])
+            ->create();
+
+        // Assert
+        $maskedHeaders = $requestInsurance->getHeadersWithMaskingApplied();
+
+        $this->assertStringNotContainsString('abc123', $maskedHeaders);
+        $this->assertStringContainsString('[ ENCRYPTED ]', $maskedHeaders);
+        $this->assertStringContainsString('application\/json', $maskedHeaders);
     }
 }
