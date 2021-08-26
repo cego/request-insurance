@@ -69,8 +69,6 @@ class RequestInsuranceService extends Command
     {
         // Bail-out early if request insurance is not enabled
         if (Config::get('request-insurance.enabled') == false) {
-            Log::debug('RequestInsuranceService is not enabled. Enable it before starting again.');
-
             return 0;
         }
 
@@ -140,7 +138,6 @@ class RequestInsuranceService extends Command
 //    protected function cleanUpLoadStatistics()
 //    {
 //        if ( ! Storage::disk('local')->exists('load-statistics')) {
-//            Log::debug('Load statistics directory did not exist, it has been created');
 //            Storage::disk('local')->makeDirectory('load-statistics');
 //
 //            return;
