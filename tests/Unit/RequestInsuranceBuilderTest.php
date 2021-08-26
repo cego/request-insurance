@@ -353,4 +353,26 @@ class RequestInsuranceBuilderTest extends TestCase
             ],
         ], $encryptedFields);
     }
+
+    /** @test */
+    public function it_does_not_double_encrypt_when_saving_multiple_times()
+    {
+        // Arrange
+        Config::set('request-insurance.fieldsToAutoEncrypt', [
+            'headers' => ['x-test'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
+            ->encryptHeader('Content-Type')
+            ->create();
+
+        // Assert
+        $this->assertEquals(['headers' => ['Content-Type', 'x-test']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
+        $requestInsurance->save();
+        $this->assertEquals(['headers' => ['Content-Type', 'x-test']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
+    }
 }
