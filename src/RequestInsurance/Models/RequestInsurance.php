@@ -308,6 +308,28 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Returns the headers as a json string, with encrypted headers marked as [ ENCRYPTED ].
+     * We use this to avoid breaking the interface with long encrypted values.
+     *
+     * @return string
+     *
+     * @throws JsonException
+     */
+    public function getHeadersWithMaskingApplied(): string
+    {
+        $headers = $this->getHeadersCastToArray();
+        $encryptedHeaders = $this->getEncryptedHeaders();
+
+        foreach ($encryptedHeaders as $encryptedHeaderKey) {
+            if (Arr::has($headers, $encryptedHeaderKey)) {
+                Arr::set($headers, $encryptedHeaderKey, '[ ENCRYPTED ]');
+            }
+        }
+
+        return json_encode($headers, JSON_THROW_ON_ERROR);
+    }
+
+    /**
      * Returns true if the mode is currently encrypted
      *
      * @return bool
