@@ -263,7 +263,7 @@ class RequestInsurance extends SaveRetryingModel
 
             $this->isEncrypted = false;
         } catch (Exception $exception) {
-            Log::error(sprintf('Could not encrypt RI: %s', (string) $exception));
+            Log::error(sprintf('Could not decrypt RI: %s', (string) $exception));
         }
 
         return $this;
