@@ -41,7 +41,7 @@
                                 </tr>
                                 <tr>
                                     <td>Headers:</td>
-                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->headers"/></td>
+                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
                                 </tr>
                                 <tr>
                                     <td>Completed at:</td>

@@ -154,7 +154,13 @@ class RequestInsurance extends SaveRetryingModel
                 $request->encrypted_fields = json_decode($request->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
             }
 
-            $request->encrypted_fields = array_merge_recursive($request->encrypted_fields, Config::get('request-insurance.fieldsToAutoEncrypt', []));
+            $encryptedFields = array_merge_recursive($request->encrypted_fields, Config::get('request-insurance.fieldsToAutoEncrypt', []));
+
+            foreach ($encryptedFields as $outerKey => $encryptedFieldList) {
+                $encryptedFields[$outerKey] = array_unique($encryptedFieldList);
+            }
+
+            $request->encrypted_fields = $encryptedFields;
 
             // Make sure we never save an unencrypted RI to the database
             if ($request->usesEncryption()) {
@@ -257,7 +263,7 @@ class RequestInsurance extends SaveRetryingModel
 
             $this->isEncrypted = false;
         } catch (Exception $exception) {
-            Log::error(sprintf('Could not encrypt RI: %s', (string) $exception));
+            Log::error(sprintf('Could not decrypt RI: %s', (string) $exception));
         }
 
         return $this;
@@ -299,6 +305,28 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         return $headers;
+    }
+
+    /**
+     * Returns the headers as a json string, with encrypted headers marked as [ ENCRYPTED ].
+     * We use this to avoid breaking the interface with long encrypted values.
+     *
+     * @return string
+     *
+     * @throws JsonException
+     */
+    public function getHeadersWithMaskingApplied(): string
+    {
+        $headers = $this->getHeadersCastToArray();
+        $encryptedHeaders = $this->getEncryptedHeaders();
+
+        foreach ($encryptedHeaders as $encryptedHeaderKey) {
+            if (Arr::has($headers, $encryptedHeaderKey)) {
+                Arr::set($headers, $encryptedHeaderKey, '[ ENCRYPTED ]');
+            }
+        }
+
+        return json_encode($headers, JSON_THROW_ON_ERROR);
     }
 
     /**
