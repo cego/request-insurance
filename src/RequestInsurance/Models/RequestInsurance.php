@@ -298,7 +298,7 @@ class RequestInsurance extends SaveRetryingModel
             ? $this->encrypted_fields ?? []
             : json_decode($this->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
 
-        $headers = $encryptedFields['headers'];
+        $headers = $encryptedFields['headers'] ?? [];
 
         if ($reversed) {
             $headers = array_reverse($headers);
