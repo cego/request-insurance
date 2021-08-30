@@ -671,10 +671,14 @@ class RequestInsurance extends SaveRetryingModel
             ->setPayload($this->payload);
 
         Log::info(json_encode([
-            'url'     => $this->url,
-            'method'  => $this->method,
-            'headers' => $this->headers,
-            'payload' => $this->payload
+            'url'                     => $this->url,
+            'method'                  => $this->method,
+            'headers'                 => $this->headers,
+            'payload'                 => $this->payload,
+            'isEncrypted'             => $this->isEncrypted(),
+            'encryptedHeadersNormal'  => $this->getEncryptedHeaders(false),
+            'encryptedHeadersReverse' => $this->getEncryptedHeaders(true),
+            'headersAsArray'          => $this->getHeadersCastToArray(),
         ], JSON_THROW_ON_ERROR));
 
         // If a custom timeout is set for this specific request
