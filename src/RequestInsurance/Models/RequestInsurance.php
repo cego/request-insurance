@@ -538,7 +538,7 @@ class RequestInsurance extends SaveRetryingModel
         $this->paused_at = $this->wasSuccessful() ? null : Carbon::now();
         $this->retry_at = null;
         $this->abandoned_at = null;
-        $this->completed_at = null;
+        $this->completed_at = $this->wasSuccessful() ? Carbon::now() : null;
 
         $this->save();
 
@@ -609,6 +609,9 @@ class RequestInsurance extends SaveRetryingModel
             return $this;
         }
 
+        // Increment the number of tries as the very first action
+        $this->incrementRetryCount();
+
         // Send the request and receive the response
         $response = $this->sendRequest();
 
@@ -637,7 +640,6 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         if ($this->isNotCompleted() && $response->isRetryable()) {
-            $this->incrementRetryCount();
             $this->setNextRetryAt();
         }
 
@@ -740,7 +742,6 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function retry()
     {
-        $this->incrementRetryCount();
         $this->setNextRetryAt();
         $this->paused_at = null;
         $this->abandoned_at = null;
