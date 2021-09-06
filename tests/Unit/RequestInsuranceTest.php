@@ -102,4 +102,27 @@ class RequestInsuranceTest extends TestCase
         $this->assertStringContainsString('[ ENCRYPTED ]', $maskedHeaders);
         $this->assertStringContainsString('application\/json', $maskedHeaders);
     }
+
+    /** @test */
+    public function it_always_increment_the_tries_count(): void
+    {
+        // Arrange
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance->refresh();
+
+        // Act & Assert
+        $this->assertEquals(0, $requestInsurance->retry_count);
+
+        $requestInsurance->process();
+        $this->assertEquals(1, $requestInsurance->retry_count);
+
+        $requestInsurance->update(['completed_at' => null]);
+        $requestInsurance->process();
+
+        $this->assertEquals(2, $requestInsurance->retry_count);
+    }
 }
