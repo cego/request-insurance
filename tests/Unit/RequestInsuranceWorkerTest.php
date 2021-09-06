@@ -4,11 +4,14 @@ namespace Tests\Unit;
 
 use Carbon\Carbon;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Config;
+use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\Mocks\MockCurlRequest;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\RequestInsurance\Events\RequestSuccessful;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 
 class RequestInsuranceWorkerTest extends TestCase
@@ -209,5 +212,65 @@ class RequestInsuranceWorkerTest extends TestCase
         $requestInsurance2->refresh();
 
         $this->assertCount(1, RequestInsurance::query()->whereNull('completed_at')->get());
+    }
+
+    /** @test */
+    public function it_pauses_requests_with_listeners_that_throw_exceptions_when_the_response_is_not_200(): void
+    {
+        // Arrange
+        MockCurlRequest::setNextResponse(['info' => ['http_code' => 400]]);
+
+        Event::listen(function (RequestFailed $event) {
+            throw new \InvalidArgumentException();
+        });
+
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance->refresh();
+
+        // Act
+        $worker = new RequestInsuranceWorker(1);
+        $worker->run(true);
+
+        // Assert
+        $requestInsurance->refresh();
+
+        $this->assertNotNull($requestInsurance->paused_at);
+        $this->assertNull($requestInsurance->completed_at);
+        $this->assertNull($requestInsurance->locked_at);
+        $this->assertNull($requestInsurance->abandoned_at);
+    }
+
+    /** @test */
+    public function it_completes_requests_with_listeners_that_throw_exceptions_when_the_response_is_200(): void
+    {
+        // Arrange
+        MockCurlRequest::setNextResponse(['info' => ['http_code' => 200]]);
+
+        Event::listen(function (RequestSuccessful $event) {
+            throw new \InvalidArgumentException();
+        });
+
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance->refresh();
+
+        // Act
+        $worker = new RequestInsuranceWorker(1);
+        $worker->run(true);
+
+        // Assert
+        $requestInsurance->refresh();
+
+        $this->assertNull($requestInsurance->paused_at);
+        $this->assertNotNull($requestInsurance->completed_at);
+        $this->assertNull($requestInsurance->locked_at);
+        $this->assertNull($requestInsurance->abandoned_at);
     }
 }
