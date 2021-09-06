@@ -640,7 +640,6 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         if ($this->isNotCompleted() && $response->isRetryable()) {
-            $this->incrementRetryCount();
             $this->setNextRetryAt();
         }
 
