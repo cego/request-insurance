@@ -609,6 +609,9 @@ class RequestInsurance extends SaveRetryingModel
             return $this;
         }
 
+        // Increment the number of tries as the very first action
+        $this->incrementRetryCount();
+
         // Send the request and receive the response
         $response = $this->sendRequest();
 
@@ -740,7 +743,6 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function retry()
     {
-        $this->incrementRetryCount();
         $this->setNextRetryAt();
         $this->paused_at = null;
         $this->abandoned_at = null;
