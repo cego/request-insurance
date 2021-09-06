@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use Carbon\Carbon;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -124,5 +125,31 @@ class RequestInsuranceTest extends TestCase
         $requestInsurance->process();
 
         $this->assertEquals(2, $requestInsurance->retry_count);
+    }
+
+    /** @test */
+    public function it_can_resume_request_insurances(): void
+    {
+        // Arrange
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance->update(['paused_at' => Carbon::now(), 'abandoned_at' => Carbon::now()]);
+        $requestInsurance->refresh();
+
+        $this->assertNotNull($requestInsurance->paused_at);
+        $this->assertNull($requestInsurance->completed_at);
+        $this->assertNull($requestInsurance->locked_at);
+        $this->assertNotNull($requestInsurance->abandoned_at);
+
+        // Act & Assert
+        $requestInsurance->resume();
+
+        $this->assertNull($requestInsurance->paused_at);
+        $this->assertNull($requestInsurance->completed_at);
+        $this->assertNull($requestInsurance->locked_at);
+        $this->assertNull($requestInsurance->abandoned_at);
     }
 }
