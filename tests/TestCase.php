@@ -3,6 +3,8 @@
 namespace Tests;
 
 use Illuminate\Foundation\Application;
+use Cego\RequestInsurance\Contracts\HttpRequest;
+use Cego\RequestInsurance\Mocks\MockCurlRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Cego\RequestInsurance\RequestInsuranceServiceProvider;
 
@@ -14,6 +16,18 @@ use Cego\RequestInsurance\RequestInsuranceServiceProvider;
 class TestCase extends \Orchestra\Testbench\TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * Setup the test environment.
+     *
+     * @return void
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->app->bind(HttpRequest::class, fn () => MockCurlRequest::class);
+    }
 
     /**
      * Get package providers.
