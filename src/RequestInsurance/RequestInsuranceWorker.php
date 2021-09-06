@@ -148,8 +148,8 @@ class RequestInsuranceWorker
 
             try {
                 $request->process();
-            } catch (Exception $exception) {
-                Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
+            } catch (Throwable $throwable) {
+                Log::error($throwable);
 
                 $request->pause();
             } finally {
