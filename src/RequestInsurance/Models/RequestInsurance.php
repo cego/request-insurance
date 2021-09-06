@@ -538,7 +538,7 @@ class RequestInsurance extends SaveRetryingModel
         $this->paused_at = $this->wasSuccessful() ? null : Carbon::now();
         $this->retry_at = null;
         $this->abandoned_at = null;
-        $this->completed_at = null;
+        $this->completed_at = $this->wasSuccessful() ? Carbon::now() : null;
 
         $this->save();
 
