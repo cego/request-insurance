@@ -5,14 +5,12 @@ namespace Tests\Unit;
 use Carbon\Carbon;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\Mocks\MockCurlRequest;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Events\RequestSuccessful;
-use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 
 class RequestInsuranceWorkerTest extends TestCase
 {

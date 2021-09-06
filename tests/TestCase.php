@@ -27,6 +27,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         parent::setUp();
 
         $this->app->bind(HttpRequest::class, fn () => MockCurlRequest::class);
+        MockCurlRequest::$mockedResponse = [];
     }
 
     /**
