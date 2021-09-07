@@ -152,4 +152,123 @@ class RequestInsuranceTest extends TestCase
         $this->assertNull($requestInsurance->locked_at);
         $this->assertNull($requestInsurance->abandoned_at);
     }
+
+    /** @test */
+    public function it_can_retry_request_insurances(): void
+    {
+        // Arrange
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance->update(['paused_at' => Carbon::now(), 'abandoned_at' => Carbon::now(), 'completed_at' => Carbon::now()]);
+        $requestInsurance->refresh();
+
+        $this->assertNotNull($requestInsurance->paused_at);
+        $this->assertNotNull($requestInsurance->completed_at);
+        $this->assertNotNull($requestInsurance->abandoned_at);
+        $this->assertNull($requestInsurance->retry_at);
+        $this->assertNull($requestInsurance->locked_at);
+
+        // Act & Assert
+        $requestInsurance->retry();
+
+        $this->assertNull($requestInsurance->paused_at);
+        $this->assertNull($requestInsurance->completed_at);
+        $this->assertNull($requestInsurance->abandoned_at);
+        $this->assertNotNull($requestInsurance->retry_at);
+        $this->assertNull($requestInsurance->locked_at);
+    }
+
+    /** @test */
+    public function it_uses_exponential_backoff(): void
+    {
+        // Arrange
+        $now = Carbon::now()->startOfSecond();
+
+        $this->travelTo($now); // Freeze time
+
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance->refresh();
+
+        $this->assertNull($requestInsurance->locked_at);
+
+        // Act & Assert
+        $requestInsurance->retry_count = 0;
+        $requestInsurance->retry();
+        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(1));
+
+        $requestInsurance->retry_count = 1;
+        $requestInsurance->retry();
+        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(2));
+
+        $requestInsurance->retry_count = 2;
+        $requestInsurance->retry();
+        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(4));
+
+        $requestInsurance->retry_count = 3;
+        $requestInsurance->retry();
+        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(8));
+
+        $requestInsurance->retry_count = 4;
+        $requestInsurance->retry();
+        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(16));
+
+        $requestInsurance->retry_count = 5;
+        $requestInsurance->retry();
+        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(32));
+    }
+
+    /** @test */
+    public function it_is_not_retryable_if_completed(): void
+    {
+        // Arrange
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        // Act
+        $requestInsurance->update(['completed_at' => Carbon::now()]);
+
+        // Assert
+        $this->assertFalse($requestInsurance->isRetryable());
+    }
+
+    /** @test */
+    public function it_is_retryable_if_not_completed_but_paused(): void
+    {
+        // Arrange
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        // Act
+        $requestInsurance->update(['completed_at' => null, 'paused_at' => Carbon::now()]);
+
+        // Assert
+        $this->assertTrue($requestInsurance->isRetryable());
+    }
+
+    /** @test */
+    public function it_is_retryable_if_not_completed_but_abandoned(): void
+    {
+        // Arrange
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        // Act
+        $requestInsurance->update(['completed_at' => null, 'abandoned_at' => Carbon::now()]);
+
+        // Assert
+        $this->assertTrue($requestInsurance->isRetryable());
+    }
 }
