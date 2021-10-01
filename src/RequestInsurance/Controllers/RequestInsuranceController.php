@@ -7,7 +7,7 @@ use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\View\Factory;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\Models\RequestInsurance;
