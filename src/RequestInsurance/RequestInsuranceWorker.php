@@ -80,8 +80,6 @@ class RequestInsuranceWorker
             } catch (Throwable $throwable) {
                 Log::error($throwable);
                 sleep(5); // Sleep to avoid spamming the log
-
-                continue;
             }
 
             pcntl_signal_dispatch();
