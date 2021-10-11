@@ -68,6 +68,8 @@ class RequestInsuranceWorker
 
         do {
             try {
+                DB::reconnect();
+
                 $executionTime = Stopwatch::time(function () {
                     $this->processRequestInsurances();
                 });
