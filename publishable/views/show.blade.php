@@ -33,7 +33,7 @@
                                 </tr>
                                 <tr>
                                     <td>Url:</td>
-                                    <td>{{ $requestInsurance->url }}</td>
+                                    <td>{{ urldecode($requestInsurance->url) }}</td>
                                 </tr>
                                 <tr>
                                     <td>Payload:</td>

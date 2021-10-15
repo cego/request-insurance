@@ -96,7 +96,7 @@
                                     <td>{{ $requestInsurance->priority }}</td>
                                     <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
                                     <td><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}" /></td>
-                                    <td>{{ $requestInsurance->url }}</td>
+                                    <td>{{ urldecode($requestInsurance->url) }}</td>
                                     <td><x-request-insurance-inline-print :content="$requestInsurance->getShortenedPayload()" /></td>
                                     <td>{{ $requestInsurance->retry_count }}</td>
                                     <td>{{ $requestInsurance->retry_at }}</td>
