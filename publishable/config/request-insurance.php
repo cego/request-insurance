@@ -26,7 +26,7 @@ return [
     | Sets the timeout for a curl request, this is the time execute() has to complete the requests
     */
 
-    'timeoutInSeconds' => 5,
+    'timeoutInSeconds' => 20,
 
 
     /*
