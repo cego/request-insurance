@@ -71,6 +71,16 @@ class RequestInsurance extends SaveRetryingModel
     protected bool $isEncrypted = false;
 
     /**
+     * The HTTP response from the last time the request was sent.
+     *
+     * This variable is only used for the processing logic of requests.
+     * It is NOT populated when fetching the row from DB.
+     *
+     * @var HttpResponse
+     */
+    protected HttpResponse $httpRequestResponse;
+
+    /**
      * The attributes that should be mutated to dates.
      *
      * @var array
@@ -661,8 +671,13 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @throws MethodNotAllowedForRequestInsurance
      */
-    protected function sendRequest()
+    protected function sendRequest(): HttpResponse
     {
+        // Avoid accidental retransmissions while processing the request
+        if (isset($this->httpRequestResponse)) {
+            return $this->httpRequestResponse;
+        }
+
         // Prepare headers by json decoding them and flatten them
         // to an array of header strings
         // Create the request instance, set its options and send it
@@ -678,7 +693,7 @@ class RequestInsurance extends SaveRetryingModel
             $request->setTimeoutMs($this->timeout_ms);
         }
 
-        return $request->send();
+        return $this->httpRequestResponse = $request->send();
     }
 
     /**
