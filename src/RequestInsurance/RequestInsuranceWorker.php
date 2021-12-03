@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\App;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\JobSupplier\JobSupplier;
 
@@ -80,7 +81,9 @@ class RequestInsuranceWorker
     {
         try {
             // We call DB::reconnect() to handle lost db connections.
-            DB::reconnect();
+            if (! App::runningUnitTests()) {
+                DB::reconnect();
+            }
 
             // The next job can be null if there are no more jobs left to process
             $job = $this->jobSupplier->getNextJob();
