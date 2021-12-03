@@ -61,29 +61,57 @@ class RequestInsuranceWorker
         $this->setupShutdownSignalHandler();
 
         do {
-            try {
-                DB::reconnect();
-
-                $job = $this->jobSupplier->getNextJob();
-
-                if ($job === null) {
-                    continue;
-                }
-
-                $this->process($job);
-            } catch (Throwable $throwable) {
-                Log::error($throwable);
-                sleep(5); // Sleep to avoid spamming the log
-            }
-
-            pcntl_signal_dispatch();
-        } while (! $runOnlyOnce && ! $this->shutdownSignalReceived);
+            $this->processingStep();
+        } while ($this->shouldContinueApplicationLoop($runOnlyOnce));
 
         if ($this->jobSupplier->hasAnyQueuedJobs()) {
             Log::critical(sprintf('RequestInsurance Worker (#%s) was unable to release all queued jobs', $this->runningHash));
         } else {
             Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
         }
+    }
+
+    /**
+     * Runs a single processing step
+     *
+     * @return void
+     */
+    protected function processingStep(): void
+    {
+        try {
+            // We call DB::reconnect() to handle lost db connections.
+            DB::reconnect();
+
+            // The next job can be null if there are no more jobs left to process
+            $job = $this->jobSupplier->getNextJob();
+
+            if ($job === null) {
+                return;
+            }
+
+            $this->process($job);
+        } catch (Throwable $throwable) {
+            Log::error($throwable);
+            sleep(5); // Sleep to avoid spamming the log
+        }
+
+        pcntl_signal_dispatch();
+    }
+
+    /**
+     * Returns true if the worker should continue its application loop
+     *
+     * @param bool $runOnlyOnce
+     *
+     * @return bool
+     */
+    protected function shouldContinueApplicationLoop(bool $runOnlyOnce): bool
+    {
+        if ($runOnlyOnce) {
+            return $this->jobSupplier->hasAnyQueuedJobs();
+        }
+
+        return ! $this->shutdownSignalReceived;
     }
 
     /**
