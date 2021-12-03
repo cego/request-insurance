@@ -135,9 +135,13 @@ class RequestInsuranceQueue
     }
 
     /**
-     * @return int[]
+     * Returns a collection of request ids (int) of the jobs which should be consumed next
+     *
+     * @param int $batchSize
+     *
+     * @return Collection
      */
-    protected function getRequestIdsOfJobsToConsume(int $batchSize): array
+    protected function getRequestIdsOfJobsToConsume(int $batchSize): Collection
     {
         return DB::transaction(function () use ($batchSize) {
             $measurement = Stopwatch::time(fn () => $this->acquireLockOnRowsToProcess($batchSize));
