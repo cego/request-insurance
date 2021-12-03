@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\Mocks;
 
+use Exception;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 
 class MockCurlRequest extends HttpRequest
@@ -19,6 +20,8 @@ class MockCurlRequest extends HttpRequest
      * @var array
      */
     public static $mockedResponse;
+
+    public static $throwOnNext = false;
 
     /**
      * Sets an option
@@ -55,6 +58,12 @@ class MockCurlRequest extends HttpRequest
 
     public function getResponse()
     {
+        if (static::$throwOnNext) {
+            static::$throwOnNext = false;
+
+            throw new Exception();
+        }
+
         return static::$mockedResponse['response'] ?? 'mock-response';
     }
 
@@ -66,5 +75,10 @@ class MockCurlRequest extends HttpRequest
     public static function setNextResponse(array $response)
     {
         static::$mockedResponse = $response;
+    }
+
+    public static function throwOnNextRequest()
+    {
+        static::$throwOnNext = true;
     }
 }

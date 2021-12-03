@@ -310,4 +310,28 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertNull($requestInsurance->locked_at);
         $this->assertNull($requestInsurance->abandoned_at);
     }
+
+    /** @test */
+    public function it_can_continue_after_failures(): void
+    {
+        // Arrange
+        for ($i = 0; $i < 6; $i++) {
+            RequestInsurance::getBuilder()
+                ->url('https://test.lupinsdev.dk')
+                ->method('get')
+                ->create();
+        }
+
+        $this->assertCount(6, RequestInsurance::query()->whereNull('completed_at')->get());
+
+        // Act
+        Config::set('request-insurance.batchSize', 3);
+        $worker = new RequestInsuranceWorker();
+        MockCurlRequest::throwOnNextRequest();
+        $worker->run(true);
+
+        // Assert
+        $this->assertCount(4, RequestInsurance::query()->whereNull('completed_at')->get());
+        $this->assertCount(1, RequestInsurance::query()->whereNotNull('paused_at')->get());
+    }
 }
