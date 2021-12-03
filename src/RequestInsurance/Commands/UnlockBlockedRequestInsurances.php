@@ -27,12 +27,12 @@ class UnlockBlockedRequestInsurances extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         $this->info('Unlocking blocked request insurances...');
 
         RequestInsurance::query()
-            ->where('locked_at', '!=', null)
+            ->whereNotNull('locked_at')
             ->where('locked_at', '<', Carbon::now()->subMinutes(5))
             ->get()
             ->each
