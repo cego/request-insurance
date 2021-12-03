@@ -20,7 +20,7 @@ class SaveRetryingModel extends Model
      */
     public function save(array $options = []): bool
     {
-        $maxTries = 3;
+        $maxTries = 5;
 
         for ($try = 1; $try <= $maxTries; $try++) {
             try {
@@ -30,8 +30,8 @@ class SaveRetryingModel extends Model
                     throw $exception;
                 }
 
-                // Sleep 10ms before retrying
-                usleep(10000);
+                // Sleep between 10-100ms before retrying
+                usleep(random_int(10000, 100000));
             }
         }
 
