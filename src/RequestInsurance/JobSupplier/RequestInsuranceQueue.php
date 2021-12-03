@@ -55,23 +55,33 @@ class RequestInsuranceQueue
     }
 
     /**
-     * Returns the first job on the queue, without removing it from the queue
+     * Removes and returns the first job on the queue
      *
-     * @return RequestInsurance
+     * @return ?RequestInsurance
      */
-    public function peek(): RequestInsurance
+    public function pop(): ?RequestInsurance
     {
-        return $this->queue->first();
+        return $this->queue->pop();
     }
 
     /**
-     * Removes and returns the first job on the queue
+     * Returns true if the queue is empty
      *
-     * @return RequestInsurance
+     * @return bool
      */
-    public function pop(): RequestInsurance
+    public function isEmpty(): bool
     {
-        return $this->queue->pop();
+        return $this->queue->isEmpty();
+    }
+
+    /**
+     * Returns true if the queue is not empty
+     *
+     * @return bool
+     */
+    public function isNotEmpty(): bool
+    {
+        return ! $this->isEmpty();
     }
 
     /**
