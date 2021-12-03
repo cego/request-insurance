@@ -21,6 +21,13 @@ class RequestInsuranceQueue
     protected Collection $queue;
 
     /**
+     * Timestamp at which the queue was initialized
+     *
+     * @var float
+     */
+    protected float $initialisedAt;
+
+    /**
      * Constructor
      *
      * @param int $batchSize
@@ -28,6 +35,7 @@ class RequestInsuranceQueue
     public function __construct(int $batchSize)
     {
         $this->queue = $this->initQueue($batchSize);
+        $this->initialisedAt = microtime(true);
     }
 
     /**
@@ -42,6 +50,33 @@ class RequestInsuranceQueue
         return new self($batchSize);
     }
 
+    /**
+     * Returns the micro timestamp of when the queue was initialized
+     *
+     * @return float
+     */
+    public function getInitialisedAt(): float
+    {
+        return $this->initialisedAt;
+    }
+
+    /**
+     * Returns how many micro seconds since the queue was initialized
+     *
+     * @return float
+     */
+    public function timeSinceInitialization(): float
+    {
+        return microtime(true) - $this->initialisedAt;
+    }
+
+    /**
+     * Locs a given batch size of rows to be processed by this queue
+     *
+     * @param int $batchSize
+     *
+     * @return Collection
+     */
     public function initQueue(int $batchSize): Collection
     {
         $requestIds = $this->getRequestIdsOfJobsToConsume($batchSize);
