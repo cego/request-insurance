@@ -49,7 +49,7 @@ class JobSupplier
      *
      * @return RequestInsurance|null
      */
-    public function getJob(): ?RequestInsurance
+    public function getNextJob(): ?RequestInsurance
     {
         if ($this->queue->isEmpty()) {
             $this->initQueue();
