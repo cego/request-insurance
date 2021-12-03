@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use Carbon\Carbon;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\Mocks\MockCurlRequest;
@@ -186,7 +187,7 @@ class RequestInsuranceWorkerTest extends TestCase
     }
 
     /** @test */
-    public function it_only_consumes_to_a_given_batch_size(): void
+    public function it_only_consumes_to_a_given_batch_size_1(): void
     {
         // Arrange
         $requestInsurance1 = RequestInsurance::getBuilder()
@@ -202,7 +203,8 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertCount(2, RequestInsurance::query()->whereNull('completed_at')->get());
 
         // Act
-        $worker = new RequestInsuranceWorker(1);
+        Config::set('request-insurance.batchSize', 1);
+        $worker = new RequestInsuranceWorker();
         $worker->run(true);
 
         // Assert
@@ -210,6 +212,41 @@ class RequestInsuranceWorkerTest extends TestCase
         $requestInsurance2->refresh();
 
         $this->assertCount(1, RequestInsurance::query()->whereNull('completed_at')->get());
+    }
+
+    /** @test */
+    public function it_only_consumes_to_a_given_batch_size_2(): void
+    {
+        // Arrange
+        RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $this->assertCount(4, RequestInsurance::query()->whereNull('completed_at')->get());
+
+        // Act
+        Config::set('request-insurance.batchSize', 2);
+        $worker = new RequestInsuranceWorker();
+        $worker->run(true);
+
+        // Assert
+        $this->assertCount(2, RequestInsurance::query()->whereNull('completed_at')->get());
     }
 
     /** @test */
@@ -230,7 +267,8 @@ class RequestInsuranceWorkerTest extends TestCase
         $requestInsurance->refresh();
 
         // Act
-        $worker = new RequestInsuranceWorker(1);
+        Config::set('request-insurance.batchSize', 1);
+        $worker = new RequestInsuranceWorker();
         $worker->run(true);
 
         // Assert
@@ -260,7 +298,8 @@ class RequestInsuranceWorkerTest extends TestCase
         $requestInsurance->refresh();
 
         // Act
-        $worker = new RequestInsuranceWorker(1);
+        Config::set('request-insurance.batchSize', 1);
+        $worker = new RequestInsuranceWorker();
         $worker->run(true);
 
         // Assert

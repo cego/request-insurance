@@ -678,7 +678,7 @@ class RequestInsurance extends SaveRetryingModel
             $request->setTimeoutMs($this->timeout_ms);
         }
 
-        return $this->httpRequestResponse = $request->send();
+        return $request->send();
     }
 
     /**
