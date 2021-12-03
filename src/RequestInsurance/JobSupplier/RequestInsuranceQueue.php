@@ -126,6 +126,10 @@ class RequestInsuranceQueue
      */
     public function releaseAll(): void
     {
+        if ($this->queue->isEmpty()) {
+            return;
+        }
+
         RequestInsurance::query()->whereIn('id', $this->queue->pluck('id'))->update(['locked_at' => null, 'updated_at' => Carbon::now()]);
         $this->queue = new Collection();
     }

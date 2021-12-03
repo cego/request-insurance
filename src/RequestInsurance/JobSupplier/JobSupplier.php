@@ -37,6 +37,7 @@ class JobSupplier
             $this->queue->releaseAll();
         }
 
+        // Make sure to not keep hammering the DB for jobs to consume
         if (! $initial) {
             usleep($this->getTimeToSleep());
         }
@@ -67,5 +68,25 @@ class JobSupplier
     protected function getTimeToSleep(): float
     {
         return max($this->microSecondsToWait - $this->queue->timeSinceInitialization(), 0);
+    }
+
+    /**
+     * Releases any queued job, so another worker might try to consume those jobs
+     *
+     * @return void
+     */
+    public function releaseAllQueuedJobs(): void
+    {
+        $this->queue->releaseAll();
+    }
+
+    /**
+     * Returns true if the job supplier has any queued up jobs
+     *
+     * @return bool
+     */
+    public function hasAnyQueuedJobs(): bool
+    {
+        return $this->queue->isNotEmpty();
     }
 }

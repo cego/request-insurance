@@ -64,7 +64,13 @@ class RequestInsuranceWorker
             try {
                 DB::reconnect();
 
-                $this->process($this->jobSupplier->getNextJob());
+                $job = $this->jobSupplier->getNextJob();
+
+                if ($job === null) {
+                    continue;
+                }
+
+                $this->process($job);
             } catch (Throwable $throwable) {
                 Log::error($throwable);
                 sleep(5); // Sleep to avoid spamming the log
@@ -73,7 +79,11 @@ class RequestInsuranceWorker
             pcntl_signal_dispatch();
         } while (! $runOnlyOnce && ! $this->shutdownSignalReceived);
 
-        Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
+        if ($this->jobSupplier->hasAnyQueuedJobs()) {
+            Log::critical(sprintf('RequestInsurance Worker (#%s) was unable to release all queued jobs', $this->runningHash));
+        } else {
+            Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
+        }
     }
 
     /**
@@ -99,6 +109,8 @@ class RequestInsuranceWorker
         Log::info(sprintf('RequestInsurance Worker (#%s) received a shutdown signal - Beginning graceful shutdown', $this->runningHash));
 
         $this->shutdownSignalReceived = true;
+
+        $this->jobSupplier->releaseAllQueuedJobs();
     }
 
     /**
