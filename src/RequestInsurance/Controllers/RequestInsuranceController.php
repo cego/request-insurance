@@ -89,7 +89,7 @@ class RequestInsuranceController extends Controller
             'user' => '',
         ];
         $url = Config::get('edit_endpoint');//TODO set the edit_endpoint value to the SQLRunner create query
-        $response = http_post_data(, $payload);//TODO add ext-http to composer or other method to make post request
+        $response = http_post_data($url, $payload);//TODO add ext-http to composer or other method to make post request
         // TODO decode response?
         if ($response->success){
             $query = $response->query;
