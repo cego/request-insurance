@@ -18,6 +18,11 @@
                     <div class="card-body">
                         <div class="card-title text-center">
                             <h3>Request</h3>
+                            <?php echo 'TEST' ?>
+                            <form method="POST" action="{{ route('request-insurances.update', $requestInsurance) }}">
+                                <input type="hidden" name="_method" value="edit">
+                                <button class="btn btn-primary" type="submit">Edit</button>
+                            </form>
                             <hr>
                         </div>
                         <div class="card-text">

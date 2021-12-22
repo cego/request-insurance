@@ -89,4 +89,9 @@ return [
      */
     'table'        => null,
     'table_logs'   => null,
+
+    /*
+     | Sets which endpoint to send edit requests to
+     */
+    'edit_endpoint' => null,
 ];

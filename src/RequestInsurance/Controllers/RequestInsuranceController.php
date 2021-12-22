@@ -74,6 +74,50 @@ class RequestInsuranceController extends Controller
         return redirect()->back();
     }
 
+    public function update(RequestInsurance $requestInsurance)
+    {
+        // Only allow updates for requests that have not completed or been abandoned
+        if ($requestInsurance->isCompleted() || $requestInsurance->isAbandoned()){
+            return redirect()->back();//TODO more error handling?
+        }
+        // request data
+        $payload = [
+            'justification' => 'Draft: Request Insurance needs editing (Unedited)',
+            'query' => updateRequestInsuranceSQLQuery($requestInsurance),
+            'required_number_of_approvals' => 1,
+            'connection_id' => '',
+            'user' => '',
+        ];
+        $url = Config::get('edit_endpoint');//TODO set the edit_endpoint value to the SQLRunner create query
+        $response = http_post_data(, $payload);//TODO add ext-http to composer or other method to make post request
+        // TODO decode response?
+        if ($response->success){
+            $query = $response->query;
+            return redirect()->back();//TODO redirect to SQLRunner page for the query
+        }
+
+        return redirect()->back();//TODO more error handling?
+    }
+
+    private function updateRequestInsuranceSQLQuery(RequestInsurance $requestInsurance) : string
+    {
+        return sprintf(
+            "
+            UPDATE %s\n
+            SET\n
+            'url' = %s,\n
+            'method' = %s,\n
+            'headers' = %s,\n
+            'payload' = %s\n
+            WHERE id = %s",
+            $requestInsurance->getTable(),
+            $requestInsurance->url,
+            $requestInsurance->headers,
+            $requestInsurance->headers,
+            $requestInsurance->payload,
+            $requestInsurance->id);
+    }
+
     /**
      * Retries a request insurance
      *
