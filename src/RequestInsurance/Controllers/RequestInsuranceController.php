@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance\Controllers;
 
 use Exception;
+use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\View\Factory;
@@ -80,6 +81,7 @@ class RequestInsuranceController extends Controller
         if ($requestInsurance->isCompleted() || $requestInsurance->isAbandoned()){
             return redirect()->back();//TODO more error handling?
         }
+
         // request data
         $payload = [
             'justification' => 'Draft: Request Insurance needs editing (Unedited)',
@@ -88,12 +90,16 @@ class RequestInsuranceController extends Controller
             'connection_id' => '',
             'user' => '',
         ];
-        $url = Config::get('edit_endpoint');//TODO set the edit_endpoint value to the SQLRunner create query
+        $url = Config::get('edit_endpoint');
         $response = Http::post($url, $payload);
         // TODO decode response?
         if ($response->success){
-            $query = $response->query;
-            return redirect()->back();//TODO redirect to SQLRunner page for the query
+            if (empty($query = $response->query)){
+                return redirect()->back();//TODO more error handling?
+            }
+
+            $viewEndpoint = sprintf(Config::get('view_endpoint'), $query->id);
+            return redirect()->away($viewEndpoint);
         }
 
         return redirect()->back();//TODO more error handling?
