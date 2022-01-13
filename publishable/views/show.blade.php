@@ -18,7 +18,7 @@
                     <div class="card-body">
                         <div class="card-title text-center">
                             <h3>Request</h3>
-                            <form method="POST" action="{{ route('request-insurances.edit', $requestInsurance) }}">
+                            <form method="POST" action="{{ route('request-insurances.fix', $requestInsurance) }}">
                                 <input type="hidden" name="_method" value="edit">
                                 <button class="btn btn-primary" type="submit">Edit</button>
                             </form>
