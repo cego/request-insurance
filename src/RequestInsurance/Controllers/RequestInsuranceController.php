@@ -90,7 +90,7 @@ class RequestInsuranceController extends Controller
             'connection_id' => '',
             'user' => '',
         ];
-        $url = Config::get('edit_endpoint');
+        $url = Config::get('request-insurance.edit_endpoint');
         $response = Http::post($url, $payload);
         // TODO decode response?
         if ($response->success){
@@ -98,7 +98,7 @@ class RequestInsuranceController extends Controller
                 return redirect()->back();//TODO more error handling?
             }
 
-            $viewEndpoint = sprintf(Config::get('view_endpoint'), $query->id);
+            $viewEndpoint = sprintf(Config::get('request-insurance.view_endpoint'), $query->id);
             return redirect()->away($viewEndpoint);
         }
 
