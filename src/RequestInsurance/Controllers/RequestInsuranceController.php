@@ -85,7 +85,7 @@ class RequestInsuranceController extends Controller
         // request data
         $payload = [
             'justification' => 'Draft: Request Insurance needs editing (Unedited)',
-            'query' => updateRequestInsuranceSQLQuery($requestInsurance),
+            'query' => $this->updateRequestInsuranceSQLQuery($requestInsurance),
             'required_number_of_approvals' => 1,
             'connection_id' => '',
             'user' => '',
