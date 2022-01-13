@@ -75,7 +75,7 @@ class RequestInsuranceController extends Controller
         return redirect()->back();
     }
 
-    public function update(RequestInsurance $requestInsurance)
+    public function edit(RequestInsurance $requestInsurance)
     {
         // Only allow updates for requests that have not completed or been abandoned
         if ($requestInsurance->isCompleted() || $requestInsurance->isAbandoned()){

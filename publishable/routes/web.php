@@ -23,7 +23,7 @@ Route::namespace('Cego\RequestInsurance\Controllers')
     ->middleware('web')
     ->group(function () {
         Route::resource('request-insurances', 'RequestInsuranceController')
-            ->only(['index', 'show', 'destroy', 'update'])
+            ->only(['index', 'show', 'destroy'])
             ->withoutMiddleware(VerifyCsrfToken::class);
 
         Route::post('request-insurances/{request_insurance}/retry', [
@@ -34,5 +34,10 @@ Route::namespace('Cego\RequestInsurance\Controllers')
         Route::post('request-insurances/{request_insurance}/unlock', [
             'uses' => 'RequestInsuranceController@unlock',
             'as'   => 'request-insurances.unlock',
+        ])->withoutMiddleware(VerifyCsrfToken::class);
+
+        Route::post('request-insurances/{request_insurance}/edit', [
+            'uses' => 'RequestInsuranceController@edit',
+            'as'   => 'request-insurances.edit',
         ])->withoutMiddleware(VerifyCsrfToken::class);
     });
