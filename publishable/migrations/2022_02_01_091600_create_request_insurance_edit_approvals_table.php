@@ -15,7 +15,7 @@ class CreateRequestInsuranceEditApprovalsTable extends Migration
     {
         Schema::create('request_insurance_edit_approvals', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('edit_id');
+            $table->unsignedBigInteger('request_insurance_edit_id');
             $table->text('approver_admin_user');
             $table->timestamps();
         });
