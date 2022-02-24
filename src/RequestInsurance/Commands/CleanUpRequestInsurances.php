@@ -2,12 +2,8 @@
 
 namespace Cego\RequestInsurance\Commands;
 
-use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Config;
-use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\RequestInsuranceCleaner;
-use Cego\RequestInsurance\Models\RequestInsuranceLog;
 
 class CleanUpRequestInsurances extends Command
 {

@@ -2,20 +2,11 @@
 
 namespace Cego\RequestInsurance\Commands;
 
-use Exception;
 use Throwable;
-use Carbon\Carbon;
-use Nbj\Stopwatch;
-use Illuminate\Support\Str;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\RequestInsuranceWorker;
-use Cego\RequestInsurance\Models\RequestInsurance;
-use Cego\RequestInsurance\Exceptions\FailedToLockRequestInsurances;
 
 class RequestInsuranceService extends Command
 {
@@ -62,7 +53,7 @@ class RequestInsuranceService extends Command
      * Execute the console command.
      *
      * @return int
-     * 
+     *
      * @throws Throwable
      */
     public function handle(): int

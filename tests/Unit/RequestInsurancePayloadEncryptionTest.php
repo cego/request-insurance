@@ -43,7 +43,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
     }
 
     /** @test */
-    public function it_only_encrypts_the_requested_headers(): void
+    public function it_only_encrypts_the_requested_payload(): void
     {
         // Arrange
 
@@ -51,14 +51,14 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://MyDev.lupinsdev.dk')
             ->method('POST')
-            ->headers(['Content-Type' => 'application/json', 'X-test' => 'CEGO'])
-            ->encryptHeader('Content-Type')
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->encryptPayloadField('Key1')
             ->create();
 
         // Assert
 
         // Make sure it is not encrypted after creation
-        $this->assertEquals('CEGO', $requestInsurance->getHeadersCastToArray()['X-test']);
+        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -70,11 +70,11 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Make sure it is not encrypted in DB
-        $this->assertEquals('CEGO', $requestInsurance->getHeadersCastToArray()['X-test']);
+        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
     }
 
     /** @test */
-    public function it_can_use_dot_notation_for_encrypted_headers(): void
+    public function it_can_use_dot_notation_for_encrypted_payload(): void
     {
         // Arrange
 
@@ -82,15 +82,15 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://MyDev.lupinsdev.dk')
             ->method('POST')
-            ->headers(['Content-Type' => 'application/json', 'x-test' => ['a' => 1, 'b' => 2]])
-            ->encryptHeader('x-test.a')
+            ->payload(['Key1' => 'Value1', 'NestedKeyCollection' => ['NestedKey1' => 'NestedValue1', 'NestedKey2' => 'NestedValue2']])
+            ->encryptPayloadField('NestedKeyCollection.NestedKey1')
             ->create();
 
         // Assert
 
 
         // An RI should be left decryoted after creation
-        $this->assertEquals(1, $requestInsurance->getHeadersCastToArray()['x-test']['a']);
+        $this->assertEquals('NestedValue1', $requestInsurance->getPayloadCastToArray()['NestedKeyCollection']['NestedKey1']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -102,7 +102,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is encrypted in DB
-        $this->assertNotEquals(1, $requestInsurance->getHeadersCastToArray()['x-test']['a']);
+        $this->assertNotEquals('NestedValue1', $requestInsurance->getPayloadCastToArray()['NestedKeyCollection']['NestedKey1']);
     }
 
     /** @test */
@@ -114,14 +114,14 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://MyDev.lupinsdev.dk')
             ->method('POST')
-            ->headers(['Content-Type' => 'application/json', 'x-test' => ['a' => 1, 'b' => 2]])
-            ->encryptHeader('x-test')
+            ->payload(['Key1' => 'Value1', 'NestedKeyCollection' => ['NestedKey1' => 'NestedValue1', 'NestedKey2' => 'NestedValue2']])
+            ->encryptPayloadField('NestedKeyCollection')
             ->create();
 
         // Assert
 
-        // An RI should be left decryoted after creation
-        $this->assertEquals(['a' => 1, 'b' => 2], $requestInsurance->getHeadersCastToArray()['x-test']);
+        // An RI should be left decrypted after creation
+        $this->assertEquals(['NestedKey1' => 'NestedValue1', 'NestedKey2' => 'NestedValue2'], $requestInsurance->getPayloadCastToArray()['NestedKeyCollection']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -133,12 +133,12 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is encrypted in DB
-        $this->assertNotEquals(['a' => 1, 'b' => 2], $requestInsurance->getHeadersCastToArray()['x-test']);
-        $this->assertIsString($requestInsurance->getHeadersCastToArray()['x-test']);
+        $this->assertNotEquals(['a' => 1, 'b' => 2], $requestInsurance->getPayloadCastToArray()['NestedKeyCollection']);
+        $this->assertIsString($requestInsurance->getPayloadCastToArray()['NestedKeyCollection']);
     }
 
     /** @test */
-    public function it_can_build_with_multiple_encrypted_headers(): void
+    public function it_can_build_with_multiple_encrypted_payload_fields(): void
     {
         // Arrange
 
@@ -146,15 +146,15 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://MyDev.lupinsdev.dk')
             ->method('POST')
-            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
-            ->encryptHeaders(['Content-Type', 'x-test'])
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->encryptPayload(['Key1', 'Key2'])
             ->create();
 
         // Assert
 
-        // An RI should be left decryoted after creation
-        $this->assertEquals('application/json', $requestInsurance->getHeadersCastToArray()['Content-Type']);
-        $this->assertEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
+        // An RI should be left decrypted after creation
+        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
+        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -166,8 +166,8 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is encrypted in DB
-        $this->assertNotEquals('application/json', $requestInsurance->getHeadersCastToArray()['Content-Type']);
-        $this->assertNotEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
+        $this->assertNotEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
+        $this->assertNotEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
     }
 
     /** @test */
@@ -179,66 +179,65 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://MyDev.lupinsdev.dk')
             ->method('POST')
-            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
-            ->encryptHeaders(['Content-Type', 'x-test'])
-            ->create();
-
-        // Assert
-
-        // An RI should be left decryoted after creation
-        $this->assertEquals('application/json', $requestInsurance->getHeadersCastToArray()['Content-Type']);
-        $this->assertEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
-
-        $this->assertCount(1, RequestInsurance::all());
-
-        // Extract it RAW from the DB (Since Events are disabled)
-        $requestInsurance = RequestInsurance::first();
-
-        // Assert that it is encrypted in DB
-        $this->assertEquals('application/json', $requestInsurance->getHeadersCastToArray()['Content-Type']);
-        $this->assertEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
-    }
-
-    /** @test */
-    public function it_adds_auto_encrypted_headers(): void
-    {
-        // Arrange
-        Config::set('request-insurance.fieldsToAutoEncrypt', [
-            'headers' => ['x-test'],
-        ]);
-
-        // Act
-        $requestInsurance = RequestInsurance::getBuilder()
-            ->url('https://MyDev.lupinsdev.dk')
-            ->method('POST')
-            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
-            ->encryptHeaders([])
-            ->create();
-
-        // Assert
-        $this->assertContains('x-test', json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR)['headers']);
-    }
-
-    /** @test */
-    public function it_can_handle_duplicate_encryption_headers(): void
-    {
-        // Arrange
-        Config::set('request-insurance.fieldsToAutoEncrypt', [
-            'headers' => ['x-test'],
-        ]);
-
-        // Act
-        $requestInsurance = RequestInsurance::getBuilder()
-            ->url('https://MyDev.lupinsdev.dk')
-            ->method('POST')
-            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
-            ->encryptHeader('x-test')
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->encryptPayload(['Key1', 'Key2'])
             ->create();
 
         // Assert
 
         // An RI should be left decrypted after creation
-        $this->assertEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
+        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
+        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
+
+        $this->assertCount(1, RequestInsurance::all());
+
+        // Extract it from the DB
+        $requestInsurance = RequestInsurance::first();
+
+        // Assert that it is decrypted after extraction
+        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
+        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);    }
+
+    /** @test */
+    public function it_adds_auto_encrypted_payload(): void
+    {
+        // Arrange
+        Config::set('request-insurance.fieldsToAutoEncrypt', [
+            'payload' => ['Key1'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->encryptPayload([])
+            ->create();
+
+        // Assert
+        $this->assertContains('Key1', json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR)['payload']);
+    }
+
+    /** @test */
+    public function it_can_handle_duplicate_encryption_payload(): void
+    {
+        // Arrange
+        Config::set('request-insurance.fieldsToAutoEncrypt', [
+            'headers' => ['Key1'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->encryptPayload(['Key1'])
+            ->create();
+
+        // Assert
+
+        // An RI should be left decrypted after creation
+        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -246,8 +245,8 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is decrypted correctly in DB
-        $this->assertEquals('abc', $requestInsurance->getHeadersCastToArray()['x-test']);
-        $this->assertCount(0, RequestInsurance::query()->where('headers', 'like', '%abc%')->get());
+        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
+        $this->assertCount(0, RequestInsurance::query()->where('payload', 'like', '%Value1%')->get());
     }
 
     /** @test */
@@ -255,23 +254,23 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
     {
         // Arrange
         Config::set('request-insurance.fieldsToAutoEncrypt', [
-            'headers' => ['x-test'],
+            'payload' => ['Key2'],
         ]);
 
         // Act
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://MyDev.lupinsdev.dk')
             ->method('POST')
-            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
-            ->encryptHeader('Content-Type')
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->encryptPayload(['Key1'])
             ->create();
 
         $encryptedFields = json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
 
         $this->assertEquals([
-            'headers' => [
-                'Content-Type',
-                'x-test',
+            'payload' => [
+                'Key1',
+                'Key2',
             ],
         ], $encryptedFields);
     }
@@ -281,21 +280,21 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
     {
         // Arrange
         Config::set('request-insurance.fieldsToAutoEncrypt', [
-            'headers' => ['x-test'],
+            'payload' => ['Key2'],
         ]);
 
         // Act
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://MyDev.lupinsdev.dk')
             ->method('POST')
-            ->headers(['Content-Type' => 'application/json', 'x-test' => 'abc'])
-            ->encryptHeader('Content-Type')
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->encryptPayload(['Key1'])
             ->create();
 
         // Assert
-        $this->assertEquals(['headers' => ['Content-Type', 'x-test']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
+        $this->assertEquals(['payload' => ['Key1', 'Key2']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
         $requestInsurance->save();
-        $this->assertEquals(['headers' => ['Content-Type', 'x-test']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
+        $this->assertEquals(['payload' => ['Key1', 'Key2']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
     }
 
 }

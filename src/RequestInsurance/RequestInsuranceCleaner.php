@@ -3,10 +3,9 @@
 namespace Cego\RequestInsurance;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Models\RequestInsuranceLog;
 
