@@ -211,17 +211,19 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         try {
-            $headers = $this->getHeadersCastToArray();
+            foreach (['headers', 'payload'] as $field) {
+                $fieldArray = $this->getFieldCastToArray($field);
 
-            foreach ($this->getEncryptedHeaders() as $encryptedHeaderKey) {
-                if (Arr::has($headers, $encryptedHeaderKey)) {
-                    $unencryptedHeaderValue = Arr::get($headers, $encryptedHeaderKey);
+                foreach ($this->getEncryptedField($field) as $encryptedFieldKey) {
+                    if (Arr::has($fieldArray, $encryptedFieldKey)) {
+                        $unencryptedFieldValue = Arr::get($fieldArray, $encryptedFieldKey);
 
-                    Arr::set($headers, $encryptedHeaderKey, Crypt::encrypt($unencryptedHeaderValue));
+                        Arr::set($fieldArray, $encryptedFieldKey, Crypt::encrypt($unencryptedFieldValue));
+                    }
                 }
-            }
 
-            $this->headers = json_encode($headers, JSON_THROW_ON_ERROR);
+                $this->$field = json_encode($fieldArray, JSON_THROW_ON_ERROR);
+            }
 
             $this->isEncrypted = true;
         } catch (Exception $exception) {
@@ -270,6 +272,20 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Returns a field cast to array
+     *
+     * @param string $field
+     * @return array
+     * @throws JsonException
+     */
+    private function getFieldCastToArray(string $field): array
+    {
+        return is_array($this->$field)
+            ? $this->$field
+            : json_decode($this->$field, true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
      * Returns the headers cast to array
      *
      * @return array
@@ -278,9 +294,41 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function getHeadersCastToArray(): array
     {
-        return is_array($this->headers)
-            ? $this->headers
-            : json_decode($this->headers, true, 512, JSON_THROW_ON_ERROR);
+        return $this->getFieldCastToArray('headers');
+    }
+
+    /**
+     * Returns the payload cast to array
+     *
+     * @return array
+     *
+     * @throws JsonException
+     */
+    public function getPayloadCastToArray(): array
+    {
+        return $this->getFieldCastToArray('paylaod');
+    }
+
+    /**
+     * Returns the flat array of the field which should be encrypted, using the dot notation for nested levels of encryption.
+     *
+     * @param bool $reversed
+     *
+     * @return array
+     *
+     * @throws JsonException
+     */
+    protected function getEncryptedField(string $field, bool $reversed = false)
+    {
+        $encryptedFields = $this->getFieldCastToArray('encrypted_fields');
+
+        $encryptedField = $encryptedFields[$field] ?? [];
+
+        if ($reversed) {
+            $encryptedField = array_reverse($encryptedField);
+        }
+
+        return $encryptedField;
     }
 
     /**
@@ -294,17 +342,21 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected function getEncryptedHeaders(bool $reversed = false): array
     {
-        $encryptedFields = is_array($this->encrypted_fields ?? [])
-            ? $this->encrypted_fields ?? []
-            : json_decode($this->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
+        return $this->getEncryptedField('headers', $reversed);
+    }
 
-        $headers = $encryptedFields['headers'] ?? [];
-
-        if ($reversed) {
-            $headers = array_reverse($headers);
-        }
-
-        return $headers;
+    /**
+     * Returns the flat array of the payload which should be encrypted, using the dot notation for nested levels of encryption.
+     *
+     * @param bool $reversed
+     *
+     * @return array
+     *
+     * @throws JsonException
+     */
+    protected function getEncryptedPayload(bool $reversed = false): array
+    {
+        return $this->getEncryptedField('payload', $reversed);
     }
 
     /**

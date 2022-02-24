@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 
-class RequestInsuranceEncryptionTest extends TestCase
+class RequestInsuranceHeaderEncryptionTest extends TestCase
 {
     /** @test */
     public function it_can_build_with_a_encrypted_header(): void
@@ -26,7 +26,7 @@ class RequestInsuranceEncryptionTest extends TestCase
 
         // Assert
 
-        // An RI should be left decryoted after creation
+        // An RI should be left decrypted after creation
         $this->assertEquals('application/json', $requestInsurance->getHeadersCastToArray()['Content-Type']);
 
         $this->assertCount(1, RequestInsurance::all());

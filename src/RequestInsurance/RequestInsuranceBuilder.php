@@ -156,6 +156,34 @@ class RequestInsuranceBuilder
     }
 
     /**
+     * Adds a header to the list of payload fields to encrypt.
+     * The key supports dot notation.
+     *
+     * @param string $payloadKey
+     *
+     * @return RequestInsuranceBuilder
+     */
+    public function encryptPayloadField(string $payloadKey): RequestInsuranceBuilder
+    {
+        return $this->append('encrypted_fields.payload', $payloadKey);
+    }
+
+    /**
+     * Adds a list of payload fields to encrypt.
+     * The keys support dot notation.
+     *
+     * @param string[] $payloadKeys
+     */
+    public function encryptPayload(array $payloadKeys): RequestInsuranceBuilder
+    {
+        foreach ($payloadKeys as $payloadKey) {
+            $this->encryptPayloadField($payloadKey);
+        }
+
+        return $this;
+    }
+
+    /**
      * Finishes the builder and creates an instance of a persisted Request Insurance row
      *
      * @return RequestInsurance
