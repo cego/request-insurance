@@ -211,18 +211,18 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         try {
-            foreach (['headers', 'payload'] as $field) {
-                $fieldArray = $this->getAttributeCastToArray($field);
+            foreach (['headers', 'payload'] as $attribute) {
+                $attributeArray = $this->getAttributeCastToArray($attribute);
 
-                foreach ($this->getEncryptedAttribute($field) as $encryptedAttributeKey) {
-                    if (Arr::has($fieldArray, $encryptedAttributeKey)) {
-                        $unencryptedAttributeValue = Arr::get($fieldArray, $encryptedAttributeKey);
+                foreach ($this->getEncryptedAttribute($attribute) as $encryptedField) {
+                    if (Arr::has($attributeArray, $encryptedField)) {
+                        $unencryptedFieldValue = Arr::get($attributeArray, $encryptedField);
 
-                        Arr::set($fieldArray, $encryptedAttributeKey, Crypt::encrypt($unencryptedAttributeValue));
+                        Arr::set($attributeArray, $encryptedField, Crypt::encrypt($unencryptedFieldValue));
                     }
                 }
 
-                $this->$field = json_encode($fieldArray, JSON_THROW_ON_ERROR);
+                $this->$attribute = json_encode($attributeArray, JSON_THROW_ON_ERROR);
             }
 
             $this->isEncrypted = true;
