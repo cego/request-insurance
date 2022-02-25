@@ -156,8 +156,8 @@ class RequestInsurance extends SaveRetryingModel
 
             $encryptedAttributes = array_merge_recursive($request->encrypted_fields, Config::get('request-insurance.fieldsToAutoEncrypt', []));
 
-            foreach ($encryptedAttributes as $outerKey => $encryptedAttributeList) {
-                $encryptedAttributes[$outerKey] = array_unique($encryptedAttributeList);
+            foreach ($encryptedAttributes as $outerKey => $encryptedFields) {
+                $encryptedAttributes[$outerKey] = array_unique($encryptedFields);
             }
 
             $request->encrypted_fields = $encryptedAttributes;
