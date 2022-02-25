@@ -40,7 +40,7 @@ class RequestInsuranceFactory extends Factory
             'retry_count'      => 0,
             'retry_factor'     => 2,
             'retry_cap'        => 3600,
-            'retry_at'         => null
+            'retry_at'         => null,
         ];
     }
 }

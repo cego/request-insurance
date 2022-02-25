@@ -6,8 +6,8 @@ use Exception;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\View\Factory;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -20,9 +20,9 @@ class RequestInsuranceController extends Controller
      *
      * @param Request $request
      *
-     * @return View|Factory
-     *
      * @throws Exception
+     *
+     * @return View|Factory
      */
     public function index(Request $request)
     {

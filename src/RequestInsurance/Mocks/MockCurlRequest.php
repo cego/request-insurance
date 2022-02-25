@@ -39,7 +39,7 @@ class MockCurlRequest extends HttpRequest
     {
         return static::$mockedResponse['info'] ?? [
             'http_code'  => 200,
-            'total_time' => 1.0
+            'total_time' => 1.0,
         ];
     }
 

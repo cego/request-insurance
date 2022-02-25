@@ -2,21 +2,16 @@
 
 namespace Tests\Unit;
 
-use Exception;
 use Carbon\Carbon;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\Mocks\MockCurlRequest;
-use Cego\RequestInsurance\RequestInsuranceWorker;
-use Illuminate\Http\Client\Events\RequestSending;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Events\RequestSuccessful;
-use Cego\RequestInsurance\Events\RequestServerError;
 use Cego\RequestInsurance\Events\RequestClientError;
+use Cego\RequestInsurance\Events\RequestServerError;
 use Cego\RequestInsurance\Events\RequestBeforeProcess;
-use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 
 class RequestInsuranceEventSystemTest extends TestCase
 {
