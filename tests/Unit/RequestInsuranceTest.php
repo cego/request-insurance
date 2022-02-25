@@ -105,6 +105,29 @@ class RequestInsuranceTest extends TestCase
     }
 
     /** @test */
+    public function it_can_mask_encrypted_payload(): void
+    {
+        // Arrange
+        Config::set('request-insurance.fieldsToAutoEncrypt', [
+            'payload' => ['Key1'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->create();
+
+        // Assert
+        $maskedHeaders = $requestInsurance->getPayloadWithMaskingApplied();
+
+        $this->assertStringNotContainsString('Value1', $maskedHeaders);
+        $this->assertStringContainsString('[ ENCRYPTED ]', $maskedHeaders);
+        $this->assertStringContainsString('Value2', $maskedHeaders);
+    }
+
+    /** @test */
     public function it_always_increment_the_tries_count(): void
     {
         // Arrange
