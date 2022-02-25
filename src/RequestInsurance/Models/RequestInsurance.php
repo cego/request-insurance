@@ -97,9 +97,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Perform any actions required after the model boots.
      *
-     * @return void
-     *
      * @throws JsonException
+     *
+     * @return void
      */
     protected static function booted(): void
     {
@@ -279,9 +279,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @param string $field
      *
-     * @return array
-     *
      * @throws JsonException
+     *
+     * @return array
      */
     private function getAttributeCastToArray(string $field): array
     {
@@ -297,9 +297,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Returns the headers cast to array
      *
-     * @return array
-     *
      * @throws JsonException
+     *
+     * @return array
      */
     public function getHeadersCastToArray(): array
     {
@@ -309,9 +309,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Returns the payload cast to array
      *
-     * @return array
-     *
      * @throws JsonException
+     *
+     * @return array
      */
     public function getPayloadCastToArray(): array
     {
@@ -323,9 +323,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @param bool $reversed
      *
-     * @return array
-     *
      * @throws JsonException
+     *
+     * @return array
      */
     protected function getEncryptedField(string $field, bool $reversed = false)
     {
@@ -345,9 +345,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @param bool $reversed
      *
-     * @return array
-     *
      * @throws JsonException
+     *
+     * @return array
      */
     protected function getEncryptedHeaders(bool $reversed = false): array
     {
@@ -359,9 +359,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @param bool $reversed
      *
-     * @return array
-     *
      * @throws JsonException
+     *
+     * @return array
      */
     protected function getEncryptedPayload(bool $reversed = false): array
     {
@@ -372,9 +372,9 @@ class RequestInsurance extends SaveRetryingModel
      * Returns the field as a json string, with encrypted headers marked as [ ENCRYPTED ].
      * We use this to avoid breaking the interface with long encrypted values.
      *
-     * @return string
-     *
      * @throws JsonException
+     *
+     * @return string
      */
     public function getAttributeWithMaskingApplied(string $field): string
     {
@@ -395,9 +395,9 @@ class RequestInsurance extends SaveRetryingModel
      * Returns the payload as a json string, with encrypted headers marked as [ ENCRYPTED ].
      * We use this to avoid breaking the interface with long encrypted values.
      *
-     * @return string
-     *
      * @throws JsonException
+     *
+     * @return string
      */
     public function getHeadersWithMaskingApplied(): string
     {
@@ -408,9 +408,9 @@ class RequestInsurance extends SaveRetryingModel
      * Returns the headers as a json string, with encrypted headers marked as [ ENCRYPTED ].
      * We use this to avoid breaking the interface with long encrypted values.
      *
-     * @return string
-     *
      * @throws JsonException
+     *
+     * @return string
      */
     public function getPayloadWithMaskingApplied(): string
     {
@@ -683,9 +683,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Processes the RequestInsurance instance
      *
-     * @return $this
-     *
      * @throws MethodNotAllowedForRequestInsurance
+     *
+     * @return $this
      */
     public function process()
     {
@@ -745,9 +745,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Sends the request to the target URL and returns the response
      *
-     * @return HttpResponse
-     *
      * @throws MethodNotAllowedForRequestInsurance
+     *
+     * @return HttpResponse
      */
     protected function sendRequest()
     {
@@ -824,9 +824,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Increments the retry count for the request, and updates the retry at field
      *
-     * @return $this
-     *
      * @throws Exception
+     *
+     * @return $this
      */
     public function retry()
     {

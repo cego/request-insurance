@@ -2,12 +2,10 @@
 
 namespace Tests\Unit;
 
-use Carbon\Carbon;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
-use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 
 class RequestInsurancePayloadEncryptionTest extends TestCase
 {
@@ -87,7 +85,6 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
             ->create();
 
         // Assert
-
 
         // An RI should be left decryoted after creation
         $this->assertEquals('NestedValue1', $requestInsurance->getPayloadCastToArray()['NestedKeyCollection']['NestedKey1']);
@@ -196,7 +193,8 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
 
         // Assert that it is decrypted after extraction
         $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
-        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);    }
+        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
+    }
 
     /** @test */
     public function it_adds_auto_encrypted_payload(): void
@@ -296,5 +294,4 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance->save();
         $this->assertEquals(['payload' => ['Key1', 'Key2']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
     }
-
 }

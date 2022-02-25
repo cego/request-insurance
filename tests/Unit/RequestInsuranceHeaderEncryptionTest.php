@@ -2,12 +2,10 @@
 
 namespace Tests\Unit;
 
-use Carbon\Carbon;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
-use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 
 class RequestInsuranceHeaderEncryptionTest extends TestCase
 {
@@ -87,7 +85,6 @@ class RequestInsuranceHeaderEncryptionTest extends TestCase
             ->create();
 
         // Assert
-
 
         // An RI should be left decryoted after creation
         $this->assertEquals(1, $requestInsurance->getHeadersCastToArray()['x-test']['a']);
@@ -297,5 +294,4 @@ class RequestInsuranceHeaderEncryptionTest extends TestCase
         $requestInsurance->save();
         $this->assertEquals(['headers' => ['Content-Type', 'x-test']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
     }
-
 }

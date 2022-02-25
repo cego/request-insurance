@@ -40,7 +40,7 @@ class HttpCode extends Component
         if ($this->httpCode >= 400 && $this->httpCode < 500) {
             return 'danger';
         }
- 
+
         if ($this->httpCode >= 500) {
             return 'warning';
         }

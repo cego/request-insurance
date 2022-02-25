@@ -52,9 +52,9 @@ class RequestInsuranceService extends Command
     /**
      * Execute the console command.
      *
-     * @return int
-     *
      * @throws Throwable
+     *
+     * @return int
      */
     public function handle(): int
     {
@@ -65,7 +65,7 @@ class RequestInsuranceService extends Command
 
         // Run the service
         (new RequestInsuranceWorker)->run();
-        
+
         return 1;
     }
 

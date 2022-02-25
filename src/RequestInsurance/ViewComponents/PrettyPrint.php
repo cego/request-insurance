@@ -59,9 +59,9 @@ class PrettyPrint extends Component
      *
      * @param object|array|string $content
      *
-     * @return string
-     *
      * @throws \JsonException
+     *
+     * @return string
      */
     private function prettyPrintJson($content)
     {

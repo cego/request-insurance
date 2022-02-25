@@ -20,9 +20,9 @@ class RequestInsuranceController extends Controller
      *
      * @param Request $request
      *
-     * @return View|Factory
-     *
      * @throws Exception
+     *
+     * @return View|Factory
      */
     public function index(Request $request)
     {
