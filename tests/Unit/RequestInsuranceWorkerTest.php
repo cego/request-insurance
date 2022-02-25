@@ -14,6 +14,12 @@ use Cego\RequestInsurance\Events\RequestSuccessful;
 
 class RequestInsuranceWorkerTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        putenv('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT=false');
+        parent::setUp();
+    }
+
     /** @test */
     public function it_has_a_mocked_curl_client(): void
     {

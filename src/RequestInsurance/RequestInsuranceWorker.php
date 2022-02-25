@@ -68,7 +68,7 @@ class RequestInsuranceWorker
 
         do {
             try {
-                if ( ! app()->environment('testing')) {
+                if (env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)) {
                     DB::reconnect();
                 }
 
