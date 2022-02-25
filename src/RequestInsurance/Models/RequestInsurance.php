@@ -382,9 +382,9 @@ class RequestInsurance extends SaveRetryingModel
 
         $encryptedAttribute = $this->getEncryptedAttribute($field);
 
-        foreach ($encryptedAttribute as $encryptedAttributeKey) {
-            if (Arr::has($fieldArray, $encryptedAttributeKey)) {
-                Arr::set($fieldArray, $encryptedAttributeKey, '[ ENCRYPTED ]');
+        foreach ($encryptedAttribute as $encryptedField) {
+            if (Arr::has($fieldArray, $encryptedField)) {
+                Arr::set($fieldArray, $encryptedField, '[ ENCRYPTED ]');
             }
         }
 
