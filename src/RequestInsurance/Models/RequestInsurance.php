@@ -245,8 +245,8 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         try {
-            foreach (['headers', 'payload'] as $field) {
-                $fieldArray = $this->getAttributeCastToArray($field);
+            foreach (['headers', 'payload'] as $attribute) {
+                $fieldArray = $this->getAttributeCastToArray($attribute);
 
                 // We reverse the order of the returned array, so that if we encrypt in order A -> B -> C
                 // then we also decrypt in the order of C -> B -> A.
@@ -255,15 +255,15 @@ class RequestInsurance extends SaveRetryingModel
                 // encrypted multiple times, then it is important that we decrypt
                 // in the reverse order.
 
-                foreach ($this->getEncryptedAttribute($field, true) as $encryptedAttributeKey) {
-                    if (Arr::has($fieldArray, $encryptedAttributeKey)) {
-                        $encryptedAttributeValue = Arr::get($fieldArray, $encryptedAttributeKey);
+                foreach ($this->getEncryptedAttribute($attribute, true) as $encryptedField) {
+                    if (Arr::has($fieldArray, $encryptedField)) {
+                        $encryptedAttributeValue = Arr::get($fieldArray, $encryptedField);
 
-                        Arr::set($fieldArray, $encryptedAttributeKey, Crypt::decrypt($encryptedAttributeValue));
+                        Arr::set($fieldArray, $encryptedField, Crypt::decrypt($encryptedAttributeValue));
                     }
                 }
 
-                $this->$field = json_encode($fieldArray, JSON_THROW_ON_ERROR);
+                $this->$attribute = json_encode($fieldArray, JSON_THROW_ON_ERROR);
             }
 
             $this->isEncrypted = false;
@@ -277,21 +277,21 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Returns a field cast to array
      *
-     * @param string $field
+     * @param string $attribute
      *
      * @throws JsonException
      *
      * @return array
      */
-    private function getAttributeCastToArray(string $field): array
+    private function getAttributeCastToArray(string $attribute): array
     {
-        if (empty($this->$field)) {
+        if (empty($this->$attribute)) {
             return [];
         }
 
-        return is_array($this->$field)
-            ? $this->$field
-            : json_decode($this->$field, true, 512, JSON_THROW_ON_ERROR);
+        return is_array($this->$attribute)
+            ? $this->$attribute
+            : json_decode($this->$attribute, true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -327,11 +327,11 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @return array
      */
-    protected function getEncryptedAttribute(string $field, bool $reversed = false)
+    protected function getEncryptedAttribute(string $attribute, bool $reversed = false)
     {
         $encryptedAttributes = $this->getAttributeCastToArray('encrypted_fields');
 
-        $encryptedAttribute = $encryptedAttributes[$field] ?? [];
+        $encryptedAttribute = $encryptedAttributes[$attribute] ?? [];
 
         if ($reversed) {
             $encryptedAttribute = array_reverse($encryptedAttribute);
@@ -376,13 +376,13 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @return string
      */
-    public function getAttributeWithMaskingApplied(string $field): string
+    public function getAttributeWithMaskingApplied(string $attribute): string
     {
-        $fieldArray = $this->getAttributeCastToArray($field);
+        $fieldArray = $this->getAttributeCastToArray($attribute);
 
-        $encryptedAttribute = $this->getEncryptedAttribute($field);
+        $encryptedFieldArray = $this->getEncryptedAttribute($attribute);
 
-        foreach ($encryptedAttribute as $encryptedField) {
+        foreach ($encryptedFieldArray as $encryptedField) {
             if (Arr::has($fieldArray, $encryptedField)) {
                 Arr::set($fieldArray, $encryptedField, '[ ENCRYPTED ]');
             }
