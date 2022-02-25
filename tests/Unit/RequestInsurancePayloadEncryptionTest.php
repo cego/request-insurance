@@ -24,7 +24,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
 
         // Assert
 
-        // An RI should be left decryoted after creation
+        // An RI should be left decrypted after creation
         $this->assertEquals('Value', $requestInsurance->getPayloadCastToArray()['Key']);
 
         $this->assertCount(1, RequestInsurance::all());
