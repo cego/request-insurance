@@ -214,7 +214,7 @@ class RequestInsurance extends SaveRetryingModel
             foreach (['headers', 'payload'] as $field) {
                 $fieldArray = $this->getAttributeCastToArray($field);
 
-                foreach ($this->getEncryptedField($field) as $encryptedAttributeKey) {
+                foreach ($this->getEncryptedAttribute($field) as $encryptedAttributeKey) {
                     if (Arr::has($fieldArray, $encryptedAttributeKey)) {
                         $unencryptedAttributeValue = Arr::get($fieldArray, $encryptedAttributeKey);
 
@@ -255,7 +255,7 @@ class RequestInsurance extends SaveRetryingModel
                 // encrypted multiple times, then it is important that we decrypt
                 // in the reverse order.
 
-                foreach ($this->getEncryptedField($field, true) as $encryptedAttributeKey) {
+                foreach ($this->getEncryptedAttribute($field, true) as $encryptedAttributeKey) {
                     if (Arr::has($fieldArray, $encryptedAttributeKey)) {
                         $encryptedAttributeValue = Arr::get($fieldArray, $encryptedAttributeKey);
 
@@ -327,7 +327,7 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @return array
      */
-    protected function getEncryptedField(string $field, bool $reversed = false)
+    protected function getEncryptedAttribute(string $field, bool $reversed = false)
     {
         $encryptedAttributes = $this->getAttributeCastToArray('encrypted_fields');
 
@@ -351,7 +351,7 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected function getEncryptedHeaders(bool $reversed = false): array
     {
-        return $this->getEncryptedField('headers', $reversed);
+        return $this->getEncryptedAttribute('headers', $reversed);
     }
 
     /**
@@ -365,7 +365,7 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected function getEncryptedPayload(bool $reversed = false): array
     {
-        return $this->getEncryptedField('payload', $reversed);
+        return $this->getEncryptedAttribute('payload', $reversed);
     }
 
     /**
@@ -380,7 +380,7 @@ class RequestInsurance extends SaveRetryingModel
     {
         $fieldArray = $this->getAttributeCastToArray($field);
 
-        $encryptedAttribute = $this->getEncryptedField($field);
+        $encryptedAttribute = $this->getEncryptedAttribute($field);
 
         foreach ($encryptedAttribute as $encryptedAttributeKey) {
             if (Arr::has($fieldArray, $encryptedAttributeKey)) {
