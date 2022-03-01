@@ -211,18 +211,13 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         try {
-            foreach (['headers', 'payload'] as $attribute) {
-                $attributeArray = $this->getAttributeCastToArray($attribute);
 
-                foreach ($this->getEncryptedAttribute($attribute) as $encryptedField) {
-                    if (Arr::has($attributeArray, $encryptedField)) {
-                        $unencryptedFieldValue = Arr::get($attributeArray, $encryptedField);
+            // Headers are always an array
+            $this->headers = json_encode($this->encryptArray($this->getHeadersCastToArray(), $this->getEncryptedHeaders()), JSON_THROW_ON_ERROR);
 
-                        Arr::set($attributeArray, $encryptedField, Crypt::encrypt($unencryptedFieldValue));
-                    }
-                }
-
-                $this->$attribute = json_encode($attributeArray, JSON_THROW_ON_ERROR);
+            // Only process payload if it is an array
+            if (is_array($payload = $this->getJsonDecodedPayload())) {
+                $this->payload = json_encode($this->encryptArray($payload, $this->getEncryptedPayload()), JSON_THROW_ON_ERROR);
             }
 
             $this->isEncrypted = true;
@@ -231,6 +226,27 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         return $this;
+    }
+
+    /**
+     * Encrypts the keys of an array that matches the schema
+     *
+     * @param array $array
+     * @param array $schema
+     *
+     * @return array
+     */
+    protected function encryptArray(array $array, array $schema): array
+    {
+        foreach ($schema as $key) {
+            if (Arr::has($array, $key)) {
+                $plainValue = Arr::get($array, $key);
+
+                Arr::set($array, $key, Crypt::encrypt($plainValue));
+            }
+        }
+
+        return $array;
     }
 
     /**
@@ -245,25 +261,19 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         try {
-            foreach (['headers', 'payload'] as $attribute) {
-                $fieldArray = $this->getAttributeCastToArray($attribute);
+            // We reverse the order of the returned array, so that if we encrypt in order A -> B -> C
+            // then we also decrypt in the order of C -> B -> A.
+            //
+            // The reason for this is if there is a bug, which allows the same field to be
+            // encrypted multiple times, then it is important that we decrypt
+            // in the reverse order.
 
-                // We reverse the order of the returned array, so that if we encrypt in order A -> B -> C
-                // then we also decrypt in the order of C -> B -> A.
-                //
-                // The reason for this is if there is a bug, which allows the same field to be
-                // encrypted multiple times, then it is important that we decrypt
-                // in the reverse order.
+            // Headers are always an array
+            $this->headers = json_encode($this->decryptArray($this->getHeadersCastToArray(), $this->getEncryptedHeaders(true)), JSON_THROW_ON_ERROR);
 
-                foreach ($this->getEncryptedAttribute($attribute, true) as $encryptedField) {
-                    if (Arr::has($fieldArray, $encryptedField)) {
-                        $encryptedAttributeValue = Arr::get($fieldArray, $encryptedField);
-
-                        Arr::set($fieldArray, $encryptedField, Crypt::decrypt($encryptedAttributeValue));
-                    }
-                }
-
-                $this->$attribute = json_encode($fieldArray, JSON_THROW_ON_ERROR);
+            // Only process payload if it is an array
+            if (is_array($payload = $this->getJsonDecodedPayload())) {
+                $this->payload = json_encode($this->decryptArray($payload, $this->getEncryptedPayload(true)), JSON_THROW_ON_ERROR);
             }
 
             $this->isEncrypted = false;
@@ -275,7 +285,28 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Returns a field cast to array
+     * Decrypts the keys of an array that matches the schema
+     *
+     * @param array $array
+     * @param array $schema
+     *
+     * @return array
+     */
+    protected function decryptArray(array $array, array $schema): array
+    {
+        foreach ($schema as $key) {
+            if (Arr::has($array, $key)) {
+                $encryptedValue = Arr::get($array, $key);
+
+                Arr::set($array, $key, Crypt::decrypt($encryptedValue));
+            }
+        }
+
+        return $array;
+    }
+
+    /**
+     * Returns a field cast to array. Will throw an error if attribute is not an array or json encoded array.
      *
      * @param string $attribute
      *
@@ -295,6 +326,21 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Returns an attribute as an array if it's already an array or a json-encoded array
+     * Otherwise just return the attribute
+     *
+     * @return array|string
+     */
+    public function getJsonDecodedPayload()
+    {
+        if (empty($this->payload) || is_array($this->payload)) {
+            return $this->payload;
+        }
+
+        return json_decode($this->payload, true) ?? $this->payload;
+    }
+
+    /**
      * Returns the headers cast to array
      *
      * @throws JsonException
@@ -307,20 +353,9 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Returns the payload cast to array
-     *
-     * @throws JsonException
-     *
-     * @return array
-     */
-    public function getPayloadCastToArray(): array
-    {
-        return $this->getAttributeCastToArray('payload');
-    }
-
-    /**
      * Returns the flat array of the field which should be encrypted, using the dot notation for nested levels of encryption.
      *
+     * @param string $attribute
      * @param bool $reversed
      *
      * @throws JsonException

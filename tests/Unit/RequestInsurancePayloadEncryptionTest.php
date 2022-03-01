@@ -25,7 +25,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         // Assert
 
         // An RI should be left decrypted after creation
-        $this->assertEquals('Value', $requestInsurance->getPayloadCastToArray()['Key']);
+        $this->assertEquals('Value', $requestInsurance->getJsonDecodedPayload()['Key']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -37,7 +37,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is encrypted in DB
-        $this->assertNotEquals('Value', $requestInsurance->getPayloadCastToArray()['Key']);
+        $this->assertNotEquals('Value', $requestInsurance->getJsonDecodedPayload()['Key']);
     }
 
     /** @test */
@@ -56,7 +56,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         // Assert
 
         // Make sure it is not encrypted after creation
-        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
+        $this->assertEquals('Value1', $requestInsurance->getJsonDecodedPayload()['Key1']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -68,7 +68,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Make sure it is not encrypted in DB
-        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
+        $this->assertEquals('Value2', $requestInsurance->getJsonDecodedPayload()['Key2']);
     }
 
     /** @test */
@@ -87,7 +87,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         // Assert
 
         // An RI should be left decryoted after creation
-        $this->assertEquals('NestedValue1', $requestInsurance->getPayloadCastToArray()['NestedKeyCollection']['NestedKey1']);
+        $this->assertEquals('NestedValue1', $requestInsurance->getJsonDecodedPayload()['NestedKeyCollection']['NestedKey1']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -99,7 +99,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is encrypted in DB
-        $this->assertNotEquals('NestedValue1', $requestInsurance->getPayloadCastToArray()['NestedKeyCollection']['NestedKey1']);
+        $this->assertNotEquals('NestedValue1', $requestInsurance->getJsonDecodedPayload()['NestedKeyCollection']['NestedKey1']);
     }
 
     /** @test */
@@ -118,7 +118,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         // Assert
 
         // An RI should be left decrypted after creation
-        $this->assertEquals(['NestedKey1' => 'NestedValue1', 'NestedKey2' => 'NestedValue2'], $requestInsurance->getPayloadCastToArray()['NestedKeyCollection']);
+        $this->assertEquals(['NestedKey1' => 'NestedValue1', 'NestedKey2' => 'NestedValue2'], $requestInsurance->getJsonDecodedPayload()['NestedKeyCollection']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -130,8 +130,8 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is encrypted in DB
-        $this->assertNotEquals(['a' => 1, 'b' => 2], $requestInsurance->getPayloadCastToArray()['NestedKeyCollection']);
-        $this->assertIsString($requestInsurance->getPayloadCastToArray()['NestedKeyCollection']);
+        $this->assertNotEquals(['a' => 1, 'b' => 2], $requestInsurance->getJsonDecodedPayload()['NestedKeyCollection']);
+        $this->assertIsString($requestInsurance->getJsonDecodedPayload()['NestedKeyCollection']);
     }
 
     /** @test */
@@ -150,8 +150,8 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         // Assert
 
         // An RI should be left decrypted after creation
-        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
-        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
+        $this->assertEquals('Value1', $requestInsurance->getJsonDecodedPayload()['Key1']);
+        $this->assertEquals('Value2', $requestInsurance->getJsonDecodedPayload()['Key2']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -163,8 +163,8 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is encrypted in DB
-        $this->assertNotEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
-        $this->assertNotEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
+        $this->assertNotEquals('Value1', $requestInsurance->getJsonDecodedPayload()['Key1']);
+        $this->assertNotEquals('Value2', $requestInsurance->getJsonDecodedPayload()['Key2']);
     }
 
     /** @test */
@@ -183,8 +183,8 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         // Assert
 
         // An RI should be left decrypted after creation
-        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
-        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
+        $this->assertEquals('Value1', $requestInsurance->getJsonDecodedPayload()['Key1']);
+        $this->assertEquals('Value2', $requestInsurance->getJsonDecodedPayload()['Key2']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -192,8 +192,8 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is decrypted after extraction
-        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
-        $this->assertEquals('Value2', $requestInsurance->getPayloadCastToArray()['Key2']);
+        $this->assertEquals('Value1', $requestInsurance->getJsonDecodedPayload()['Key1']);
+        $this->assertEquals('Value2', $requestInsurance->getJsonDecodedPayload()['Key2']);
     }
 
     /** @test */
@@ -235,7 +235,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         // Assert
 
         // An RI should be left decrypted after creation
-        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
+        $this->assertEquals('Value1', $requestInsurance->getJsonDecodedPayload()['Key1']);
 
         $this->assertCount(1, RequestInsurance::all());
 
@@ -243,7 +243,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         // Assert that it is decrypted correctly in DB
-        $this->assertEquals('Value1', $requestInsurance->getPayloadCastToArray()['Key1']);
+        $this->assertEquals('Value1', $requestInsurance->getJsonDecodedPayload()['Key1']);
         $this->assertCount(0, RequestInsurance::query()->where('payload', 'like', '%Value1%')->get());
     }
 
