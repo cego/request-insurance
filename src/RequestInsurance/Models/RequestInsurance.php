@@ -212,17 +212,17 @@ class RequestInsurance extends SaveRetryingModel
 
         try {
             foreach (['headers', 'payload'] as $attribute) {
-                $attributeArray = $this->getAttributeCastToArray($attribute);
+                if (is_array($attributeArray = $this->getAttributeCastToArrayIfPossible($attribute))) {
+                    foreach ($this->getEncryptedAttribute($attribute) as $encryptedField) {
+                        if (Arr::has($attributeArray, $encryptedField)) {
+                            $unencryptedFieldValue = Arr::get($attributeArray, $encryptedField);
 
-                foreach ($this->getEncryptedAttribute($attribute) as $encryptedField) {
-                    if (Arr::has($attributeArray, $encryptedField)) {
-                        $unencryptedFieldValue = Arr::get($attributeArray, $encryptedField);
-
-                        Arr::set($attributeArray, $encryptedField, Crypt::encrypt($unencryptedFieldValue));
+                            Arr::set($attributeArray, $encryptedField, Crypt::encrypt($unencryptedFieldValue));
+                        }
                     }
-                }
 
-                $this->$attribute = json_encode($attributeArray, JSON_THROW_ON_ERROR);
+                    $this->$attribute = json_encode($attributeArray, JSON_THROW_ON_ERROR);
+                }
             }
 
             $this->isEncrypted = true;
@@ -246,24 +246,25 @@ class RequestInsurance extends SaveRetryingModel
 
         try {
             foreach (['headers', 'payload'] as $attribute) {
-                $fieldArray = $this->getAttributeCastToArray($attribute);
+                if (is_array($attributeArray = $this->getAttributeCastToArrayIfPossible($attribute))) {
 
-                // We reverse the order of the returned array, so that if we encrypt in order A -> B -> C
-                // then we also decrypt in the order of C -> B -> A.
-                //
-                // The reason for this is if there is a bug, which allows the same field to be
-                // encrypted multiple times, then it is important that we decrypt
-                // in the reverse order.
+                    // We reverse the order of the returned array, so that if we encrypt in order A -> B -> C
+                    // then we also decrypt in the order of C -> B -> A.
+                    //
+                    // The reason for this is if there is a bug, which allows the same field to be
+                    // encrypted multiple times, then it is important that we decrypt
+                    // in the reverse order.
 
-                foreach ($this->getEncryptedAttribute($attribute, true) as $encryptedField) {
-                    if (Arr::has($fieldArray, $encryptedField)) {
-                        $encryptedAttributeValue = Arr::get($fieldArray, $encryptedField);
+                    foreach ($this->getEncryptedAttribute($attribute, true) as $encryptedField) {
+                        if (Arr::has($attributeArray, $encryptedField)) {
+                            $encryptedAttributeValue = Arr::get($attributeArray, $encryptedField);
 
-                        Arr::set($fieldArray, $encryptedField, Crypt::decrypt($encryptedAttributeValue));
+                            Arr::set($attributeArray, $encryptedField, Crypt::decrypt($encryptedAttributeValue));
+                        }
                     }
-                }
 
-                $this->$attribute = json_encode($fieldArray, JSON_THROW_ON_ERROR);
+                    $this->$attribute = json_encode($attributeArray, JSON_THROW_ON_ERROR);
+                }
             }
 
             $this->isEncrypted = false;
@@ -275,7 +276,7 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Returns a field cast to array
+     * Returns a field cast to array. Will throw an error if attribute is not an array or json encoded array.
      *
      * @param string $attribute
      *
@@ -292,6 +293,35 @@ class RequestInsurance extends SaveRetryingModel
         return is_array($this->$attribute)
             ? $this->$attribute
             : json_decode($this->$attribute, true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns an attribute as an array if it's already an array or a json-encoded array
+     * Otherwise just return the attribute
+     *
+     * @param string $attribute
+     *
+     * @throws JsonException
+     *
+     * @return array|string
+     */
+    private function getAttributeCastToArrayIfPossible(string $attribute)
+    {
+        if (empty($this->$attribute)) {
+            return [];
+        }
+
+        if (is_array($this->$attribute)) {
+            return $this->$attribute;
+        }
+
+        $decodedAttribute = json_decode($this->$attribute, true);
+
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $decodedAttribute;
+        }
+
+        return $this->$attribute;
     }
 
     /**
