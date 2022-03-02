@@ -440,7 +440,7 @@ class RequestInsurance extends SaveRetryingModel
 
         // Only process payload if it is an array
         if ( ! is_array($payload)) {
-            return json_encode($payload, JSON_THROW_ON_ERROR);
+            return $payload;
         }
 
         $encryptedPayload = $this->getEncryptedPayload();
