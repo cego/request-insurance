@@ -120,11 +120,29 @@ class RequestInsuranceTest extends TestCase
             ->create();
 
         // Assert
-        $maskedHeaders = $requestInsurance->getPayloadWithMaskingApplied();
+        $maskedPayload = $requestInsurance->getPayloadWithMaskingApplied();
 
-        $this->assertStringNotContainsString('Value1', $maskedHeaders);
-        $this->assertStringContainsString('[ ENCRYPTED ]', $maskedHeaders);
-        $this->assertStringContainsString('Value2', $maskedHeaders);
+        $this->assertStringNotContainsString('Value1', $maskedPayload);
+        $this->assertStringContainsString('[ ENCRYPTED ]', $maskedPayload);
+        $this->assertStringContainsString('Value2', $maskedPayload);
+    }
+
+    /** @test */
+    public function it_can_get_payload_when_it_is_not_an_array(): void
+    {
+        // Arrange
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->payload('The payload is not an array json_encoded string.')
+            ->create();
+
+        // Assert
+        $payload = $requestInsurance->getPayloadWithMaskingApplied();
+
+        $this->assertStringContainsString('The payload is not an array json_encoded string.', $payload);
     }
 
     /** @test */
