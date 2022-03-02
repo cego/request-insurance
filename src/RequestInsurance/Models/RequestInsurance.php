@@ -427,7 +427,7 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Returns the headers as a json string, with encrypted headers marked as [ ENCRYPTED ].
+     * Returns the payload as a json string, with encrypted headers marked as [ ENCRYPTED ].
      * We use this to avoid breaking the interface with long encrypted values.
      *
      * @throws JsonException
