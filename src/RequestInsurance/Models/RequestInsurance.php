@@ -404,26 +404,26 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Returns the field as a json string, with encrypted headers marked as [ ENCRYPTED ].
+     * Returns the headers as a json string, with encrypted headers marked as [ ENCRYPTED ].
      * We use this to avoid breaking the interface with long encrypted values.
      *
      * @throws JsonException
      *
      * @return string
      */
-    public function getAttributeWithMaskingApplied(string $attribute): string
+    public function getHeadersWithMaskingApplied(): string
     {
-        $fieldArray = $this->getAttributeCastToArray($attribute);
+        $headers = $this->getHeadersCastToArray();
 
-        $encryptedFieldArray = $this->getEncryptedAttribute($attribute);
+        $encryptedHeaders = $this->getEncryptedHeaders();
 
-        foreach ($encryptedFieldArray as $encryptedField) {
-            if (Arr::has($fieldArray, $encryptedField)) {
-                Arr::set($fieldArray, $encryptedField, '[ ENCRYPTED ]');
+        foreach ($encryptedHeaders as $encryptedHeader) {
+            if (Arr::has($headers, $encryptedHeader)) {
+                Arr::set($headers, $encryptedHeader, '[ ENCRYPTED ]');
             }
         }
 
-        return json_encode($fieldArray, JSON_THROW_ON_ERROR);
+        return json_encode($headers, JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -434,22 +434,24 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @return string
      */
-    public function getHeadersWithMaskingApplied(): string
-    {
-        return $this->getAttributeWithMaskingApplied('headers');
-    }
-
-    /**
-     * Returns the headers as a json string, with encrypted headers marked as [ ENCRYPTED ].
-     * We use this to avoid breaking the interface with long encrypted values.
-     *
-     * @throws JsonException
-     *
-     * @return string
-     */
     public function getPayloadWithMaskingApplied(): string
     {
-        return $this->getAttributeWithMaskingApplied('payload');
+        $payload = $this->getJsonDecodedPayload();
+
+        // Only process payload if it is an array
+        if ( ! is_array($payload)) {
+            return $payload;
+        }
+
+        $encryptedPayload = $this->getEncryptedPayload();
+
+        foreach ($encryptedPayload as $encryptedPayloadField) {
+            if (Arr::has($payload, $encryptedPayloadField)) {
+                Arr::set($payload, $encryptedPayloadField, '[ ENCRYPTED ]');
+            }
+        }
+
+        return json_encode($payload, JSON_THROW_ON_ERROR);
     }
 
     /**
