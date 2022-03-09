@@ -34,15 +34,8 @@ class RequestInsuranceController extends Controller
             ->filteredByRequest($request)
             ->paginate(25);
 
-        $segmentedNumberOfRequests = $this->getSegmentedNumberOfRequests();
-
         return view('request-insurance::index')->with([
             'requestInsurances'         => $paginator,
-            'numberOfActiveRequests'    => $segmentedNumberOfRequests->get('active'),
-            'numberOfFailedRequests'    => $segmentedNumberOfRequests->get('failed'),
-            'numberOfCompletedRequests' => $segmentedNumberOfRequests->get('completed'),
-            'numberOfAbandonedRequests' => $segmentedNumberOfRequests->get('abandoned'),
-            'numberOfLockedRequests'    => $segmentedNumberOfRequests->get('locked'),
         ]);
     }
 
@@ -169,7 +162,7 @@ class RequestInsuranceController extends Controller
      *
      * @return \Illuminate\Support\Collection
      */
-    protected function getSegmentedNumberOfRequests()
+    public function monitor_segmented()
     {
         $table = RequestInsurance::make()->getTable();
 
