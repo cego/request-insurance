@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
-use SebastianBergmann\CodeCoverage\Report\Xml\Totals;
 
 class RequestInsuranceController extends Controller
 {
