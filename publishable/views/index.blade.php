@@ -42,7 +42,7 @@
                                 </div><span class="mr-4"><strong>Locked</strong></span>
                                 <script type="text/javascript">
                                     $(document).ready(function () {
-                                        fetch('dsd{{ route('request-insurances.monitor_segmented') }}')
+                                        fetch('{{ route('request-insurances.monitor_segmented') }}')
                                             .then(response => response.json())
                                             .then(function (response) {
                                                 $('#active-request-count').text(response.active);

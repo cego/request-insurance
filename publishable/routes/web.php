@@ -16,6 +16,11 @@ Route::namespace('Cego\RequestInsurance\Controllers')
             'uses' => 'RequestInsuranceController@monitor',
             'as'   => 'request-insurances.monitor',
         ]);
+
+        Route::get('request-insurances/monitor_segmented', [
+            'uses' => 'RequestInsuranceController@monitor_segmented',
+            'as'   => 'request-insurances.monitor_segmented',
+        ]);
     });
 
 Route::namespace('Cego\RequestInsurance\Controllers')
