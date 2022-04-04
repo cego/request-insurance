@@ -30,7 +30,7 @@ class CreateRequestInsuranceEditsTable extends Migration
             $table->text('old_encrypted_fields')->nullable()->default(null);
             $table->text('new_encrypted_fields')->nullable()->default(null);
             $table->text('admin_user');
-            $table->timestamp('applied_at');
+            $table->timestamp('applied_at')->nullable()->default(null);
             $table->timestamps();
         });
     }
