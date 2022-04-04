@@ -12,11 +12,53 @@
                     <div class="pb-5">
                         <div class="mr-5">
                             <div class="badge mr-2">{{ $requestInsurances->total() }}</div><span class="mr-5"><strong>Requests in total</strong></span>
-                            <div class="badge mr-2">{{ $numberOfActiveRequests }}</div><span class="mr-5"><strong>Active requests</strong></span>
-                            <div class="badge badge-success mr-2">{{ $numberOfCompletedRequests }}</div><span class="mr-4"><strong>Completed</strong></span>
-                            <div class="badge badge-warning mr-2">{{ $numberOfAbandonedRequests }}</div><span class="mr-4"><strong>Abandoned</strong></span>
-                            <div class="badge badge-danger mr-2">{{ $numberOfFailedRequests }}</div><span class="mr-4"><strong>Failed</strong></span>
-                            <div class="badge badge-secondary mr-2">{{ $numberOfLockedRequests }}</div><span class="mr-4"><strong>Locked</strong></span>
+                            <span id="ajax-managed-request-count">
+                                <div id="active-request-count" class="badge mr-2">
+                                    <div class="spinner-grow spinner-grow-sm" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </div>
+                                <span class="mr-5"><strong>Active requests</strong></span>
+                                <div id="completed-request-count" class="badge badge-success mr-2">
+                                    <div class="spinner-grow spinner-grow-sm" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </div>
+                                <span class="mr-4"><strong>Completed</strong></span>
+                                <div id="abandoned-request-count" class="badge badge-warning mr-2">
+                                    <div class="spinner-grow spinner-grow-sm" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </div><span class="mr-4"><strong>Abandoned</strong></span>
+                                <div id="failed-request-count" class="badge badge-danger mr-2">
+                                    <div class="spinner-grow spinner-grow-sm" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </div><span class="mr-4"><strong>Failed</strong></span>
+                                <div id="locked-request-count" class="badge badge-secondary mr-2">
+                                    <div class="spinner-grow spinner-grow-sm" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </div><span class="mr-4"><strong>Locked</strong></span>
+                                <script type="text/javascript">
+                                    $(document).ready(function () {
+                                        fetch('{{ route('request-insurances.monitor_segmented') }}')
+                                            .then(response => response.json())
+                                            .then(function (response) {
+                                                $('#active-request-count').text(response.active);
+                                                $('#completed-request-count').text(response.completed);
+                                                $('#abandoned-request-count').text(response.abandoned);
+                                                $('#failed-request-count').text(response.failed);
+                                                $('#locked-request-count').text(response.locked);
+                                            })
+                                            .catch(function (error) {
+                                                // set #ajax-managed-request-count children to alert box
+                                                $('#ajax-managed-request-count').html(`<span class="alert alert-danger" role="alert">Could not fetch segmented request statistics: ${error}</span>`);
+                                                console.log(error);
+                                            });
+                                    });
+                                </script>
+                            </span>
                         </div>
                     </div>
 

@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\View\Factory;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -21,9 +21,9 @@ class RequestInsuranceController extends Controller
      *
      * @param Request $request
      *
-     * @return View|Factory
-     *
      * @throws Exception
+     *
+     * @return View|Factory
      */
     public function index(Request $request)
     {
@@ -35,15 +35,8 @@ class RequestInsuranceController extends Controller
             ->filteredByRequest($request)
             ->paginate(25);
 
-        $segmentedNumberOfRequests = $this->getSegmentedNumberOfRequests();
-
         return view('request-insurance::index')->with([
             'requestInsurances'         => $paginator,
-            'numberOfActiveRequests'    => $segmentedNumberOfRequests->get('active'),
-            'numberOfFailedRequests'    => $segmentedNumberOfRequests->get('failed'),
-            'numberOfCompletedRequests' => $segmentedNumberOfRequests->get('completed'),
-            'numberOfAbandonedRequests' => $segmentedNumberOfRequests->get('abandoned'),
-            'numberOfLockedRequests'    => $segmentedNumberOfRequests->get('locked'),
         ]);
     }
 
@@ -219,7 +212,7 @@ class RequestInsuranceController extends Controller
      *
      * @return \Illuminate\Support\Collection
      */
-    protected function getSegmentedNumberOfRequests()
+    public function monitor_segmented()
     {
         $table = RequestInsurance::make()->getTable();
 

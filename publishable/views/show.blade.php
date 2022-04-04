@@ -41,7 +41,7 @@
                                 </tr>
                                 <tr>
                                     <td>Payload:</td>
-                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->payload"/></td>
+                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->getPayloadWithMaskingApplied()"/></td>
                                 </tr>
                                 <tr>
                                     <td>Headers:</td>

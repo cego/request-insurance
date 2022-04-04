@@ -2,10 +2,10 @@
 
 namespace Cego\RequestInsurance;
 
-use Throwable;
 use Exception;
-use Nbj\Stopwatch;
+use Throwable;
 use Carbon\Carbon;
+use Nbj\Stopwatch;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -68,7 +68,9 @@ class RequestInsuranceWorker
 
         do {
             try {
-                DB::reconnect();
+                if (env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)) {
+                    DB::reconnect();
+                }
 
                 $executionTime = Stopwatch::time(function () {
                     $this->processRequestInsurances();
@@ -83,7 +85,7 @@ class RequestInsuranceWorker
             }
 
             pcntl_signal_dispatch();
-        } while (! $runOnlyOnce && ! $this->shutdownSignalReceived);
+        } while ( ! $runOnlyOnce && ! $this->shutdownSignalReceived);
 
         Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
     }
@@ -128,9 +130,9 @@ class RequestInsuranceWorker
 
             if ($measurement->seconds() >= 80) {
                 Log::critical(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
-            } else if ($measurement->seconds() >= 60) {
+            } elseif ($measurement->seconds() >= 60) {
                 Log::warning(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
-            } else if ($measurement->seconds() >= 30) {
+            } elseif ($measurement->seconds() >= 30) {
                 Log::info(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
             }
 
@@ -145,7 +147,6 @@ class RequestInsuranceWorker
 
         $requests->each(function ($request) {
             /** @var RequestInsurance $request */
-
             try {
                 $request->process();
             } catch (Throwable $throwable) {
@@ -178,7 +179,7 @@ class RequestInsuranceWorker
             ->whereIn('id', $requestIds)
             ->update(['locked_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
 
-        if (! $locksWereObtained) {
+        if ( ! $locksWereObtained) {
             throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));
         }
 
@@ -199,5 +200,4 @@ class RequestInsuranceWorker
             ->lockForUpdate()
             ->pluck('id');
     }
-
 }

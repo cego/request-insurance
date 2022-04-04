@@ -22,7 +22,8 @@ class RequestInsuranceBuilder
      *
      * @return static
      */
-    public static function new() {
+    public static function new()
+    {
         return new static();
     }
 
@@ -35,7 +36,7 @@ class RequestInsuranceBuilder
      */
     public function url(string $url): RequestInsuranceBuilder
     {
-        if (filter_var($url, FILTER_VALIDATE_URL) === FALSE) {
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
             throw new InvalidArgumentException(sprintf('Invalid request insurance url: "%s"', $url));
         }
 
@@ -51,7 +52,7 @@ class RequestInsuranceBuilder
      */
     public function method(string $method): RequestInsuranceBuilder
     {
-        if (! in_array(strtolower($method), ['get', 'post', 'put', 'patch', 'delete'])) {
+        if ( ! in_array(strtolower($method), ['get', 'post', 'put', 'patch', 'delete'])) {
             throw new InvalidArgumentException(sprintf('Invalid request insurance method: "%s"', $method));
         }
 
@@ -156,6 +157,34 @@ class RequestInsuranceBuilder
     }
 
     /**
+     * Adds a header to the list of payload fields to encrypt.
+     * The key supports dot notation.
+     *
+     * @param string $payloadKey
+     *
+     * @return RequestInsuranceBuilder
+     */
+    public function encryptPayloadField(string $payloadKey): RequestInsuranceBuilder
+    {
+        return $this->append('encrypted_fields.payload', $payloadKey);
+    }
+
+    /**
+     * Adds a list of payload fields to encrypt.
+     * The keys support dot notation.
+     *
+     * @param string[] $payloadKeys
+     */
+    public function encryptPayload(array $payloadKeys): RequestInsuranceBuilder
+    {
+        foreach ($payloadKeys as $payloadKey) {
+            $this->encryptPayloadField($payloadKey);
+        }
+
+        return $this;
+    }
+
+    /**
      * Finishes the builder and creates an instance of a persisted Request Insurance row
      *
      * @return RequestInsurance
@@ -190,13 +219,13 @@ class RequestInsuranceBuilder
      */
     protected function append($field, $value): RequestInsuranceBuilder
     {
-        if (! Arr::has($this->data, $field)) {
+        if ( ! Arr::has($this->data, $field)) {
             return $this->set($field, [$value]);
         }
 
         $data = Arr::get($this->data, $field);
 
-        if (! is_array($data)) {
+        if ( ! is_array($data)) {
             throw new InvalidArgumentException('Cannot append to a non-array index');
         }
 

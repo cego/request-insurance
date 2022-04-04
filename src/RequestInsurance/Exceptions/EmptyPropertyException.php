@@ -2,15 +2,15 @@
 
 namespace Cego\RequestInsurance\Exceptions;
 
-use Cego\RequestInsurance\Models\RequestInsurance;
 use Exception;
 use Throwable;
+use Cego\RequestInsurance\Models\RequestInsurance;
 
 class EmptyPropertyException extends Exception
 {
     /**
      * EmptyPropertyException constructor.
-     * 
+     *
      * @param string $property
      * @param RequestInsurance $requestInsuranceModel
      * @param Throwable|null $previous

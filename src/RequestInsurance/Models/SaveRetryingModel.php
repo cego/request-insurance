@@ -14,9 +14,9 @@ class SaveRetryingModel extends Model
      *
      * @param array $options
      *
-     * @return bool
-     *
      * @throws Exception
+     *
+     * @return bool
      */
     public function save(array $options = []): bool
     {

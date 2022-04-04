@@ -77,16 +77,16 @@ abstract class HttpRequest
      *
      * @param string $method
      *
-     * @return $this
-     *
      * @throws MethodNotAllowedForRequestInsurance
+     *
+     * @return $this
      */
     public function setMethod($method)
     {
         $method = mb_strtoupper($method);
 
         $allowedMethods = [
-            'GET', 'HEAD', 'POST', 'DELETE', 'PUT', 'PATCH'
+            'GET', 'HEAD', 'POST', 'DELETE', 'PUT', 'PATCH',
         ];
 
         if ( ! in_array($method, $allowedMethods)) {

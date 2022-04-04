@@ -4,10 +4,7 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use InvalidArgumentException;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
-use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 
 class RequestInsuranceBuilderTest extends TestCase
 {
