@@ -105,6 +105,47 @@ class RequestInsuranceTest extends TestCase
     }
 
     /** @test */
+    public function it_can_mask_encrypted_payload(): void
+    {
+        // Arrange
+        Config::set('request-insurance.fieldsToAutoEncrypt', [
+            'payload' => ['Key1'],
+        ]);
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->create();
+
+        // Assert
+        $maskedPayload = $requestInsurance->getPayloadWithMaskingApplied();
+
+        $this->assertStringNotContainsString('Value1', $maskedPayload);
+        $this->assertStringContainsString('[ ENCRYPTED ]', $maskedPayload);
+        $this->assertStringContainsString('Value2', $maskedPayload);
+    }
+
+    /** @test */
+    public function it_can_get_payload_when_it_is_not_an_array(): void
+    {
+        // Arrange
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->payload('The payload is not an array json_encoded string.')
+            ->create();
+
+        // Assert
+        $payload = $requestInsurance->getPayloadWithMaskingApplied();
+
+        $this->assertStringContainsString('The payload is not an array json_encoded string.', $payload);
+    }
+
+    /** @test */
     public function it_always_increment_the_tries_count(): void
     {
         // Arrange

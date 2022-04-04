@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Carbon\Carbon;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\Contracts\HttpRequest;
@@ -14,6 +15,12 @@ use Cego\RequestInsurance\Events\RequestSuccessful;
 
 class RequestInsuranceWorkerTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        putenv('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT=false');
+        parent::setUp();
+    }
+
     /** @test */
     public function it_has_a_mocked_curl_client(): void
     {
@@ -270,5 +277,28 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertNotNull($requestInsurance->completed_at);
         $this->assertNull($requestInsurance->locked_at);
         $this->assertNull($requestInsurance->abandoned_at);
+    }
+
+    /** @test */
+    public function headers_are_still_encrypted_in_db_after_processing_unkeyed_payload()
+    {
+        // Arrange
+        MockCurlRequest::setNextResponse(['info' => ['http_code' => 200]]);
+
+        RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('post')
+            ->headers(['Authorization' => 'Basic 12345'])
+            ->payload('The payload is not an array json_encoded string.')
+            ->create();
+
+        // Act
+        $worker = new RequestInsuranceWorker(1);
+        $worker->run(true);
+
+        // Assert
+        $authorizationHeaderInDB = json_decode(RequestInsurance::first()->getOriginal('headers'), true)['Authorization'];
+        $this->assertNotEquals('Basic 12345', $authorizationHeaderInDB);
+        $this->assertEquals('Basic 12345', Crypt::decrypt($authorizationHeaderInDB));
     }
 }
