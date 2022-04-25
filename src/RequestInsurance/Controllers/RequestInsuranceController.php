@@ -35,7 +35,7 @@ class RequestInsuranceController extends Controller
             ->paginate(25);
 
         return view('request-insurance::index')->with([
-            'requestInsurances'         => $paginator,
+            'requestInsurances' => $paginator,
         ]);
     }
 

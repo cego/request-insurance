@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
@@ -36,7 +37,9 @@ class RequestInsuranceBuilder
      */
     public function url(string $url): RequestInsuranceBuilder
     {
-        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+        $allowedSpecialCharacters = ['æ', 'ø', 'å', 'ä', 'ö'];
+
+        if (filter_var(Str::remove($allowedSpecialCharacters, $url), FILTER_VALIDATE_URL) === false) {
             throw new InvalidArgumentException(sprintf('Invalid request insurance url: "%s"', $url));
         }
 
