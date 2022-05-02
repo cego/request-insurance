@@ -124,19 +124,25 @@ class RequestInsuranceWorker
     {
         /** @var Collection $requestIds */
         $requestIds = DB::transaction(function () {
-            $measurement = Stopwatch::time(function () {
-                return $this->acquireLockOnRowsToProcess();
-            });
+            try {
+                $measurement = Stopwatch::time(function () {
+                    return $this->acquireLockOnRowsToProcess();
+                });
 
-            if ($measurement->seconds() >= 80) {
-                Log::critical(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
-            } elseif ($measurement->seconds() >= 60) {
-                Log::warning(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
-            } elseif ($measurement->seconds() >= 30) {
-                Log::info(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
+                if ($measurement->seconds() >= 80) {
+                    Log::critical(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
+                } elseif ($measurement->seconds() >= 60) {
+                    Log::warning(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
+                } elseif ($measurement->seconds() >= 30) {
+                    Log::info(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
+                }
+
+                return $measurement->result();
             }
-
-            return $measurement->result();
+            catch (Throwable $throwable) {
+                Log::error($throwable);
+                throw $throwable;
+            }
         }, 3);
 
         // Gets requests to process ordered by priority
