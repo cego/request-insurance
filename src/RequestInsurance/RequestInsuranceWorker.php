@@ -51,6 +51,7 @@ class RequestInsuranceWorker
         $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
+        Log::withContext(["worker.id" => $this->runningHash]);
     }
 
     /**
@@ -67,17 +68,20 @@ class RequestInsuranceWorker
         $this->setupShutdownSignalHandler();
 
         do {
+            Log::debug("Loop started");
             try {
                 if (env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)) {
+                    Log::debug("Reconnect DB connection");
                     DB::reconnect();
                 }
-
+                Log::debug("Process requests");
                 $executionTime = Stopwatch::time(function () {
                     $this->processRequestInsurances();
                 });
 
                 $waitTime = (int) max($this->microSecondsToWait - $executionTime->microseconds(), 0);
 
+                Log::debug("Sleep");
                 usleep($waitTime);
             } catch (Throwable $throwable) {
                 Log::error($throwable);
@@ -85,6 +89,7 @@ class RequestInsuranceWorker
             }
 
             pcntl_signal_dispatch();
+            Log::debug("Loop ended");
         } while ( ! $runOnlyOnce && ! $this->shutdownSignalReceived);
 
         Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
@@ -136,6 +141,7 @@ class RequestInsuranceWorker
                 } elseif ($measurement->seconds() >= 30) {
                     Log::info(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
                 }
+                Log::debug(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
 
                 return $measurement->result();
             }
