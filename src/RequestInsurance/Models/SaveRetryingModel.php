@@ -27,6 +27,7 @@ class SaveRetryingModel extends Model
             try {
                 return parent::save($options);
             } catch (Exception $exception) {
+                Log::debug($exception);
                 if ($this->shouldNotRetry($try, $maxTries, $exception)) {
                     throw $exception;
                 }
