@@ -145,7 +145,7 @@ class RequestInsuranceWorker
                     Log::info(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
                 }
 
-                Log::debug(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
+                Log::debug(sprintf('%s: Selecting RI rows for processing took %d micro seconds!', __METHOD__, $measurement->microseconds()));
 
                 return $measurement->result();
             }
@@ -153,12 +153,13 @@ class RequestInsuranceWorker
                 Log::error($throwable);
                 throw $throwable;
             }
-        }, 3);
+        });
 
         // Gets requests to process ordered by priority
         $requests = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
             ->orderBy('priority')
+            ->orderBy('id')
             ->get();
 
         $requests->each(function ($request) {
@@ -184,10 +185,15 @@ class RequestInsuranceWorker
      */
     protected function acquireLockOnRowsToProcess(): Collection
     {
+        Log::debug("Get ids of ready requests");
+
         $requestIds = $this->getIdsOfReadyRequests();
+
+        Log::debug("Ids retrieved #%d", $requestIds->count());
 
         // Bail if no request are ready to be processed
         if ($requestIds->isEmpty()) {
+            Log::debug("Ids empty bailing");
             return $requestIds;
         }
 
@@ -198,6 +204,8 @@ class RequestInsuranceWorker
         if ( ! $locksWereObtained) {
             throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));
         }
+
+        Log::debug("Locked rows updated");
 
         return $requestIds;
     }
