@@ -503,7 +503,8 @@ class RequestInsurance extends SaveRetryingModel
                     ->where('retry_at', null)
                     ->orWhere('retry_at', '<=', Carbon::now());
             })
-            ->orderBy('priority', 'asc');
+            ->orderBy('priority', 'asc')
+            ->orderBy('id', 'asc');
     }
 
     /**

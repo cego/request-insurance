@@ -153,12 +153,13 @@ class RequestInsuranceWorker
                 Log::error($throwable);
                 throw $throwable;
             }
-        }, 3);
+        });
 
         // Gets requests to process ordered by priority
         $requests = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
             ->orderBy('priority')
+            ->orderBy('id')
             ->get();
 
         $requests->each(function ($request) {
