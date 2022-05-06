@@ -61,7 +61,7 @@ class RequestInsuranceWorker
      *
      * @throws Throwable
      */
-    public function run(bool $runOnlyOnce = true): void
+    public function run(bool $runOnlyOnce = false): void
     {
         Log::info(sprintf('RequestInsurance Worker (#%s) has started', $this->runningHash));
 
