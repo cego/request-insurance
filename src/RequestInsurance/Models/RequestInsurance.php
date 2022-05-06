@@ -727,55 +727,55 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function process()
     {
-        // An event is dispatched before processing begins
-        // allowing the application to abandon/complete/paused the requests before processing.
-        Events\RequestBeforeProcess::dispatch($this);
-
-        if ($this->isAbandoned() || $this->isCompleted() || $this->isPaused()) {
-            return $this;
-        }
-
-        // Increment the number of tries as the very first action
-        $this->incrementRetryCount();
+//        // An event is dispatched before processing begins
+//        // allowing the application to abandon/complete/paused the requests before processing.
+//        Events\RequestBeforeProcess::dispatch($this);
+//
+//        if ($this->isAbandoned() || $this->isCompleted() || $this->isPaused()) {
+//            return $this;
+//        }
+//
+//        // Increment the number of tries as the very first action
+//        $this->incrementRetryCount();
 
         // Send the request and receive the response
         $response = $this->sendRequest();
-
-        // Update the request with the latest response
-        $this->response_body = $response->getBody();
-        $this->response_code = $response->getCode();
-        $this->response_headers = $response->getHeaders();
-
-        // Create a log for the request to track all attempts
-        try {
-            $this->logs()->create([
-                'response_body'    => $response->getBody(),
-                'response_code'    => $response->getCode(),
-                'response_headers' => $response->getHeaders(),
-            ]);
-        } catch (Exception $exception) {
-            Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
-        }
-
-        if ($response->isNotRetryable()) {
-            $this->paused_at = Carbon::now();
-        }
-
-        if ($response->wasSuccessful()) {
-            $this->completed_at = Carbon::now();
-        }
-
-        if ($this->isNotCompleted() && $response->isRetryable()) {
-            $this->setNextRetryAt();
-        }
-
-        // It happens that a ->save() causes a deadlock problem,
-        // since this is not really a logic error, we add this retry logic
-        // so the data is persisted.
-        // This will most likely in almost all cases catch the problem before an exception is thrown.
-        $this->save();
-
-        $this->dispatchPostProcessEvents($response);
+//
+//        // Update the request with the latest response
+//        $this->response_body = $response->getBody();
+//        $this->response_code = $response->getCode();
+//        $this->response_headers = $response->getHeaders();
+//
+//        // Create a log for the request to track all attempts
+//        try {
+//            $this->logs()->create([
+//                'response_body'    => $response->getBody(),
+//                'response_code'    => $response->getCode(),
+//                'response_headers' => $response->getHeaders(),
+//            ]);
+//        } catch (Exception $exception) {
+//            Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
+//        }
+//
+//        if ($response->isNotRetryable()) {
+//            $this->paused_at = Carbon::now();
+//        }
+//
+//        if ($response->wasSuccessful()) {
+//            $this->completed_at = Carbon::now();
+//        }
+//
+//        if ($this->isNotCompleted() && $response->isRetryable()) {
+//            $this->setNextRetryAt();
+//        }
+//
+//        // It happens that a ->save() causes a deadlock problem,
+//        // since this is not really a logic error, we add this retry logic
+//        // so the data is persisted.
+//        // This will most likely in almost all cases catch the problem before an exception is thrown.
+//        $this->save();
+//
+//        $this->dispatchPostProcessEvents($response);
 
         return $this;
     }
