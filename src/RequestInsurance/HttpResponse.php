@@ -76,7 +76,7 @@ class HttpResponse
     {
         $this->request = $request;
 
-        $this->body = $request->getResponse();
+//        $this->body = $request->getResponse();
 //        $this->errorMessage = $request->getError();
 //        $this->info = collect($request->getInfo());
 //
@@ -84,7 +84,7 @@ class HttpResponse
 //            $this->responseHeaders = collect($request->getResponseHeaders());
 //        }
 //
-        $request->close();
+//        $request->close();
 
         return $this;
     }

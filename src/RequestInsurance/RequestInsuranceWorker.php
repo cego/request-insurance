@@ -177,7 +177,7 @@ class RequestInsuranceWorker
 
         $this->memDebug('END:   FETCH RI');
 
-        $this->memDebug('#### Sleeping before processing 22222222222222');
+        $this->memDebug('#### Sleeping before processing 3333333333333333333');
         sleep(5);
 
         $requests->each(function ($request) {
