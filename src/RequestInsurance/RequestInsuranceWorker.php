@@ -189,7 +189,7 @@ class RequestInsuranceWorker
 
         $requestIds = $this->getIdsOfReadyRequests();
 
-        Log::debug("Ids retrieved #%d", $requestIds->count());
+        Log::debug(sprintf("Ids retrieved #%d", $requestIds->count()));
 
         // Bail if no request are ready to be processed
         if ($requestIds->isEmpty()) {
