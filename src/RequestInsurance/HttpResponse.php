@@ -77,13 +77,13 @@ class HttpResponse
         $this->request = $request;
 
         $this->body = $request->getResponse();
-        $this->errorMessage = $request->getError();
-        $this->info = collect($request->getInfo());
-
-        if ($request instanceof ContainsResponseHeaders) {
-            $this->responseHeaders = collect($request->getResponseHeaders());
-        }
-
+//        $this->errorMessage = $request->getError();
+//        $this->info = collect($request->getInfo());
+//
+//        if ($request instanceof ContainsResponseHeaders) {
+//            $this->responseHeaders = collect($request->getResponseHeaders());
+//        }
+//
         $request->close();
 
         return $this;
