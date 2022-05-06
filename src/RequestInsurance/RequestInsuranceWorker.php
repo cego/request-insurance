@@ -68,8 +68,6 @@ class RequestInsuranceWorker
         $this->setupShutdownSignalHandler();
 
         do {
-            $this->memDebug("Loop started");
-
             try {
                 if (env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)) {
                     DB::reconnect();
@@ -81,7 +79,6 @@ class RequestInsuranceWorker
 
                 $waitTime = (int) max($this->microSecondsToWait - $executionTime->microseconds(), 0);
 
-                $this->memDebug("Sleep");
                 usleep($waitTime);
             } catch (Throwable $throwable) {
                 Log::error($throwable);
@@ -89,21 +86,9 @@ class RequestInsuranceWorker
             }
 
             pcntl_signal_dispatch();
-            $this->memDebug("Loop ended");
         } while ( ! $runOnlyOnce && ! $this->shutdownSignalReceived);
 
         Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
-    }
-
-    protected function memDebug(string $message)
-    {
-        $memoryUsage = round(memory_get_usage(false) / 1048576);
-        $memoryRealUsage = round(memory_get_usage(true) / 1048576);
-
-        $memoryPeakUsage = round(memory_get_peak_usage(false) / 1048576);
-        $memoryPeakRealUsage = round(memory_get_peak_usage(true) / 1048576);
-
-        Log::debug(sprintf("[%4dmb - %4dmb] [%4dmb - %4dmb] %s", $memoryUsage, $memoryRealUsage, $memoryPeakUsage, $memoryPeakRealUsage, $message));
     }
 
     /**
@@ -138,18 +123,12 @@ class RequestInsuranceWorker
      */
     protected function processRequestInsurances(): void
     {
-        $this->memDebug('#### Sleeping getting stuff');
-        sleep(5);
-
         /** @var Collection $requestIds */
         $requestIds = DB::transaction(function () {
             try {
-                $this->memDebug('START: locks on rows to process');
                 $measurement = Stopwatch::time(function () {
                     return $this->acquireLockOnRowsToProcess();
                 });
-
-                $this->memDebug('END:   locks on rows to process');
 
                 if ($measurement->seconds() >= 80) {
                     Log::critical(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
@@ -167,7 +146,6 @@ class RequestInsuranceWorker
             }
         });
 
-        $this->memDebug('START: FETCH RI');
         // Gets requests to process ordered by priority
         $requests = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
@@ -175,15 +153,9 @@ class RequestInsuranceWorker
             ->orderBy('id')
             ->get();
 
-        $this->memDebug('END:   FETCH RI');
-
-        $this->memDebug('#### Sleeping before processing 99999999999999');
-        sleep(5);
-
         $requests->each(function ($request) {
             /** @var RequestInsurance $request */
             try {
-                $this->memDebug('START: Process RI');
                 $request->process();
             } catch (Throwable $throwable) {
                 Log::error($throwable);
@@ -192,12 +164,7 @@ class RequestInsuranceWorker
             } finally {
                 $request->unlock();
             }
-
-            $this->memDebug('END:   Process RI');
         });
-
-        $this->memDebug('#### Sleeping after processing');
-        sleep(5);
     }
 
     /**
@@ -209,20 +176,16 @@ class RequestInsuranceWorker
      */
     protected function acquireLockOnRowsToProcess(): Collection
     {
-        $this->memDebug('START: Get ids of ready requests');
         $requestIds = $this->getIdsOfReadyRequests();
-        $this->memDebug('END:   Get ids of ready requests');
 
         // Bail if no request are ready to be processed
         if ($requestIds->isEmpty()) {
             return $requestIds;
         }
 
-        $this->memDebug('START: GET LOCK');
         $locksWereObtained = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
             ->update(['locked_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
-        $this->memDebug('END:   GET LOCK');
 
         if ( ! $locksWereObtained) {
             throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));
