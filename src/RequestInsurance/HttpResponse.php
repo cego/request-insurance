@@ -41,13 +41,29 @@ class HttpResponse
      */
     public function setRequest(HttpRequest $request)
     {
-        $this->response = Http::withBody($request->getPayload())
-            ->withHeaders($request->getHeaders())
+        $this->response = Http::withHeaders($request->getHeaders())
             ->withUserAgent($request->getUserAgent())
-            ->timeout()
-            ->send($request->getMethod(), $request->getUrl());
+            ->timeout($request->getTimeout())
+            ->send($request->getMethod(), $request->getUrl(), [
+                'body' => $request->getPayload(),
+            ]);
 
         return $this;
+    }
+
+    /**
+     * Returns true if the string given is json
+     *
+     * @param $string
+     *
+     * @return bool
+     */
+    protected function isJson($string): bool
+    {
+        /** @noinspection JsonEncodingApiUsageInspection - Used for error detection */
+        json_decode($string);
+
+        return json_last_error() === JSON_ERROR_NONE;
     }
 
     /**
