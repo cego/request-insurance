@@ -801,7 +801,7 @@ class RequestInsurance extends SaveRetryingModel
         // If a custom timeout is set for this specific request
         // then override the default timeout with the chosen timeout
         if ($this->timeout_ms !== null) {
-            $request->setTimeoutMs($this->timeout_ms);
+            $request->setTimeout(ceil($this->timeout_ms / 1000));
         }
 
         return $request->send();

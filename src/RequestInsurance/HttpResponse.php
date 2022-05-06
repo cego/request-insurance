@@ -4,17 +4,13 @@ namespace Cego\RequestInsurance;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\Response;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\Contracts\ContainsResponseHeaders;
 
 class HttpResponse
 {
-    /**
-     * Holds the request associated with the response
-     *
-     * @var HttpResponse $request
-     */
-    protected $request = null;
+    protected Response $response;
 
     /**
      * Holds the body of the response
@@ -22,36 +18,6 @@ class HttpResponse
      * @var bool|string $body
      */
     protected $body;
-
-    /**
-     * Holds the error message of the response if present
-     *
-     * @var string $errorMessage
-     */
-    protected $errorMessage;
-
-    /**
-     * Holds a collection of response information
-     *
-     * @var \Illuminate\Support\Collection $info
-     */
-    protected $info;
-
-    /**
-     * Holds all the headers of the response if set
-     *
-     * @var \Illuminate\Support\Collection $responseHeaders
-     */
-    protected $responseHeaders;
-
-    /**
-     * Protected constructor to force use of named constructor
-     */
-    protected function __construct()
-    {
-        $this->info = new Collection;
-        $this->responseHeaders = new Collection;
-    }
 
     /**
      * Named constructor for creating a new response instance
@@ -75,17 +41,11 @@ class HttpResponse
      */
     public function setRequest(HttpRequest $request)
     {
-        $this->request = $request;
-
-        $this->body = Http::post('https://request-insurance-niza.lupinsdev.dk/vendor/request-insurances/monitor_segmented')->body();
-//        $this->errorMessage = $request->getError();
-//        $this->info = collect($request->getInfo());
-//
-//        if ($request instanceof ContainsResponseHeaders) {
-//            $this->responseHeaders = collect($request->getResponseHeaders());
-//        }
-//
-//        $request->close();
+        $this->response = Http::withBody($request->getPayload())
+            ->withHeaders($request->getHeaders())
+            ->withUserAgent($request->getUserAgent())
+            ->timeout()
+            ->send($request->getMethod(), $request->getUrl());
 
         return $this;
     }
@@ -137,7 +97,7 @@ class HttpResponse
      */
     public function getCode()
     {
-        return (int) $this->info->get('http_code');
+        return $this->response->status();
     }
 
     /**
@@ -145,17 +105,17 @@ class HttpResponse
      *
      * @return string
      */
-    public function getBody()
+    public function getBody(): string
     {
-        return (string) $this->body;
+        return $this->response->body();
     }
 
     /**
      * @return Collection
      */
-    public function getHeaders()
+    public function getHeaders(): Collection
     {
-        return $this->responseHeaders;
+        return collect($this->response->headers());
     }
 
     /**
@@ -163,9 +123,9 @@ class HttpResponse
      *
      * @return float
      */
-    public function getExecutionTime()
+    public function getExecutionTime(): float
     {
-        return (float) $this->info->get('total_time');
+        return $this->response->handlerStats()['total_time'] ?? 0;
     }
 
     /**
