@@ -195,6 +195,9 @@ class RequestInsuranceWorker
 
             $this->memDebug('END:   Process RI');
         });
+
+        $this->memDebug('#### Sleeping after processing');
+        sleep(5);
     }
 
     /**
