@@ -739,7 +739,7 @@ class RequestInsurance extends SaveRetryingModel
 //        $this->incrementRetryCount();
 
         // Send the request and receive the response
-        $response = $this->sendRequest();
+//        $response = $this->sendRequest();
 //
 //        // Update the request with the latest response
 //        $this->response_body = $response->getBody();
