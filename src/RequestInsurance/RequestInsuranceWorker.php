@@ -138,6 +138,9 @@ class RequestInsuranceWorker
      */
     protected function processRequestInsurances(): void
     {
+        $this->memDebug('#### Sleeping getting stuff');
+        sleep(5);
+
         /** @var Collection $requestIds */
         $requestIds = DB::transaction(function () {
             try {
