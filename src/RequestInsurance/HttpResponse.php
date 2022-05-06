@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\Contracts\ContainsResponseHeaders;
 
@@ -76,7 +77,7 @@ class HttpResponse
     {
         $this->request = $request;
 
-//        $this->body = $request->getResponse();
+        $this->body = Http::post('https://request-insurance-niza.lupinsdev.dk/vendor/request-insurances/monitor_segmented')->body();
 //        $this->errorMessage = $request->getError();
 //        $this->info = collect($request->getInfo());
 //
