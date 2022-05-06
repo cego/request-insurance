@@ -103,7 +103,7 @@ class RequestInsuranceWorker
         $memoryUsage = round(memory_get_usage() / 1048576);
         $memoryRealUsage = round(memory_get_usage(true) / 1048576);
 
-        $this->memDebug(sprintf("[%4dmb - %4dmb] %s", $memoryUsage, $memoryRealUsage, $message));
+        Log::debug(sprintf("[%4dmb - %4dmb] %s", $memoryUsage, $memoryRealUsage, $message));
     }
 
     /**
