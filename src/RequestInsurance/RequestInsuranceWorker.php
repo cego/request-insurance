@@ -48,7 +48,7 @@ class RequestInsuranceWorker
      */
     public function __construct(int $batchSize = 100, int $microSecondsToWait = 100000)
     {
-        $this->microSecondsToWait = 1000000; //$microSecondsToWait;
+        $this->microSecondsToWait = 100000; //$microSecondsToWait;
         $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
         Log::withContext(["worker.id" => $this->runningHash]);
@@ -72,11 +72,8 @@ class RequestInsuranceWorker
 
             try {
                 if (env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)) {
-                    $this->memDebug("Reconnect DB connection");
                     DB::reconnect();
                 }
-
-                $this->memDebug("Process requests");
 
                 $executionTime = Stopwatch::time(function () {
                     $this->processRequestInsurances();
@@ -141,9 +138,12 @@ class RequestInsuranceWorker
         /** @var Collection $requestIds */
         $requestIds = DB::transaction(function () {
             try {
+                $this->memDebug('START: locks on rows to process');
                 $measurement = Stopwatch::time(function () {
                     return $this->acquireLockOnRowsToProcess();
                 });
+
+                $this->memDebug('END:   locks on rows to process');
 
                 if ($measurement->seconds() >= 80) {
                     Log::critical(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
@@ -153,8 +153,6 @@ class RequestInsuranceWorker
                     Log::info(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
                 }
 
-                $this->memDebug(sprintf('%s: Selecting RI rows for processing took %d micro seconds!', __METHOD__, $measurement->microseconds()));
-
                 return $measurement->result();
             }
             catch (Throwable $throwable) {
@@ -163,6 +161,7 @@ class RequestInsuranceWorker
             }
         });
 
+        $this->memDebug('START: FETCH RI');
         // Gets requests to process ordered by priority
         $requests = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
@@ -170,9 +169,13 @@ class RequestInsuranceWorker
             ->orderBy('id')
             ->get();
 
+        $this->memDebug('END:   FETCH RI');
+
+
         $requests->each(function ($request) {
             /** @var RequestInsurance $request */
             try {
+                $this->memDebug('START: Process RI');
                 $request->process();
             } catch (Throwable $throwable) {
                 Log::error($throwable);
@@ -181,6 +184,8 @@ class RequestInsuranceWorker
             } finally {
                 $request->unlock();
             }
+
+            $this->memDebug('END:   Process RI');
         });
     }
 
@@ -193,27 +198,24 @@ class RequestInsuranceWorker
      */
     protected function acquireLockOnRowsToProcess(): Collection
     {
-        $this->memDebug("Get ids of ready requests");
-
+        $this->memDebug('START: Get ids of ready requests');
         $requestIds = $this->getIdsOfReadyRequests();
-
-        $this->memDebug(sprintf("Ids retrieved #%d", $requestIds->count()));
+        $this->memDebug('END:   Get ids of ready requests');
 
         // Bail if no request are ready to be processed
         if ($requestIds->isEmpty()) {
-            $this->memDebug("Ids empty bailing");
             return $requestIds;
         }
 
+        $this->memDebug('START: GET LOCK');
         $locksWereObtained = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
             ->update(['locked_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+        $this->memDebug('END:   GET LOCK');
 
         if ( ! $locksWereObtained) {
             throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));
         }
-
-        $this->memDebug("Locked rows updated");
 
         return $requestIds;
     }
