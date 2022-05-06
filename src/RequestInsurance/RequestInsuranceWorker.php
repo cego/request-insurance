@@ -97,10 +97,13 @@ class RequestInsuranceWorker
 
     protected function memDebug(string $message)
     {
-        $memoryUsage = round(memory_get_usage() / 1048576);
+        $memoryUsage = round(memory_get_usage(false) / 1048576);
         $memoryRealUsage = round(memory_get_usage(true) / 1048576);
 
-        Log::debug(sprintf("[%4dmb - %4dmb] %s", $memoryUsage, $memoryRealUsage, $message));
+        $memoryPeakUsage = round(memory_get_peak_usage(false) / 1048576);
+        $memoryPeakRealUsage = round(memory_get_peak_usage(true) / 1048576);
+
+        Log::debug(sprintf("[%4dmb - %4dmb] [%4dmb - %4dmb] %s", $memoryUsage, $memoryRealUsage, $memoryPeakUsage, $memoryPeakRealUsage, $message));
     }
 
     /**
