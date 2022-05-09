@@ -48,7 +48,7 @@ class RequestInsuranceWorker
      */
     public function __construct(int $batchSize = 100, int $microSecondsToWait = 100000)
     {
-        $this->microSecondsToWait = 100000; //$microSecondsToWait;
+        $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
         Log::withContext(["worker.id" => $this->runningHash]);
