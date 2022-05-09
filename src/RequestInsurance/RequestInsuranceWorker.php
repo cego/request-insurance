@@ -144,7 +144,7 @@ class RequestInsuranceWorker
                 Log::error($throwable);
                 throw $throwable;
             }
-        });
+        }, 5);
 
         // Gets requests to process ordered by priority
         $requests = resolve(RequestInsurance::class)::query()
