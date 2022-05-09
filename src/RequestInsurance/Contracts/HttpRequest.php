@@ -9,7 +9,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
 abstract class HttpRequest
 {
-    protected string $userAgent = 'RequestInsurance CurlRequest';
+    protected string $userAgent = 'RequestInsurance';
     protected array $headers = [];
     protected int $timeout;
     protected string $url;

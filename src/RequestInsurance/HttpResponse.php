@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance;
 
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\Response;
@@ -38,6 +39,7 @@ class HttpResponse
      * @param HttpRequest $request
      *
      * @return $this
+     * @throws Exception
      */
     public function setRequest(HttpRequest $request)
     {
@@ -49,21 +51,6 @@ class HttpResponse
             ]);
 
         return $this;
-    }
-
-    /**
-     * Returns true if the string given is json
-     *
-     * @param $string
-     *
-     * @return bool
-     */
-    protected function isJson($string): bool
-    {
-        /** @noinspection JsonEncodingApiUsageInspection - Used for error detection */
-        json_decode($string);
-
-        return json_last_error() === JSON_ERROR_NONE;
     }
 
     /**
