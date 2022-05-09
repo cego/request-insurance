@@ -68,7 +68,6 @@ class RequestInsuranceWorker
         $this->setupShutdownSignalHandler();
 
         do {
-
             try {
                 if (env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)) {
                     DB::reconnect();

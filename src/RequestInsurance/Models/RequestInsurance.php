@@ -783,11 +783,11 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Sends the request to the target URL and returns the response
      *
-     * @throws MethodNotAllowedForRequestInsurance
-     *
      * @return HttpResponse
+     * @throws JsonException
+     * @throws MethodNotAllowedForRequestInsurance
      */
-    protected function sendRequest()
+    protected function sendRequest(): HttpResponse
     {
         // Prepare headers by json decoding them and flatten them
         // to an array of header strings
@@ -801,7 +801,7 @@ class RequestInsurance extends SaveRetryingModel
         // If a custom timeout is set for this specific request
         // then override the default timeout with the chosen timeout
         if ($this->timeout_ms !== null) {
-            $request->setTimeoutMs($this->timeout_ms);
+            $request->setTimeout(ceil($this->timeout_ms / 1000));
         }
 
         return $request->send();
