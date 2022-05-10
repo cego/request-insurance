@@ -121,6 +121,8 @@
                                 <th>Status</th>
                                 <th>Url</th>
                                 <th>Payload</th>
+                                <th>State</th>
+                                <th style="width: 185px">State Changed At</th>
                                 <th>Retries</th>
                                 <th style="width: 185px">Next retry at</th>
                                 <th style="width: 185px">Completed at</th>
@@ -140,6 +142,8 @@
                                     <td><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}" /></td>
                                     <td>{{ urldecode($requestInsurance->url) }}</td>
                                     <td><x-request-insurance-inline-print :content="$requestInsurance->getShortenedPayload()" /></td>
+                                    <td>{{ $requestInsurance->state }}</td>
+                                    <td>{{ $requestInsurance->state_changed_at }}</td>
                                     <td>{{ $requestInsurance->retry_count }}</td>
                                     <td>{{ $requestInsurance->retry_at }}</td>
                                     <td>{{ $requestInsurance->completed_at }}</td>
