@@ -612,7 +612,7 @@ class RequestInsurance extends SaveRetryingModel
     {
         $this->locked_at = null;
 
-        // Unlock is called in multiple different cases, so it is only in the case of PENDING and PROCESSING that we transition to ACTIVE
+        // Unlock is called in multiple different cases, so it is only in the case of PENDING and PROCESSING that we transition to READY
         if (in_array($this->state, [State::PENDING, State::PROCESSING], true)) {
             $this->setState(State::READY);
         }
