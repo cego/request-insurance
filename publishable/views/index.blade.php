@@ -83,9 +83,9 @@
                                 <th>Url</th>
                                 <th>Payload</th>
                                 <th>State</th>
-                                <th style="width: 185px">State Changed At</th>
+                                <th style="width: 185px">State changed at</th>
                                 <th>Attempts</th>
-                                <th style="width: 185px">Next retry at</th>
+                                <th style="width: 185px">Next attempt at</th>
                                 <th style="width: 185px">Created at</th>
                                 <th>Inspect</th>
                             </tr>
