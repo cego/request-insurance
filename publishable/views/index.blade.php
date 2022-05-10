@@ -24,7 +24,7 @@
 
                                 <script type="text/javascript">
                                     $(document).ready(function () {
-                                        let states = [{{ implode(', ', \Cego\RequestInsurance\Enums\State::getAll()) }}];
+                                        let states = ['{{ implode("', '", \Cego\RequestInsurance\Enums\State::getAll()) }}'];
                                         fetch('{{ route('request-insurances.monitor_segmented') }}')
                                             .then(response => response.json())
                                             .then(function (response) {
