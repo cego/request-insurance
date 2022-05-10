@@ -17,7 +17,7 @@ class MigrateStateColumnsToRequestInsurance extends Migration
     public function up(): void
     {
         DB::transaction(function () {
-            $baseQuery = RequestInsurance::query()->where('state', State::ACTIVE);
+            $baseQuery = RequestInsurance::query()->where('state', State::READY);
 
             $baseQuery->clone()->whereNotNull('completed_at')->update(['state' => State::COMPLETED]);
             $baseQuery->clone()->whereNotNull('abandoned_at')->update(['state' => State::ABANDONED]);

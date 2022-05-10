@@ -7,7 +7,7 @@ use ReflectionClass;
 abstract class State
 {
     public const WAITING = 'WAITING';       // A request which is waiting for it's retry_at timestamp to surpass NOW(), before it transitions to ACTIVE
-    public const ACTIVE = 'ACTIVE';         // A request that no workers are currently working on (DEFAULT STATE)
+    public const READY = 'READY';           // A request that no workers are currently working on (DEFAULT STATE) but is ready for consumption
     public const PENDING = 'PENDING';       // A request which a worker as reserved for consumption, but is yet to begin processing
     public const PROCESSING = 'PROCESSING'; // A request a worker is actively processing
     public const COMPLETED = 'COMPLETED';   // A request that has been processed with a successful response

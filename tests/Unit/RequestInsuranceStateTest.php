@@ -23,7 +23,7 @@ class RequestInsuranceStateTest extends TestCase
         $requestInsurance = $this->createDummyRequestInsurance();
 
         // Assert
-        $this->assertEquals(State::ACTIVE, $requestInsurance->state);
+        $this->assertEquals(State::READY, $requestInsurance->state);
         $this->assertEquals(Carbon::now()->toDateTimeString(), $requestInsurance->state_changed_at->toDateTimeString());
     }
 
@@ -69,7 +69,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Assert
         $requestInsurance->refresh();
-        $this->assertEquals(State::ACTIVE, $requestInsurance->state);
+        $this->assertEquals(State::READY, $requestInsurance->state);
     }
 
     /** @test */
@@ -106,7 +106,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Assert
         $requestInsurance->refresh();
-        $this->assertEquals(State::ACTIVE, $requestInsurance->state);
+        $this->assertEquals(State::READY, $requestInsurance->state);
     }
 
     /** @test */

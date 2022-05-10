@@ -614,7 +614,7 @@ class RequestInsurance extends SaveRetryingModel
 
         // Unlock is called in multiple different cases, so it is only in the case of PENDING and PROCESSING that we transition to ACTIVE
         if (in_array($this->state, [State::PENDING, State::PROCESSING], true)) {
-            $this->setState(State::ACTIVE);
+            $this->setState(State::READY);
         }
 
         $this->save();
@@ -717,7 +717,7 @@ class RequestInsurance extends SaveRetryingModel
         $this->abandoned_at = null;
         $this->completed_at = null;
 
-        $this->setState(State::ACTIVE);
+        $this->setState(State::READY);
 
         $this->save();
 
@@ -808,7 +808,7 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         if ($this->isNotCompleted() && $response->isRetryable()) {
-            $this->setState(State::ACTIVE); // TODO: Update to WAITING once workers has transitioned
+            $this->setState(State::READY); // TODO: Update to WAITING once workers has transitioned
             $this->setNextRetryAt();
         }
 
@@ -916,7 +916,7 @@ class RequestInsurance extends SaveRetryingModel
         $this->paused_at = null;
         $this->abandoned_at = null;
         $this->completed_at = null;
-        $this->setState(State::ACTIVE);
+        $this->setState(State::READY);
 
         $this->save();
 
