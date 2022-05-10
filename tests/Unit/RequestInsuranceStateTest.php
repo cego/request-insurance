@@ -14,7 +14,7 @@ use Cego\RequestInsurance\Models\RequestInsurance;
 class RequestInsuranceStateTest extends TestCase
 {
     /** @test */
-    public function it_defaults_to_active_state(): void
+    public function it_defaults_to_ready_state(): void
     {
         // Arrange
         Carbon::setTestNow(Carbon::now());
@@ -58,7 +58,7 @@ class RequestInsuranceStateTest extends TestCase
     }
 
     /** @test */
-    public function it_sets_state_active_on_500(): void
+    public function it_sets_state_ready_on_500(): void
     {
         // Arrange
         Http::fake(fn () => Http::response([], 500));
@@ -95,7 +95,7 @@ class RequestInsuranceStateTest extends TestCase
     }
 
     /** @test */
-    public function it_sets_state_to_active_when_worker_process_jobs_with_500_response(): void
+    public function it_sets_state_to_ready_when_worker_process_jobs_with_500_response(): void
     {
         // Arrange
         Http::fake(fn () => Http::response([], 500));
