@@ -4,8 +4,8 @@ namespace Cego\RequestInsurance\ViewComponents;
 
 use Illuminate\View\View;
 use Illuminate\View\Component;
-use Illuminate\Contracts\View\Factory;
 use Cego\RequestInsurance\Enums\State;
+use Illuminate\Contracts\View\Factory;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class Status extends Component
@@ -52,7 +52,7 @@ class Status extends Component
             case State::ABANDONED:
                 return 'warning';
 
-            default;
+            default:
                 return 'primary';
         }
     }
