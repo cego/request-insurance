@@ -772,11 +772,10 @@ class RequestInsurance extends SaveRetryingModel
             return $this;
         }
 
+        // Increment the number of tries and set state to PROCESSING as the very first action
         $this->setState(State::PROCESSING);
-        $this->save();
-
-        // Increment the number of tries as the very first action
         $this->incrementRetryCount();
+        $this->save();
 
         // Send the request and receive the response
         $response = $this->sendRequest();
