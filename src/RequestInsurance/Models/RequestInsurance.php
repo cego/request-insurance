@@ -533,7 +533,7 @@ class RequestInsurance extends SaveRetryingModel
             }
         }
 
-        if ( ! empty($state)) {
+        if ( ! empty($searchedStates)) {
             $query->whereIn('state', $searchedStates);
         }
 
