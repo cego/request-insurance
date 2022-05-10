@@ -142,7 +142,7 @@
                                     <td><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}" /></td>
                                     <td>{{ urldecode($requestInsurance->url) }}</td>
                                     <td><x-request-insurance-inline-print :content="$requestInsurance->getShortenedPayload()" /></td>
-                                    <td>{{ $requestInsurance->state }}</td>
+                                    <td><x-request-insurance-status :requestInsurance="$requestInsurance" /></td>
                                     <td>{{ $requestInsurance->state_changed_at }}</td>
                                     <td>{{ $requestInsurance->retry_count }}</td>
                                     <td>{{ $requestInsurance->retry_at }}</td>
