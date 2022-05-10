@@ -13,43 +13,22 @@
                         <div class="mr-5">
                             <div class="badge mr-2">{{ $requestInsurances->total() }}</div><span class="mr-5"><strong>Requests in total</strong></span>
                             <span id="ajax-managed-request-count">
-                                <div id="active-request-count" class="badge mr-2">
-                                    <div class="spinner-grow spinner-grow-sm" role="status">
-                                        <span class="sr-only">Loading...</span>
+                                @foreach(\Cego\RequestInsurance\Enums\State::getAll() as $state)
+                                    <div id="{{$state}}-request-count" class="badge mr-2">
+                                        <div class="spinner-grow spinner-grow-sm" role="status">
+                                            <span class="sr-only">Loading...</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <span class="mr-5"><strong>Active requests</strong></span>
-                                <div id="completed-request-count" class="badge badge-success mr-2">
-                                    <div class="spinner-grow spinner-grow-sm" role="status">
-                                        <span class="sr-only">Loading...</span>
-                                    </div>
-                                </div>
-                                <span class="mr-4"><strong>Completed</strong></span>
-                                <div id="abandoned-request-count" class="badge badge-warning mr-2">
-                                    <div class="spinner-grow spinner-grow-sm" role="status">
-                                        <span class="sr-only">Loading...</span>
-                                    </div>
-                                </div><span class="mr-4"><strong>Abandoned</strong></span>
-                                <div id="failed-request-count" class="badge badge-danger mr-2">
-                                    <div class="spinner-grow spinner-grow-sm" role="status">
-                                        <span class="sr-only">Loading...</span>
-                                    </div>
-                                </div><span class="mr-4"><strong>Failed</strong></span>
-                                <div id="locked-request-count" class="badge badge-secondary mr-2">
-                                    <div class="spinner-grow spinner-grow-sm" role="status">
-                                        <span class="sr-only">Loading...</span>
-                                    </div>
-                                </div><span class="mr-4"><strong>Locked</strong></span>
+                                    <span class="mr-5"><strong>{{ ucfirst(strtolower($state)) }}</strong></span>
+                                @endforeach
+
                                 <script type="text/javascript">
                                     $(document).ready(function () {
+                                        let states = [{{ implode(', ', \Cego\RequestInsurance\Enums\State::getAll()) }}];
                                         fetch('{{ route('request-insurances.monitor_segmented') }}')
                                             .then(response => response.json())
                                             .then(function (response) {
-                                                $('#active-request-count').text(response.active);
-                                                $('#completed-request-count').text(response.completed);
-                                                $('#abandoned-request-count').text(response.abandoned);
-                                                $('#failed-request-count').text(response.failed);
-                                                $('#locked-request-count').text(response.locked);
+                                                states.forEach(state => $('#' + state + '-request-count').text(response[state]))
                                             })
                                             .catch(function (error) {
                                                 // set #ajax-managed-request-count children to alert box
