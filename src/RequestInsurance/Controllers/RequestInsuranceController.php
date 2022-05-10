@@ -143,18 +143,9 @@ class RequestInsuranceController extends Controller
      */
     public function monitor()
     {
-        $activeCount = RequestInsurance::where('completed_at', null)
-            ->where('abandoned_at', null)
-            ->where('paused_at', null)
-            ->count();
-
-        $failCount = RequestInsurance::where('abandoned_at', null)
-            ->where('paused_at', '!=', null)
-            ->count();
-
         return [
-            'activeCount' => $activeCount,
-            'failCount'   => $failCount,
+            'activeCount' => RequestInsurance::query()->where('state', State::READY)->count(),
+            'failCount'   => RequestInsurance::query()->where('state', State::FAILED)->count(),
         ];
     }
 
