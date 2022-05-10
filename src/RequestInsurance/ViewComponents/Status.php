@@ -5,6 +5,7 @@ namespace Cego\RequestInsurance\ViewComponents;
 use Illuminate\View\View;
 use Illuminate\View\Component;
 use Illuminate\Contracts\View\Factory;
+use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class Status extends Component
@@ -35,23 +36,25 @@ class Status extends Component
      */
     public function statusColor()
     {
-        if ($this->requestInsurance->isCompleted()) {
-            return 'success';
-        }
+        switch ($this->requestInsurance->state) {
+            case State::WAITING:
+            case State::READY:
+            case State::PENDING:
+            case State::PROCESSING:
+                return 'secondary';
 
-        if ($this->requestInsurance->isPaused()) {
-            return 'primary';
-        }
+            case State::COMPLETED:
+                return 'success';
 
-        if ($this->requestInsurance->isAbandoned()) {
-            return 'warning';
-        }
+            case State::FAILED:
+                return 'danger';
 
-        if ($this->requestInsurance->isLocked()) {
-            return 'danger';
-        }
+            case State::ABANDONED:
+                return 'warning';
 
-        return 'secondary';
+            default;
+                return 'primary';
+        }
     }
 
     /**
@@ -61,23 +64,7 @@ class Status extends Component
      */
     public function statusText()
     {
-        if ($this->requestInsurance->isCompleted()) {
-            return 'Completed';
-        }
-
-        if ($this->requestInsurance->isPaused()) {
-            return 'Paused';
-        }
-
-        if ($this->requestInsurance->isAbandoned()) {
-            return 'Abandoned';
-        }
-
-        if ($this->requestInsurance->isLocked()) {
-            return 'Locked';
-        }
-
-        return 'noStatus';
+        return $this->requestInsurance->state;
     }
 
     /**
