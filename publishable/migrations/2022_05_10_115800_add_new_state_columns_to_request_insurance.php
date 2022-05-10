@@ -16,7 +16,7 @@ class AddNewStateColumnsToRequestInsurance extends Migration
     {
         Schema::table('request_insurances', function (Blueprint $table) {
             $table->enum('state', State::getAll())->default(State::READY)->after('retry_at');
-            $table->timestamp('state_changed_at', State::getAll())->after('state')->nullable()->default(null);
+            $table->timestamp('state_changed_at')->after('state')->nullable()->default(null);
 
             $table->index(['state', 'created_at']);
             $table->index(['state', 'priority']);
