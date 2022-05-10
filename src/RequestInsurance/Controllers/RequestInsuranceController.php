@@ -156,7 +156,8 @@ class RequestInsuranceController extends Controller
      */
     public function monitor_segmented()
     {
-        $stateCounts = RequestInsurance::query()
+        $stateCounts = DB::query()
+            ->from(RequestInsurance::make()->getTable())
             ->selectRaw('state as state, COUNT(*) as count')
             ->groupBy('state')
             ->get()
