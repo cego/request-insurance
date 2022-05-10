@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Cego\RequestInsurance\Events\RequestFailed;
-use Cego\RequestInsurance\Contracts\HttpRequest;
-use Cego\RequestInsurance\Mocks\MockCurlRequest;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Events\RequestSuccessful;
