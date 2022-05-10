@@ -36,25 +36,7 @@ class Status extends Component
      */
     public function statusColor()
     {
-        switch ($this->requestInsurance->state) {
-            case State::WAITING:
-            case State::READY:
-            case State::PENDING:
-            case State::PROCESSING:
-                return 'secondary';
-
-            case State::COMPLETED:
-                return 'success';
-
-            case State::FAILED:
-                return 'danger';
-
-            case State::ABANDONED:
-                return 'warning';
-
-            default:
-                return 'primary';
-        }
+        return State::getBootstrapColor($this->requestInsurance->state);
     }
 
     /**

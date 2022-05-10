@@ -14,7 +14,7 @@
                             <div class="badge mr-2">{{ $requestInsurances->total() }}</div><span class="mr-5"><strong>Requests in total</strong></span>
                             <span id="ajax-managed-request-count">
                                 @foreach(\Cego\RequestInsurance\Enums\State::getAll() as $state)
-                                    <div id="{{$state}}-request-count" class="badge mr-2">
+                                    <div id="{{$state}}-request-count" class="badge badge-{{\Cego\RequestInsurance\Enums\State::getBootstrapColor($state)}} mr-2">
                                         <div class="spinner-grow spinner-grow-sm" role="status">
                                             <span class="sr-only">Loading...</span>
                                         </div>

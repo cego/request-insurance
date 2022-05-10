@@ -23,4 +23,27 @@ abstract class State
     {
         return (new ReflectionClass(__CLASS__))->getConstants();
     }
+
+    public static function getBootstrapColor(string $state): string
+    {
+        switch ($state) {
+            case static::WAITING:
+            case static::READY:
+            case static::PENDING:
+            case static::PROCESSING:
+                return 'secondary';
+
+            case static::COMPLETED:
+                return 'success';
+
+            case static::FAILED:
+                return 'danger';
+
+            case static::ABANDONED:
+                return 'warning';
+
+            default:
+                return 'primary';
+        }
+    }
 }

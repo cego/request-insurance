@@ -161,7 +161,7 @@ class RequestInsuranceController extends Controller
             ->selectRaw('state as state, COUNT(*) as count')
             ->groupBy('state')
             ->get()
-            ->mapWithKeys(fn (int $count, string $state) => [$state, $count]);
+            ->mapWithKeys(fn (object $row) => [$row->state => $row->count]);
 
         // Add default value of 0
         return collect(State::getAll())->map(fn () => 0)->merge($stateCounts);
