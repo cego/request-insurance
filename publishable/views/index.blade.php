@@ -123,7 +123,7 @@
                                 <th>Payload</th>
                                 <th>State</th>
                                 <th style="width: 185px">State Changed At</th>
-                                <th>Retries</th>
+                                <th>Tries</th>
                                 <th style="width: 185px">Next retry at</th>
                                 <th style="width: 185px">Created at</th>
                                 <th>Inspect</th>
