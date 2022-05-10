@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Application;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\Mocks\MockCurlRequest;
@@ -25,9 +26,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->app->bind(HttpRequest::class, fn () => MockCurlRequest::class);
-        MockCurlRequest::$mockedResponse = [];
     }
 
     /**
