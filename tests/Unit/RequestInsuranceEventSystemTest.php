@@ -7,7 +7,6 @@ use Tests\TestCase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Event;
 use Cego\RequestInsurance\Events\RequestFailed;
-use Cego\RequestInsurance\Mocks\MockCurlRequest;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Events\RequestSuccessful;
 use Cego\RequestInsurance\Events\RequestClientError;

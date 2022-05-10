@@ -6,5 +6,4 @@ use Cego\RequestInsurance\Contracts\HttpRequest;
 
 class CurlRequest extends HttpRequest
 {
-
 }

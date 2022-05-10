@@ -99,12 +99,13 @@ abstract class HttpRequest
      *
      * @param string|array $headers
      *
-     * @return $this
      * @throws JsonException
+     *
+     * @return $this
      */
     public function setHeaders($headers)
     {
-        if (! is_array($headers)) {
+        if ( ! is_array($headers)) {
             $headers = json_decode($headers, true, 512, JSON_THROW_ON_ERROR);
         }
 

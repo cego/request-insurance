@@ -4,10 +4,9 @@ namespace Cego\RequestInsurance;
 
 use Exception;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Contracts\HttpRequest;
-use Cego\RequestInsurance\Contracts\ContainsResponseHeaders;
 
 class HttpResponse
 {
@@ -38,8 +37,9 @@ class HttpResponse
      *
      * @param HttpRequest $request
      *
-     * @return $this
      * @throws Exception
+     *
+     * @return $this
      */
     public function setRequest(HttpRequest $request)
     {

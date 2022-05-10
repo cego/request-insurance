@@ -51,7 +51,7 @@ class RequestInsuranceWorker
         $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
-        Log::withContext(["worker.id" => $this->runningHash]);
+        Log::withContext(['worker.id' => $this->runningHash]);
     }
 
     /**
@@ -139,9 +139,9 @@ class RequestInsuranceWorker
                 }
 
                 return $measurement->result();
-            }
-            catch (Throwable $throwable) {
+            } catch (Throwable $throwable) {
                 Log::error($throwable);
+
                 throw $throwable;
             }
         }, 5);

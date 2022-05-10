@@ -2,10 +2,7 @@
 
 namespace Tests;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Application;
-use Cego\RequestInsurance\Contracts\HttpRequest;
-use Cego\RequestInsurance\Mocks\MockCurlRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Cego\RequestInsurance\RequestInsuranceServiceProvider;
 
