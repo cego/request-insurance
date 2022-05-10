@@ -64,7 +64,7 @@
                                 @foreach(\Cego\RequestInsurance\Enums\State::getAll() as $state)
                                     <div class="form-check form-check-inline">
                                         <label class="form-check-label">
-                                            <input class="form-check-input check-lg" type="checkbox" name="{{ $state }}" {{ old($state) == "on" ? "checked" : "" }}> {{ $state }}
+                                            <input class="form-check-input check-lg" type="checkbox" name="{{ $state }}" {{ old($state) == "on" ? "checked" : "" }}> {{ ucfirst(strtolower($state)) }}
                                         </label>
                                     </div>
                                 @endforeach
