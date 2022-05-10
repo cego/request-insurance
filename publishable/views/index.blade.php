@@ -125,10 +125,6 @@
                                 <th style="width: 185px">State Changed At</th>
                                 <th>Retries</th>
                                 <th style="width: 185px">Next retry at</th>
-                                <th style="width: 185px">Completed at</th>
-                                <th style="width: 185px">Paused at</th>
-                                <th style="width: 185px">Abandoned at</th>
-                                <th style="width: 185px">Locked at</th>
                                 <th style="width: 185px">Created at</th>
                                 <th>Inspect</th>
                             </tr>
@@ -146,10 +142,6 @@
                                     <td>{{ $requestInsurance->state_changed_at }}</td>
                                     <td>{{ $requestInsurance->retry_count }}</td>
                                     <td>{{ $requestInsurance->retry_at }}</td>
-                                    <td>{{ $requestInsurance->completed_at }}</td>
-                                    <td>{{ $requestInsurance->paused_at }}</td>
-                                    <td>{{ $requestInsurance->abandoned_at }}</td>
-                                    <td>{{ $requestInsurance->locked_at }}</td>
                                     <td>{{ $requestInsurance->created_at }}</td>
                                     <td>
                                         <a href="{{ route('request-insurances.show', $requestInsurance) }}" class="btn btn-sm btn-outline-primary">Inspect</a>
