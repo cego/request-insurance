@@ -525,42 +525,17 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function scopeFilteredByRequest(Builder $query, Request $request)
     {
-        $query = $query->where(function () use ($query, $request) {
-            if ($request->get('Active') == 'on') {
-                $query->orWhere(function (Builder $builder) {
-                    return $builder->whereNull('paused_at')
-                        ->whereNull('abandoned_at')
-                        ->whereNull('completed_at');
-                });
-            }
+        $searchedStates = [];
 
-            if ($request->get('Completed') == 'on') {
-                $query->orWhere(function (Builder $builder) {
-                    return $builder->whereNotNull('completed_at');
-                });
+        foreach (State::getAll() as $state) {
+            if ($request->get($state) == 'on') {
+                $searchedStates[] = $state;
             }
+        }
 
-            if ($request->get('Abandoned') == 'on') {
-                $query->orWhere(function (Builder $builder) {
-                    return $builder->whereNotNull('abandoned_at');
-                });
-            }
-
-            if ($request->get('Failed') == 'on') {
-                $query->orWhere(function (Builder $builder) {
-                    return $builder->whereNotNull('paused_at')
-                        ->whereNull('abandoned_at');
-                });
-            }
-
-            if ($request->get('Locked') == 'on') {
-                $query->orWhere(function (Builder $builder) {
-                    return $builder->whereNotNull('locked_at');
-                });
-            }
-
-            return $query;
-        });
+        if ( ! empty($state)) {
+            $query->whereIn('state', $searchedStates);
+        }
 
         if ($request->has('url') && trim($request->get('url'))) {
             $query = $query->where('url', 'like', $request->get('url'));

@@ -81,32 +81,13 @@
                                 </div>
 
                                 <span class="mr-3">State:</span>
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input class="form-check-input check-lg" type="checkbox" name="Active" {{ old("Active") == "on" ? "checked" : "" }}> Active
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input class="form-check-input check-lg" type="checkbox" name="Completed" {{ old("Completed") == "on" ? "checked" : "" }}> Completed
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input class="form-check-input check-lg" type="checkbox" name="Abandoned" {{ old("Abandoned") == "on" ? "checked" : "" }}> Abandoned
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input class="form-check-input check-lg" type="checkbox" name="Failed" {{ old("Failed") == "on" ? "checked" : "" }}> Failed
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <label class="form-check-label">
-                                        <input class="form-check-input check-lg" type="checkbox" name="Locked" {{ old("Locked") == "on" ? "checked" : "" }}> Locked
-                                    </label>
-                                </div>
-
+                                @foreach(\Cego\RequestInsurance\Enums\State::getAll() as $state)
+                                    <div class="form-check form-check-inline">
+                                        <label class="form-check-label">
+                                            <input class="form-check-input check-lg" type="checkbox" name="{{ $state }}" {{ old($state) == "on" ? "checked" : "" }}> {{ $state }}
+                                        </label>
+                                    </div>
+                                @endforeach
                                 <button class="btn btn-primary" type="submit">Filter</button>
                                 <a href="{{ url()->current() }}" class="btn btn-secondary ml-2">Clear Filters</a>
                             </form>
