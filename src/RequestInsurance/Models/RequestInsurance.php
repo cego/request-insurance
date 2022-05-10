@@ -130,6 +130,10 @@ class RequestInsurance extends SaveRetryingModel
                 throw new EmptyPropertyException('url', $request);
             }
 
+            if ($request->state_changed_at === null) {
+                $request->state_changed_at = Carbon::now();
+            }
+
             /** @var Request $httpRequest */
             $httpRequest = request();
 
