@@ -4,12 +4,13 @@ namespace Cego\RequestInsurance;
 
 use Exception;
 use Throwable;
-use Carbon\Carbon;
 use Nbj\Stopwatch;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class RequestInsuranceWorker
@@ -174,7 +175,7 @@ class RequestInsuranceWorker
      *
      * @return Collection
      */
-    protected function acquireLockOnRowsToProcess(): Collection
+    public function acquireLockOnRowsToProcess(): Collection
     {
         $requestIds = $this->getIdsOfReadyRequests();
 
@@ -183,9 +184,16 @@ class RequestInsuranceWorker
             return $requestIds;
         }
 
+        $now = CarbonImmutable::now();
+
         $locksWereObtained = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
-            ->update(['locked_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+            ->update([
+                'state'            => State::PENDING,
+                'state_changed_at' => $now,
+                'locked_at'        => $now,
+                'updated_at'       => $now,
+            ]);
 
         if ( ! $locksWereObtained) {
             throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));

@@ -611,7 +611,12 @@ class RequestInsurance extends SaveRetryingModel
     public function unlock(): RequestInsurance
     {
         $this->locked_at = null;
-        $this->setState(State::ACTIVE);
+
+        // Unlock is called in multiple different cases, so it is only in the case of PENDING and PROCESSING that we transition to ACTIVE
+        if (in_array($this->state, [State::PENDING, State::PROCESSING], true)) {
+            $this->setState(State::ACTIVE);
+        }
+
         $this->save();
 
         return $this;
@@ -653,7 +658,7 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function isAbandoned(): bool
     {
-        return $this->state !== State::ABANDONED;
+        return $this->abandoned_at !== null;
     }
 
     /**
@@ -695,6 +700,7 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         $this->state = $state;
+        $this->state_changed_at = Carbon::now();
     }
 
     /**
@@ -735,7 +741,7 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function isPaused(): bool
     {
-        return $this->state == State::FAILED;
+        return $this->paused_at !== null;
     }
 
     /**
@@ -765,6 +771,9 @@ class RequestInsurance extends SaveRetryingModel
         if ($this->isAbandoned() || $this->isCompleted() || $this->isPaused()) {
             return $this;
         }
+
+        $this->setState(State::PROCESSING);
+        $this->save();
 
         // Increment the number of tries as the very first action
         $this->incrementRetryCount();
@@ -799,7 +808,7 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         if ($this->isNotCompleted() && $response->isRetryable()) {
-            $this->setState(State::ACTIVE);
+            $this->setState(State::ACTIVE); // TODO: Update to WAITING once workers has transitioned
             $this->setNextRetryAt();
         }
 
