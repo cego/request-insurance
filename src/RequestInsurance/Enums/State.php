@@ -29,9 +29,11 @@ abstract class State
         switch ($state) {
             case static::WAITING:
             case static::READY:
+                return 'secondary';
+
             case static::PENDING:
             case static::PROCESSING:
-                return 'secondary';
+                return 'info';
 
             case static::COMPLETED:
                 return 'success';
