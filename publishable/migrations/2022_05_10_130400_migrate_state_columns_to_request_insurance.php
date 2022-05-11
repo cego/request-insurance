@@ -17,9 +17,15 @@ class MigrateStateColumnsToRequestInsurance extends Migration
      */
     public function up(): void
     {
+        $totalRi = RequestInsurance::query()->count();
+
+        // Requires manual migration, since the query might lock up the table
+        if ($totalRi > 500000) {
+            return;
+        }
+
         DB::transaction(function () {
             $baseQuery = RequestInsurance::query()->where('state', State::READY);
-
             $now = CarbonImmutable::now();
 
             $baseQuery->clone()->whereNotNull('completed_at')->update(['state' => State::COMPLETED, 'state_changed_at' => $now]);
