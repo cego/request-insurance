@@ -1,5 +1,6 @@
 <?php
 
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Cego\RequestInsurance\Enums\State;
@@ -19,10 +20,12 @@ class MigrateStateColumnsToRequestInsurance extends Migration
         DB::transaction(function () {
             $baseQuery = RequestInsurance::query()->where('state', State::READY);
 
-            $baseQuery->clone()->whereNotNull('completed_at')->update(['state' => State::COMPLETED]);
-            $baseQuery->clone()->whereNotNull('abandoned_at')->update(['state' => State::ABANDONED]);
-            $baseQuery->clone()->whereNotNull('paused_at')->update(['state' => State::FAILED]);
-            $baseQuery->clone()->whereNotNull('locked_at')->update(['state' => State::PENDING]);
+            $now = CarbonImmutable::now();
+
+            $baseQuery->clone()->whereNotNull('completed_at')->update(['state' => State::COMPLETED, 'state_updated_at' => $now]);
+            $baseQuery->clone()->whereNotNull('abandoned_at')->update(['state' => State::ABANDONED, 'state_updated_at' => $now]);
+            $baseQuery->clone()->whereNotNull('paused_at')->update(['state' => State::FAILED, 'state_updated_at' => $now]);
+            $baseQuery->clone()->whereNotNull('locked_at')->update(['state' => State::PENDING, 'state_updated_at' => $now]);
         });
     }
 
@@ -33,6 +36,6 @@ class MigrateStateColumnsToRequestInsurance extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('request_insurances');
+        RequestInsurance::query()->update(['state' => State::READY]);
     }
 }
