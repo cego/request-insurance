@@ -22,10 +22,10 @@ class MigrateStateColumnsToRequestInsurance extends Migration
 
             $now = CarbonImmutable::now();
 
-            $baseQuery->clone()->whereNotNull('completed_at')->update(['state' => State::COMPLETED, 'state_updated_at' => $now]);
-            $baseQuery->clone()->whereNotNull('abandoned_at')->update(['state' => State::ABANDONED, 'state_updated_at' => $now]);
-            $baseQuery->clone()->whereNotNull('paused_at')->update(['state' => State::FAILED, 'state_updated_at' => $now]);
-            $baseQuery->clone()->whereNotNull('locked_at')->update(['state' => State::PENDING, 'state_updated_at' => $now]);
+            $baseQuery->clone()->whereNotNull('completed_at')->update(['state' => State::COMPLETED, 'state_changed_at' => $now]);
+            $baseQuery->clone()->whereNotNull('abandoned_at')->update(['state' => State::ABANDONED, 'state_changed_at' => $now]);
+            $baseQuery->clone()->whereNotNull('paused_at')->update(['state' => State::FAILED, 'state_changed_at' => $now]);
+            $baseQuery->clone()->whereNotNull('locked_at')->update(['state' => State::PENDING, 'state_changed_at' => $now]);
         });
     }
 
