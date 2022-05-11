@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\Factory;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -142,18 +143,9 @@ class RequestInsuranceController extends Controller
      */
     public function monitor()
     {
-        $activeCount = RequestInsurance::where('completed_at', null)
-            ->where('abandoned_at', null)
-            ->where('paused_at', null)
-            ->count();
-
-        $failCount = RequestInsurance::where('abandoned_at', null)
-            ->where('paused_at', '!=', null)
-            ->count();
-
         return [
-            'activeCount' => $activeCount,
-            'failCount'   => $failCount,
+            'activeCount' => RequestInsurance::query()->where('state', State::READY)->count(),
+            'failCount'   => RequestInsurance::query()->where('state', State::FAILED)->count(),
         ];
     }
 
@@ -164,18 +156,14 @@ class RequestInsuranceController extends Controller
      */
     public function monitor_segmented()
     {
-        $table = RequestInsurance::make()->getTable();
+        $stateCounts = DB::query()
+            ->from(RequestInsurance::make()->getTable())
+            ->selectRaw('state as state, COUNT(*) as count')
+            ->groupBy('state')
+            ->get()
+            ->mapWithKeys(fn (object $row) => [$row->state => $row->count]);
 
-        $query = <<<SQL
-SELECT 
-    sum(case when paused_at IS NULL AND abandoned_at IS NULL AND completed_at IS NULL then 1 else 0 end) AS active,
-    sum(case when paused_at IS NOT NULL AND abandoned_at IS NULL then 1 else 0 end) AS failed,
-    sum(case when completed_at IS NOT NULL then 1 else 0 end) AS completed,
-    sum(case when abandoned_at IS NOT NULL then 1 else 0 end) AS abandoned,
-    sum(case when locked_at IS NOT NULL then 1 else 0 end) AS locked
-FROM $table
-SQL;
-
-        return collect(DB::select($query)[0])->map(fn ($value) => $value ?? 0);
+        // Add default value of 0
+        return collect(State::getAll())->map(fn () => 0)->merge($stateCounts);
     }
 }

@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Carbon\Carbon;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
@@ -149,6 +150,8 @@ class RequestInsuranceTest extends TestCase
     public function it_always_increment_the_tries_count(): void
     {
         // Arrange
+        Http::fake(fn () => Http::response([], 200));
+
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
             ->method('get')

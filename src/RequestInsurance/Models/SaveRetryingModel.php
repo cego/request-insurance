@@ -3,7 +3,6 @@
 namespace Cego\RequestInsurance\Models;
 
 use Exception;
-use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Illuminate\Database\Eloquent\Model;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
@@ -27,7 +26,6 @@ class SaveRetryingModel extends Model
             try {
                 return parent::save($options);
             } catch (Exception $exception) {
-
                 if ($this->shouldNotRetry($try, $maxTries, $exception)) {
                     throw $exception;
                 }
