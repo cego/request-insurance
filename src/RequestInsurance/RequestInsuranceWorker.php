@@ -60,7 +60,7 @@ class RequestInsuranceWorker
     /**
      * RequestInsuranceService constructor.
      */
-    public function __construct(int $batchSize = 100, int $microSecondsToWait = 100000)
+    public function __construct(int $batchSize = 100, int $microSecondsToWait = 200000)
     {
         $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
@@ -264,7 +264,7 @@ class RequestInsuranceWorker
         $requests->each(fn (RequestInsurance $requestInsurance) => $requestInsurance->forceFill([
             'state'            => State::PROCESSING,
             'state_changed_at' => $now,
-            'retry_count'      => $requestInsurance + 1,
+            'retry_count'      => $requestInsurance->retry_count + 1,
         ]));
     }
 

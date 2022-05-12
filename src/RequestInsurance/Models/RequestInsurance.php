@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Crypt;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\RequestInsuranceBuilder;
@@ -690,9 +691,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @throws JsonException
      *
-     * @return Response
+     * @return PromiseInterface
      */
-    public function enterHttpRequestPool(Pool $pool): Response
+    public function enterHttpRequestPool(Pool $pool): PromiseInterface
     {
         return $pool->as($this->id)
             ->withHeaders($this->getHeadersCastToArray())

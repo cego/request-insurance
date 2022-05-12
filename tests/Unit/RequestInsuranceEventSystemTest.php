@@ -26,12 +26,10 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
-        $requestInsurance->setState(State::PENDING);
-
         // Act
         Event::fake();
 
-        $requestInsurance->handleResponse();
+        $this->runWorkerOnce();
 
         // Assert
         Event::assertDispatched(RequestSuccessful::class);
@@ -49,12 +47,10 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
-        $requestInsurance->setState(State::PENDING);
-
         // Act
         Event::fake();
 
-        $requestInsurance->handleResponse();
+        $this->runWorkerOnce();
 
         // Assert
         Event::assertDispatched(RequestFailed::class);
@@ -72,12 +68,10 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
-        $requestInsurance->setState(State::PENDING);
-
         // Act
         Event::fake();
 
-        $requestInsurance->handleResponse();
+        $this->runWorkerOnce();
 
         // Assert
         Event::assertDispatched(RequestFailed::class);
@@ -95,12 +89,10 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
-        $requestInsurance->setState(State::PENDING);
-
         // Act
         Event::fake();
 
-        $requestInsurance->handleResponse();
+        $this->runWorkerOnce();
 
         // Assert
         Event::assertDispatched(RequestClientError::class);
@@ -118,12 +110,10 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
-        $requestInsurance->setState(State::PENDING);
-
         // Act
         Event::fake();
 
-        $requestInsurance->handleResponse();
+        $this->runWorkerOnce();
 
         // Assert
         Event::assertNotDispatched(RequestClientError::class);
@@ -143,15 +133,13 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
-        $requestInsurance->setState(State::PENDING);
-
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
         $this->assertTrue($requestInsurance->hasState(State::READY));
 
         // Act
-        $requestInsurance->handleResponse();
+        $this->runWorkerOnce();
 
         // Assert
         $requestInsurance->refresh();
@@ -173,15 +161,13 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
-        $requestInsurance->setState(State::PENDING);
-
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
         $this->assertTrue($requestInsurance->hasState(State::READY));
 
         // Act
-        $requestInsurance->handleResponse();
+        $this->runWorkerOnce();
 
         // Assert
         $requestInsurance->refresh();
@@ -204,20 +190,15 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
-        $requestInsurance->updateOrFail(['state' => State::PENDING]);
-
         $requestInsurance->refresh();
 
-        $this->assertEquals(0, $requestInsurance->retry_count);
-        $this->assertTrue($requestInsurance->hasState(State::PENDING));
-
         // Act
-        $requestInsurance->handleResponse();
+        $this->runWorkerOnce();
 
         // Assert
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
-        $this->assertTrue($requestInsurance->hasState(State::FAILED));
+        $this->assertEquals(State::FAILED, $requestInsurance->state);
     }
 }

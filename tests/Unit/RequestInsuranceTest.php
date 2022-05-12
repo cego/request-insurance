@@ -158,18 +158,17 @@ class RequestInsuranceTest extends TestCase
             ->create();
 
         $requestInsurance->refresh();
-        $requestInsurance->update(['state' => State::PENDING]);
 
         // Act & Assert
         $this->assertEquals(0, $requestInsurance->retry_count);
 
-        $requestInsurance->handleResponse();
-        $this->assertEquals(1, $requestInsurance->retry_count);
+        $this->runWorkerOnce();
+        $this->assertEquals(1, $requestInsurance->refresh()->retry_count);
 
-        $requestInsurance->update(['state' => State::PENDING]);
-        $requestInsurance->handleResponse();
+        $requestInsurance->update(['state' => State::READY]);
+        $this->runWorkerOnce();
 
-        $this->assertEquals(2, $requestInsurance->retry_count);
+        $this->assertEquals(2, $requestInsurance->refresh()->retry_count);
     }
 
     /** @test */
