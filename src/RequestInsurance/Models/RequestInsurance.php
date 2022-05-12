@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance\Models;
 
 use Exception;
+use Throwable;
 use Carbon\Carbon;
 use JsonException;
 use Ramsey\Uuid\Uuid;
@@ -680,6 +681,7 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @throws JsonException
      * @throws MethodNotAllowedForRequestInsurance
+     * @throws Throwable
      *
      * @return $this
      */

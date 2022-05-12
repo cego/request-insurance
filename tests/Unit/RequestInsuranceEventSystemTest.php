@@ -26,6 +26,8 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
+        $requestInsurance->setState(State::PENDING);
+
         // Act
         Event::fake();
 
@@ -46,6 +48,8 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->url('https://test.lupinsdev.dk')
             ->method('get')
             ->create();
+
+        $requestInsurance->setState(State::PENDING);
 
         // Act
         Event::fake();
@@ -68,6 +72,8 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
+        $requestInsurance->setState(State::PENDING);
+
         // Act
         Event::fake();
 
@@ -89,6 +95,8 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
+        $requestInsurance->setState(State::PENDING);
+
         // Act
         Event::fake();
 
@@ -109,6 +117,8 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->url('https://test.lupinsdev.dk')
             ->method('get')
             ->create();
+
+        $requestInsurance->setState(State::PENDING);
 
         // Act
         Event::fake();
@@ -132,6 +142,8 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->url('https://test.lupinsdev.dk')
             ->method('get')
             ->create();
+
+        $requestInsurance->setState(State::PENDING);
 
         $requestInsurance->refresh();
 
@@ -161,6 +173,8 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
+        $requestInsurance->setState(State::PENDING);
+
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
@@ -177,11 +191,12 @@ class RequestInsuranceEventSystemTest extends TestCase
     }
 
     /** @test */
-    public function it_can_pause_requests_before_they_are_sent(): void
+    public function it_can_fail_requests_before_they_are_sent(): void
     {
         // Arrange
         Event::listen(function (RequestBeforeProcess $event) {
-            $event->requestInsurance->fail();
+            $event->requestInsurance->setState(State::FAILED);
+            $event->requestInsurance->save();
         });
 
         $requestInsurance = RequestInsurance::getBuilder()
@@ -189,10 +204,12 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
+        $requestInsurance->updateOrFail(['state' => State::PENDING]);
+
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
-        $this->assertTrue($requestInsurance->hasState(State::READY));
+        $this->assertTrue($requestInsurance->hasState(State::PENDING));
 
         // Act
         $requestInsurance->process();
