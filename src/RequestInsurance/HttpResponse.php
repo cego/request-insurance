@@ -4,17 +4,28 @@ namespace Cego\RequestInsurance;
 
 use Illuminate\Support\Collection;
 use Illuminate\Http\Client\Response;
+use GuzzleHttp\Exception\ConnectException;
 
 class HttpResponse
 {
     protected Response $response;
+    protected ConnectException $connectException;
 
     /**
-     * @param Response $response
+     * @param Response|ConnectException $response
      */
-    public function __construct(Response $response)
+    public function __construct($response)
     {
-        $this->response = $response;
+        if ($response instanceof ConnectException) {
+            $this->connectException = $response;
+        } else {
+            $this->response = $response;
+        }
+    }
+
+    public function timedOut(): bool
+    {
+        return isset($this->connectException);
     }
 
     /**
@@ -24,6 +35,10 @@ class HttpResponse
      */
     public function wasSuccessful()
     {
+        if ($this->timedOut()) {
+            return false;
+        }
+
         return $this->isResponseCodeBetween(200, 299);
     }
 
@@ -62,8 +77,12 @@ class HttpResponse
      *
      * @return int
      */
-    public function getCode()
+    public function getCode(): int
     {
+        if ($this->timedOut()) {
+            return 0;
+        }
+
         return $this->response->status();
     }
 
@@ -74,6 +93,10 @@ class HttpResponse
      */
     public function getBody(): string
     {
+        if ($this->timedOut()) {
+            throw new \RuntimeException('No body for timed out request');
+        }
+
         return $this->response->body();
     }
 
@@ -82,6 +105,10 @@ class HttpResponse
      */
     public function getHeaders(): Collection
     {
+        if ($this->timedOut()) {
+            throw new \RuntimeException('No headers for timed out request');
+        }
+
         return collect($this->response->headers());
     }
 
@@ -92,6 +119,10 @@ class HttpResponse
      */
     public function getExecutionTime(): float
     {
+        if ($this->timedOut()) {
+            return -1;
+        }
+
         return $this->response->handlerStats()['total_time'] ?? 0;
     }
 
@@ -104,6 +135,10 @@ class HttpResponse
      */
     public function isClientError(): bool
     {
+        if ($this->timedOut()) {
+            return false;
+        }
+
         return $this->isResponseCodeBetween(400, 499);
     }
 
@@ -116,6 +151,10 @@ class HttpResponse
      */
     public function isServerError(): bool
     {
+        if ($this->timedOut()) {
+            return false;
+        }
+
         return $this->isResponseCodeBetween(500, 599);
     }
 

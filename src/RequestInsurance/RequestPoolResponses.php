@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance;
 
 use Illuminate\Http\Client\Response;
+use GuzzleHttp\Exception\ConnectException;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class RequestPoolResponses
@@ -23,11 +24,11 @@ class RequestPoolResponses
      *
      * @param RequestInsurance $requestInsurance
      *
-     * @return Response|null
+     * @return Response|ConnectException|null
      */
-    public function get(RequestInsurance $requestInsurance): ?HttpResponse
+    public function get(RequestInsurance $requestInsurance)
     {
-        $response = $this->responses[$requestInsurance->id];
+        $response = $this->responses[$requestInsurance->id] ?? null;
 
         if ($response === null) {
             return null;

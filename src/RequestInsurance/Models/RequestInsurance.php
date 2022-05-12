@@ -727,12 +727,21 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function handleResponse(?HttpResponse $response): void
     {
+        // TODO: post process events
         // Handle requests without responses
         if ($response === null) {
             $this->updateOrFail([
                 'state'            => State::FAILED,
                 'state_changed_at' => Carbon::now(),
                 'response_code'    => 0,
+            ]);
+
+            return;
+        }
+
+        if ($response->timedOut()) {
+            $this->updateOrFail([
+                'response_code' => 0,
             ]);
 
             return;
