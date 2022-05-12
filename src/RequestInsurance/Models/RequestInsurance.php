@@ -643,6 +643,10 @@ class RequestInsurance extends SaveRetryingModel
 
         $this->state = $state;
         $this->state_changed_at = Carbon::now();
+
+        if ($state != State::WAITING) {
+            $this->retry_at = null;
+        }
     }
 
     /**
