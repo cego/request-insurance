@@ -16,8 +16,17 @@ class RemoveOldStateColumnsInRequestInsurance extends Migration
     {
         Schema::table('request_insurances', function (Blueprint $table) {
             $table->dropColumn('completed_at');
+        });
+
+        Schema::table('request_insurances', function (Blueprint $table) {
             $table->dropColumn('paused_at');
+        });
+
+        Schema::table('request_insurances', function (Blueprint $table) {
             $table->dropColumn('locked_at');
+        });
+
+        Schema::table('request_insurances', function (Blueprint $table) {
             $table->dropColumn('abandoned_at');
         });
     }
