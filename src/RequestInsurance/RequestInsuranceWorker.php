@@ -194,9 +194,8 @@ class RequestInsuranceWorker
         // Gets requests to process ordered by priority
         $requests = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
-            ->orderBy('priority')
-            ->orderBy('id')
-            ->get();
+            ->get()
+            ->sortBy(['priority', 'id']);
 
         $requests->each(function ($request) {
             /** @var RequestInsurance $request */
@@ -205,15 +204,16 @@ class RequestInsuranceWorker
             } catch (Throwable $throwable) {
                 Log::error($throwable);
 
-                $request->pause();
+                $request->setState($request->wasSuccessful() ? State::COMPLETED : State::FAILED);
+                $request->save();
             } finally {
-                $request->unlock();
+                $request->unstuckPending();
             }
         });
     }
 
     /**
-     * Acquires a lock on the next rows to process, by setting the locked_at column
+     * Acquires a lock on the next rows to process
      *
      * @throws Exception
      *
@@ -235,8 +235,6 @@ class RequestInsuranceWorker
             ->update([
                 'state'            => State::PENDING,
                 'state_changed_at' => $now,
-                'locked_at'        => $now,
-                'updated_at'       => $now,
             ]);
 
         if ( ! $locksWereObtained) {

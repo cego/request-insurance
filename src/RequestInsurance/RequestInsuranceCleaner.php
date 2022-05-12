@@ -4,9 +4,9 @@ namespace Cego\RequestInsurance;
 
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Cego\RequestInsurance\Enums\State;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Config;
-use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Models\RequestInsuranceLog;
 
