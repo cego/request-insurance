@@ -1,3 +1,4 @@
+<?php use \Cego\RequestInsurance\Enums\State; ?>
 @extends('request-insurance::layouts.master')
 
 @section('content')
@@ -13,8 +14,8 @@
                         <div class="mr-5">
                             <div class="badge mr-2">{{ $requestInsurances->total() }}</div><span class="mr-5"><strong>Requests in total</strong></span>
                             <span id="ajax-managed-request-count">
-                                @foreach(\Cego\RequestInsurance\Enums\State::getAll() as $state)
-                                    <div id="{{$state}}-request-count" class="badge badge-{{\Cego\RequestInsurance\Enums\State::getBootstrapColor($state)}} mr-2">
+                                @foreach(State::getAll() as $state)
+                                    <div id="{{$state}}-request-count" class="badge badge-{{State::getBootstrapColor($state)}} mr-2">
                                         <div class="spinner-grow spinner-grow-sm" role="status">
                                             <span class="sr-only">Loading...</span>
                                         </div>
@@ -24,7 +25,7 @@
 
                                 <script type="text/javascript">
                                     $(document).ready(function () {
-                                        let states = ['{!! implode("', '", \Cego\RequestInsurance\Enums\State::getAll()) !!}'];
+                                        let states = ['{!! implode("', '", State::getAll()) !!}'];
 
                                         fetch('{{ route('request-insurances.monitor_segmented') }}')
                                             .then(response => response.json())
@@ -61,7 +62,7 @@
                                 </div>
 
                                 <span class="mr-3">State:</span>
-                                @foreach(\Cego\RequestInsurance\Enums\State::getAll() as $state)
+                                @foreach(State::getAll() as $state)
                                     <div class="form-check form-check-inline">
                                         <label class="form-check-label">
                                             <input class="form-check-input check-lg" type="checkbox" name="{{ $state }}" {{ old($state) == "on" ? "checked" : "" }}> {{ ucfirst(strtolower($state)) }}
@@ -107,7 +108,7 @@
                                     <td>
                                         <a href="{{ route('request-insurances.show', $requestInsurance) }}" class="btn btn-sm btn-outline-primary">Inspect</a>
 
-                                        @if ($requestInsurance->isNotCompleted() && $requestInsurance->isNotAbandoned())
+                                        @if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
                                             <form method="POST" action="{{ route('request-insurances.destroy', $requestInsurance) }}">
                                                 <input type="hidden" name="_method" value="delete">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">Abandon</button>
@@ -120,7 +121,7 @@
                                             </form>
                                         @endif
 
-                                        @if ($requestInsurance->isLocked())
+                                        @if ($requestInsurance->hasState(State::PENDING))
                                             <form method="POST" action="{{ route('request-insurances.unlock', $requestInsurance) }}">
                                                 <button type="submit" class="btn btn-sm btn-outline-secondary">Unlock</button>
                                             </form>
