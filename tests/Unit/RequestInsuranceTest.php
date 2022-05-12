@@ -163,11 +163,11 @@ class RequestInsuranceTest extends TestCase
         // Act & Assert
         $this->assertEquals(0, $requestInsurance->retry_count);
 
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
         $this->assertEquals(1, $requestInsurance->retry_count);
 
         $requestInsurance->update(['state' => State::PENDING]);
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         $this->assertEquals(2, $requestInsurance->retry_count);
     }

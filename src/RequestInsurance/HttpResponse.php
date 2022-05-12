@@ -2,55 +2,19 @@
 
 namespace Cego\RequestInsurance;
 
-use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
-use Cego\RequestInsurance\Contracts\HttpRequest;
 
 class HttpResponse
 {
     protected Response $response;
 
     /**
-     * Holds the body of the response
-     *
-     * @var bool|string $body
+     * @param Response $response
      */
-    protected $body;
-
-    /**
-     * Named constructor for creating a new response instance
-     *
-     * @param HttpRequest $request
-     *
-     * @return HttpResponse
-     */
-    public static function create(HttpRequest $request)
+    public function __construct(Response $response)
     {
-        return (new static)
-            ->setRequest($request);
-    }
-
-    /**
-     * Sets the request that produced the response
-     *
-     * @param HttpRequest $request
-     *
-     * @throws Exception
-     *
-     * @return $this
-     */
-    public function setRequest(HttpRequest $request)
-    {
-        $this->response = Http::withHeaders($request->getHeaders())
-            ->withUserAgent($request->getUserAgent())
-            ->timeout($request->getTimeout())
-            ->send($request->getMethod(), $request->getUrl(), [
-                'body' => $request->getPayload(),
-            ]);
-
-        return $this;
+        $this->response = $response;
     }
 
     /**

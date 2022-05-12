@@ -9,8 +9,11 @@ use JsonException;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
+use Illuminate\Http\Client\Pool;
 use Cego\RequestInsurance\Events;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
@@ -681,29 +684,58 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Processes the RequestInsurance instance
+     * Enters the request into the given http request pool
+     *
+     * @param Pool $pool
      *
      * @throws JsonException
-     * @throws MethodNotAllowedForRequestInsurance
-     * @throws Throwable
      *
-     * @return $this
+     * @return Response
      */
-    public function process(): RequestInsurance
+    public function enterHttpRequestPool(Pool $pool): Response
     {
-        // An event is dispatched before processing begins
-        // allowing the application to abandon/complete/paused the requests before processing.
-        Events\RequestBeforeProcess::dispatch($this);
+        return $pool->as($this->id)
+            ->withHeaders($this->getHeadersCastToArray())
+            ->withUserAgent('RequestInsurance')
+            ->timeout($this->getEffectiveTimeout())
+            ->send($this->method, $this->url, ['body' => $this->payload]);
+    }
 
-        if ($this->doesNotHaveState(State::PENDING)) {
-            return $this;
+    /**
+     * Returns the effective timeout
+     *
+     * @return int
+     */
+    protected function getEffectiveTimeout(): int
+    {
+        if ($this->timeout_ms === null) {
+            return Config::get('request-insurance.timeoutInSeconds', 20);
         }
 
-        // Increment the number of tries and set state to PROCESSING as the very first action
-        $this->updateOrFail(['state' => State::PROCESSING, 'retry_count' => $this->retry_count + 1]);
+        return ceil($this->timeout_ms / 1000);
+    }
 
-        // Send the request and receive the response
-        $response = $this->sendRequest();
+    /**
+     * Processes the RequestInsurance instance
+     *
+     * @param HttpResponse|null $response
+     *
+     * @throws Throwable
+     *
+     * @return void
+     */
+    public function handleResponse(?HttpResponse $response): void
+    {
+        // Handle requests without responses
+        if ($response === null) {
+            $this->updateOrFail([
+                'state'            => State::FAILED,
+                'state_changed_at' => Carbon::now(),
+                'response_code'    => 0,
+            ]);
+
+            return;
+        }
 
         // Update the request with the latest response
         $this->response_body = $response->getBody();
@@ -737,15 +769,13 @@ class RequestInsurance extends SaveRetryingModel
         $this->save();
 
         $this->dispatchPostProcessEvents($response);
-
-        return $this;
     }
 
     /**
      * Sends the request to the target URL and returns the response
      *
-     * @throws JsonException
      * @throws MethodNotAllowedForRequestInsurance
+     * @throws JsonException
      *
      * @return HttpResponse
      */

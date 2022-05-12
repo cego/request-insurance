@@ -31,7 +31,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         // Act
         Event::fake();
 
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         Event::assertDispatched(RequestSuccessful::class);
@@ -54,7 +54,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         // Act
         Event::fake();
 
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         Event::assertDispatched(RequestFailed::class);
@@ -77,7 +77,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         // Act
         Event::fake();
 
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         Event::assertDispatched(RequestFailed::class);
@@ -100,7 +100,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         // Act
         Event::fake();
 
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         Event::assertDispatched(RequestClientError::class);
@@ -123,7 +123,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         // Act
         Event::fake();
 
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         Event::assertNotDispatched(RequestClientError::class);
@@ -151,7 +151,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         $this->assertTrue($requestInsurance->hasState(State::READY));
 
         // Act
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         $requestInsurance->refresh();
@@ -181,7 +181,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         $this->assertTrue($requestInsurance->hasState(State::READY));
 
         // Act
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         $requestInsurance->refresh();
@@ -212,7 +212,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         $this->assertTrue($requestInsurance->hasState(State::PENDING));
 
         // Act
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         $requestInsurance->refresh();

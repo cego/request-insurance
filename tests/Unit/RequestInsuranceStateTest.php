@@ -36,7 +36,7 @@ class RequestInsuranceStateTest extends TestCase
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
         $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         $requestInsurance->refresh();
@@ -52,7 +52,7 @@ class RequestInsuranceStateTest extends TestCase
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
         $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         $requestInsurance->refresh();
@@ -68,7 +68,7 @@ class RequestInsuranceStateTest extends TestCase
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
         $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
-        $requestInsurance->process();
+        $requestInsurance->handleResponse();
 
         // Assert
         $requestInsurance->refresh();
@@ -88,7 +88,7 @@ class RequestInsuranceStateTest extends TestCase
         $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
 
         try {
-            $requestInsurance->process();
+            $requestInsurance->handleResponse();
         } catch (Exception $exception) {
             // Do nothing
         }
