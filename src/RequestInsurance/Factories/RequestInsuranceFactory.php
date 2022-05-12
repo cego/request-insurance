@@ -2,7 +2,9 @@
 
 namespace Cego\RequestInsurance\Factories;
 
+use Carbon\Carbon;
 use Ramsey\Uuid\Uuid;
+use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -33,14 +35,12 @@ class RequestInsuranceFactory extends Factory
             'response_headers' => '{"Content-type":"application/json","Accept":"application/json"}',
             'response_body'    => '{}',
             'response_code'    => $this->faker->randomElement([200, 300, 400, 500]),
-            'completed_at'     => null,
-            'abandoned_at'     => null,
-            'paused_at'        => null,
-            'locked_at'        => null,
             'retry_count'      => 0,
             'retry_factor'     => 2,
             'retry_cap'        => 3600,
             'retry_at'         => null,
+            'state'            => State::READY,
+            'state_changed_at' => Carbon::now(),
         ];
     }
 }

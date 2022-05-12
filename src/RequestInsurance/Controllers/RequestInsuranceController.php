@@ -77,7 +77,7 @@ class RequestInsuranceController extends Controller
      */
     public function retry(RequestInsurance $requestInsurance)
     {
-        $requestInsurance->resume();
+        $requestInsurance->retryNow();
 
         return redirect()->back();
     }
@@ -91,7 +91,7 @@ class RequestInsuranceController extends Controller
      */
     public function unlock(RequestInsurance $requestInsurance)
     {
-        $requestInsurance->unlock();
+        $requestInsurance->unstuckPending();
 
         return redirect()->back();
     }

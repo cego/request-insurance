@@ -35,6 +35,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
+        $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
         $requestInsurance->process();
 
         // Assert
@@ -50,6 +51,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
+        $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
         $requestInsurance->process();
 
         // Assert
@@ -58,18 +60,19 @@ class RequestInsuranceStateTest extends TestCase
     }
 
     /** @test */
-    public function it_sets_state_ready_on_500(): void
+    public function it_sets_state_waiting_on_500(): void
     {
         // Arrange
         Http::fake(fn () => Http::response([], 500));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
+        $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
         $requestInsurance->process();
 
         // Assert
         $requestInsurance->refresh();
-        $this->assertEquals(State::READY, $requestInsurance->state);
+        $this->assertEquals(State::WAITING, $requestInsurance->state);
     }
 
     /** @test */
@@ -82,6 +85,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
+        $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
 
         try {
             $requestInsurance->process();
@@ -106,7 +110,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Assert
         $requestInsurance->refresh();
-        $this->assertEquals(State::READY, $requestInsurance->state);
+        $this->assertEquals(State::WAITING, $requestInsurance->state);
     }
 
     /** @test */

@@ -4,6 +4,7 @@ namespace Cego\RequestInsurance\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class UnlockBlockedRequestInsurances extends Command
@@ -20,25 +21,19 @@ class UnlockBlockedRequestInsurances extends Command
      *
      * @var string
      */
-    protected $description = 'Unlocks request insurances stuck in a locked state';
+    protected $description = 'Unlocks request insurances stuck in a pending state';
 
     /**
      * Execute the console command.
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
-        $this->info('Unlocking blocked request insurances...');
-
         RequestInsurance::query()
-            ->where('locked_at', '!=', null)
-            ->where('locked_at', '<', Carbon::now()->subMinutes(5))
-            ->get()
-            ->each
-            ->unlock();
-
-        $this->info('Unlocking done!');
+            ->where('state', State::PENDING)
+            ->where('state_changed_at', '<', Carbon::now()->subMinutes(5))
+            ->update(['state' => State::READY, 'state_changed_at' => Carbon::now()]);
 
         return 0;
     }

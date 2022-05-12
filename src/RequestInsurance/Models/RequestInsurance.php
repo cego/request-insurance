@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance\Models;
 
 use Exception;
+use Throwable;
 use Carbon\Carbon;
 use JsonException;
 use Ramsey\Uuid\Uuid;
@@ -39,10 +40,6 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property string|array $response_headers
  * @property string $response_body
  * @property int $response_code
- * @property Carbon|null $completed_at
- * @property Carbon|null $locked_at
- * @property Carbon|null $paused_at
- * @property Carbon|null $abandoned_at
  * @property int $retry_count
  * @property int $retry_factor
  * @property int $retry_cap
@@ -79,10 +76,6 @@ class RequestInsurance extends SaveRetryingModel
      * @var array
      */
     protected $dates = [
-        'completed_at',
-        'abandoned_at',
-        'locked_at',
-        'paused_at',
         'retry_at',
         'state_changed_at',
     ];
@@ -131,6 +124,11 @@ class RequestInsurance extends SaveRetryingModel
             }
 
             if ($request->state_changed_at === null) {
+                $request->state_changed_at = Carbon::now();
+            }
+
+            // In case someone forgets to update the state_changed_at field when updating the state
+            if ($request->isDirty('state') && ! $request->isDirty('state_changed_at')) {
                 $request->state_changed_at = Carbon::now();
             }
 
@@ -502,15 +500,7 @@ class RequestInsurance extends SaveRetryingModel
     public function scopeReadyToBeProcessed(Builder $query)
     {
         return $query
-            ->where('completed_at', null)
-            ->where('paused_at', null)
-            ->where('locked_at', null)
-            ->where('abandoned_at', null)
-            ->where(function ($query) {
-                return $query
-                    ->where('retry_at', null)
-                    ->orWhere('retry_at', '<=', Carbon::now());
-            })
+            ->where('state', State::READY)
             ->orderBy('priority', 'asc')
             ->orderBy('id', 'asc');
     }
@@ -577,48 +567,31 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Unlocks the RequestInsurance instance
+     * Unstuck the RequestInsurance instance if was left in the PENDING state
      *
      * @throws Exception
      *
      * @return $this
      */
-    public function unlock(): RequestInsurance
+    public function unstuckPending(): RequestInsurance
     {
-        $this->locked_at = null;
-
-        // Unlock is called in multiple different cases, so it is only in the case of PENDING and PROCESSING that we transition to READY
-        if (in_array($this->state, [State::PENDING, State::PROCESSING], true)) {
+        if ($this->hasState(State::PENDING)) {
             $this->setState(State::READY);
+            $this->save();
         }
-
-        $this->save();
 
         return $this;
     }
 
     /**
-     * Tells if the RequestInsurance instance has been locked
-     *
-     * @return bool
-     */
-    public function isLocked()
-    {
-        return $this->locked_at !== null;
-    }
-
-    /**
      * Abandons the RequestInsurance instance
+     *
+     * @throws Exception
      *
      * @return $this
      */
-    public function abandon()
+    public function abandon(): RequestInsurance
     {
-        $this->paused_at = null;
-        $this->abandoned_at = Carbon::now();
-        $this->retry_at = null;
-        $this->completed_at = null;
-
         $this->setState(State::ABANDONED);
 
         $this->save();
@@ -627,45 +600,39 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Tells if the RequestInsurance instance has been abandoned
+     * Returns true if the request insurance has the given state
+     *
+     * @param string $state
      *
      * @return bool
      */
-    public function isAbandoned(): bool
+    public function hasState(string $state): bool
     {
-        return $this->abandoned_at !== null;
+        return $this->state == $state;
     }
 
     /**
-     * Syntactic sugar for negating isAbandoned()
+     * Returns true if the request insurance does not have the given state
+     *
+     * @param string $state
      *
      * @return bool
      */
-    public function isNotAbandoned(): bool
+    public function doesNotHaveState(string $state): bool
     {
-        return ! $this->isAbandoned();
+        return ! $this->hasState($state);
     }
 
     /**
-     * Pauses the RequestInsurance instance
+     * Returns true if the current state is one of the given states
      *
-     * @throws Exception
+     * @param string ...$states
      *
-     * @return $this
+     * @return bool
      */
-    public function pause(): RequestInsurance
+    public function inOneOfStates(string ...$states): bool
     {
-        // To avoid marking successful requests as failed, we add this successful check
-        $this->paused_at = $this->wasSuccessful() ? null : Carbon::now();
-        $this->retry_at = null;
-        $this->abandoned_at = null;
-        $this->completed_at = $this->wasSuccessful() ? Carbon::now() : null;
-
-        $this->setState($this->wasSuccessful() ? State::COMPLETED : State::FAILED);
-
-        $this->save();
-
-        return $this;
+        return in_array($this->state, $states, true);
     }
 
     public function setState(string $state): void
@@ -676,23 +643,27 @@ class RequestInsurance extends SaveRetryingModel
 
         $this->state = $state;
         $this->state_changed_at = Carbon::now();
+
+        if ($state != State::WAITING) {
+            $this->retry_at = null;
+        }
     }
 
     /**
-     * Unpauses the RequestInsurance instance
+     * Retries the RI right now, instead of using backoff logic
      *
      * @throws Exception
      *
      * @return $this
      */
-    public function resume(): RequestInsurance
+    public function retryNow(): RequestInsurance
     {
-        $this->paused_at = null;
-        $this->retry_at = Carbon::now();
-        $this->abandoned_at = null;
-        $this->completed_at = null;
+        if ( ! $this->isRetryable()) {
+            return $this;
+        }
 
         $this->setState(State::READY);
+        $this->retry_at = null;
 
         $this->save();
 
@@ -706,27 +677,7 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function isRetryable(): bool
     {
-        return $this->isNotCompleted() && ($this->isPaused() || $this->isAbandoned());
-    }
-
-    /**
-     * Tells if the RequestInsurance instance has been paused
-     *
-     * @return bool
-     */
-    public function isPaused(): bool
-    {
-        return $this->paused_at !== null;
-    }
-
-    /**
-     * Syntactic sugar for negating isPaused()
-     *
-     * @return bool
-     */
-    public function isNotPaused(): bool
-    {
-        return ! $this->isPaused();
+        return $this->inOneOfStates(State::FAILED, State::ABANDONED);
     }
 
     /**
@@ -734,6 +685,7 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @throws JsonException
      * @throws MethodNotAllowedForRequestInsurance
+     * @throws Throwable
      *
      * @return $this
      */
@@ -743,14 +695,12 @@ class RequestInsurance extends SaveRetryingModel
         // allowing the application to abandon/complete/paused the requests before processing.
         Events\RequestBeforeProcess::dispatch($this);
 
-        if ($this->isAbandoned() || $this->isCompleted() || $this->isPaused()) {
+        if ($this->doesNotHaveState(State::PENDING)) {
             return $this;
         }
 
         // Increment the number of tries and set state to PROCESSING as the very first action
-        $this->setState(State::PROCESSING);
-        $this->incrementRetryCount();
-        $this->save();
+        $this->updateOrFail(['state' => State::PROCESSING, 'retry_count' => $this->retry_count + 1]);
 
         // Send the request and receive the response
         $response = $this->sendRequest();
@@ -771,19 +721,13 @@ class RequestInsurance extends SaveRetryingModel
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
         }
 
-        if ($response->isNotRetryable()) {
-            $this->setState(State::FAILED);
-            $this->paused_at = Carbon::now();
-        }
-
         if ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
-            $this->completed_at = Carbon::now();
-        }
-
-        if ($this->isNotCompleted() && $response->isRetryable()) {
-            $this->setState(State::READY); // TODO: Update to WAITING once workers has transitioned
+        } elseif ($response->isRetryable()) {
+            $this->setState(State::WAITING);
             $this->setNextRetryAt();
+        } else {
+            $this->setState(State::FAILED);
         }
 
         // It happens that a ->save() causes a deadlock problem,
@@ -858,63 +802,11 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Tells if the RequestInsurance instance has been completed
-     *
-     * @return bool
-     */
-    public function isCompleted()
-    {
-        return $this->completed_at !== null;
-    }
-
-    /**
-     * Syntactic sugar for negating isCompleted()
-     *
-     * @return bool
-     */
-    public function isNotCompleted()
-    {
-        return ! $this->isCompleted();
-    }
-
-    /**
-     * Increments the retry count for the request, and updates the retry at field
-     *
-     * @throws Exception
-     *
-     * @return $this
-     */
-    public function retry()
-    {
-        $this->setNextRetryAt();
-        $this->paused_at = null;
-        $this->abandoned_at = null;
-        $this->completed_at = null;
-        $this->setState(State::READY);
-
-        $this->save();
-
-        return $this;
-    }
-
-    /**
-     * Increments the retry count for the request
-     *
-     * @return $this
-     */
-    public function incrementRetryCount()
-    {
-        $this->retry_count++;
-
-        return $this;
-    }
-
-    /**
      * Sets the next retry_at timestamp
      *
      * @return $this
      */
-    public function setNextRetryAt()
+    public function setNextRetryAt(): RequestInsurance
     {
         $seconds = pow($this->retry_factor, $this->retry_count);
 

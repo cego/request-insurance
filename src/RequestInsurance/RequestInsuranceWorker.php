@@ -2,8 +2,10 @@
 
 namespace Cego\RequestInsurance;
 
+use Closure;
 use Exception;
 use Throwable;
+use Carbon\Carbon;
 use Nbj\Stopwatch;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
@@ -45,6 +47,13 @@ class RequestInsuranceWorker
     protected int $batchSize;
 
     /**
+     * Timestamp used for running stuff at most once every second
+     *
+     * @var array
+     */
+    protected array $secondIntervalTimestamp;
+
+    /**
      * RequestInsuranceService constructor.
      */
     public function __construct(int $batchSize = 100, int $microSecondsToWait = 100000)
@@ -52,6 +61,7 @@ class RequestInsuranceWorker
         $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
+        $this->secondIntervalTimestamp = hrtime();
         Log::withContext(['worker.id' => $this->runningHash]);
     }
 
@@ -76,6 +86,7 @@ class RequestInsuranceWorker
 
                 $executionTime = Stopwatch::time(function () {
                     $this->processRequestInsurances();
+                    $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
                 });
 
                 $waitTime = (int) max($this->microSecondsToWait - $executionTime->microseconds(), 0);
@@ -118,6 +129,39 @@ class RequestInsuranceWorker
     }
 
     /**
+     * Method for running the given closure at most once every second.
+     * This method cannot be reused multiple time.
+     *
+     * @param Closure $closure
+     *
+     * @return void
+     */
+    protected function atMostOnceEverySecond(Closure $closure): void
+    {
+        // $now[0 => seconds, 1 => nanoseconds]
+        $now = hrtime();
+
+        // If a second has passed
+        if ($this->secondIntervalTimestamp[0] < $now[0]) {
+            $this->secondIntervalTimestamp = $now;
+            $closure();
+        }
+    }
+
+    /**
+     * Marks waiting request insurances as ready
+     *
+     * @return void
+     */
+    protected function readyWaitingRequestInsurances(): void
+    {
+        RequestInsurance::query()
+            ->where('state', State::WAITING)
+            ->where('retry_at', '<=', Carbon::now())
+            ->update(['state' => State::READY, 'state_changed_at' => Carbon::now(), 'retry_at' => null]);
+    }
+
+    /**
      * Processes all requests ready to be processed
      *
      * @throws Throwable
@@ -150,9 +194,8 @@ class RequestInsuranceWorker
         // Gets requests to process ordered by priority
         $requests = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
-            ->orderBy('priority')
-            ->orderBy('id')
-            ->get();
+            ->get()
+            ->sortBy(['priority', 'id']);
 
         $requests->each(function ($request) {
             /** @var RequestInsurance $request */
@@ -161,15 +204,16 @@ class RequestInsuranceWorker
             } catch (Throwable $throwable) {
                 Log::error($throwable);
 
-                $request->pause();
+                $request->setState($request->wasSuccessful() ? State::COMPLETED : State::FAILED);
+                $request->save();
             } finally {
-                $request->unlock();
+                $request->unstuckPending();
             }
         });
     }
 
     /**
-     * Acquires a lock on the next rows to process, by setting the locked_at column
+     * Acquires a lock on the next rows to process
      *
      * @throws Exception
      *
@@ -191,8 +235,6 @@ class RequestInsuranceWorker
             ->update([
                 'state'            => State::PENDING,
                 'state_changed_at' => $now,
-                'locked_at'        => $now,
-                'updated_at'       => $now,
             ]);
 
         if ( ! $locksWereObtained) {
