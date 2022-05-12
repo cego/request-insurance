@@ -2,8 +2,10 @@
 
 namespace Cego\RequestInsurance;
 
+use Closure;
 use Exception;
 use Throwable;
+use Carbon\Carbon;
 use Nbj\Stopwatch;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
@@ -45,6 +47,13 @@ class RequestInsuranceWorker
     protected int $batchSize;
 
     /**
+     * Timestamp used for running stuff at most once every second
+     *
+     * @var array
+     */
+    protected array $secondIntervalTimestamp;
+
+    /**
      * RequestInsuranceService constructor.
      */
     public function __construct(int $batchSize = 100, int $microSecondsToWait = 100000)
@@ -52,6 +61,7 @@ class RequestInsuranceWorker
         $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
+        $this->secondIntervalTimestamp = hrtime();
         Log::withContext(['worker.id' => $this->runningHash]);
     }
 
@@ -76,6 +86,7 @@ class RequestInsuranceWorker
 
                 $executionTime = Stopwatch::time(function () {
                     $this->processRequestInsurances();
+                    $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
                 });
 
                 $waitTime = (int) max($this->microSecondsToWait - $executionTime->microseconds(), 0);
@@ -115,6 +126,39 @@ class RequestInsuranceWorker
         Log::info(sprintf('RequestInsurance Worker (#%s) received a shutdown signal - Beginning graceful shutdown', $this->runningHash));
 
         $this->shutdownSignalReceived = true;
+    }
+
+    /**
+     * Method for running the given closure at most once every second.
+     * This method cannot be reused multiple time.
+     *
+     * @param Closure $closure
+     *
+     * @return void
+     */
+    protected function atMostOnceEverySecond(Closure $closure): void
+    {
+        // $now[0 => seconds, 1 => nanoseconds]
+        $now = hrtime();
+
+        // If a second has passed
+        if ($this->secondIntervalTimestamp[0] < $now[0]) {
+            $this->secondIntervalTimestamp = $now;
+            $closure();
+        }
+    }
+
+    /**
+     * Marks waiting request insurances as ready
+     *
+     * @return void
+     */
+    protected function readyWaitingRequestInsurances(): void
+    {
+        RequestInsurance::query()
+            ->where('state', State::WAITING)
+            ->where('retry_at', '<=', Carbon::now())
+            ->update(['state' => State::READY, 'state_changed_at' => Carbon::now(), 'retry_at' => null]);
     }
 
     /**
