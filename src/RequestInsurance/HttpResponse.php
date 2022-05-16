@@ -133,20 +133,24 @@ class HttpResponse
      */
     public function getBody(): ?string
     {
-        if ($this->isTimedOut() || $this->isInconsistent()) {
-            return null;
+        if ($this->isTimedOut()) {
+            return "<REQUEST_TIMED_OUT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>";
+        }
+
+        if ($this->isInconsistent()) {
+            return "<REQUEST_INCONSISTENT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>";
         }
 
         return $this->response->body();
     }
 
     /**
-     * @return Collection|null
+     * @return Collection
      */
-    public function getHeaders(): ?Collection
+    public function getHeaders(): Collection
     {
         if ($this->isTimedOut() || $this->isInconsistent()) {
-            return null;
+            return new Collection();
         }
 
         return collect($this->response->headers());
