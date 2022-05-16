@@ -73,9 +73,11 @@ class RequestInsuranceController extends Controller
     public function edit(Request $request, RequestInsurance $requestInsurance)
     {
         // Only allow updates for requests that have not completed or been abandoned
-        if ($requestInsurance->isCompleted() || $requestInsurance->isAbandoned()){
+        if ($requestInsurance->inOneOfStates(State::COMPLETED, State::ABANDONED)){
             return redirect()->back();//TODO more error handling?
         }
+
+        dd($request->getUser());
 
         RequestInsuranceEdit::create([
             'request_insurance_id' => $requestInsurance->id,
@@ -93,7 +95,6 @@ class RequestInsuranceController extends Controller
             'new_encrypted_fields' => $requestInsurance->encrypted_fields,
             'admin_user' => 'Test',
         ]);
-        dd($request->getUser());
 
         return redirect()->back();
     }

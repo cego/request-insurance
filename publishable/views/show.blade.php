@@ -95,7 +95,9 @@
                     </div>
                 </div>
             </div>
+            <!-- Edit(s) -->
             @elseif( ! empty($requestInsurance->edits()))
+                {{$edit = $requestInsurance->edits()[0]}}
                 <div class="col-6">
                     <div class="card">
                         <div class="card-body">
@@ -108,32 +110,27 @@
                                     <tbody>
                                     <tr>
                                         <td>RequestInsurance Id:</td>
-                                        <td>{{ $requestInsurance->id }}</td>
+                                        <td>{{ $edit->request_insurance_id }}</td>
                                     </tr>
                                     <tr>
                                         <td>Method:</td>
-                                        <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
+                                        <td>{{ mb_strtoupper($edit->new_method) }}</td>
                                     </tr>
                                     <tr>
                                         <td>Url:</td>
-                                        <td>{{ urldecode($requestInsurance->url) }}</td>
+                                        <td>{{ urldecode($edit->new_url) }}</td>
                                     </tr>
                                     <tr>
                                         <td>Payload:</td>
                                         <td><x-request-insurance-pretty-print :content="$requestInsurance->getPayloadWithMaskingApplied()"/></td>
+                                        <!-- TODO pretty print from edit instead -->
                                     </tr>
                                     <tr>
                                         <td>Headers:</td>
                                         <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
+                                        <!-- TODO pretty print from edit instead -->
                                     </tr>
-                                    <tr>
-                                        <td>Next attempt at:</td>
-                                        <td>{{ $requestInsurance->retry_at }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Attempts:</td>
-                                        <td>{{ $requestInsurance->retry_count }}</td>
-                                    </tr>
+                                    <!-- TODO new encrypted fields? -->
                                     </tbody>
                                 </table>
                             </div>
