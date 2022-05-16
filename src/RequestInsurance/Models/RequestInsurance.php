@@ -750,9 +750,6 @@ class RequestInsurance extends SaveRetryingModel
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
         }
 
-        // If the response is inconsistent, then log the error
-        // and save the request and bail out without doing anything else.
-        // Inconsistent is equal with "we have no idea what happened during the request"
         if ($response->isInconsistent()) {
             $this->setState(State::FAILED);
             $response->logInconsistentReason();
