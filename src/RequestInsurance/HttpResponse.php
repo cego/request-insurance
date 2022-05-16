@@ -46,6 +46,11 @@ class HttpResponse
         return isset($this->connectException);
     }
 
+    /**
+     * Logs the reason for the inconsistent state if the response is in an inconsistent state
+     *
+     * @return void
+     */
     public function logInconsistent(): void
     {
         if ( ! $this->isInconsistent()) {
