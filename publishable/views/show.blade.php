@@ -154,18 +154,34 @@
                             </div>
                             <div class="card-text">
                                 <hr>
-                                @if($edit->admin_user != 'jabjaaa'){{-- TODO figure out how to read the user name --}}
+                                <h4>Approvals</h4>
+                                <table class="table table-hover border bg-white">
+                                    <thead>
+                                    <tr>
+                                        <th>Approver</th>
+                                        <th style="width: 185px">Created at</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($edit->approvals->sortBy('created_at') as $approval)
+                                        <tr>
+                                            <td>{{ $approval->approver_admin_user }}</td>
+                                            <td>{{ $approval->created_at }}</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                                <hr>
+                                {{-- TODO fix conditions for disabled --}}
                                 <form method="POST" action="{{ route('request-insurances.approve_edit', $requestInsurance) }}">
                                     <input type="hidden" name="_method" value="post">
-                                    <button class="btn btn-primary" type="submit">Approve</button>
+                                    <button class="btn btn-primary" type="submit" @disabled($edit->applied_at != null && $edit->admin_user == 'jabj')>Approve</button>
                                 </form>
-                                @endif
-                                @if($edit->required_approvals <= $edit->approvals()->count()){{-- TODO figure out how to read the user name --}}
+
                                 <form method="POST" action="{{ route('request-insurances.apply_edit', $requestInsurance) }}">
                                     <input type="hidden" name="_method" value="post">
-                                    <button class="btn btn-primary" type="submit">Apply</button>
+                                    <button class="btn btn-primary" type="submit" @disabled($edit->approvals()->count() < $edit->required_number_of_approvals)>Apply</button>
                                 </form>
-                                @endif
                             </div>
                         </div>
                     </div>
