@@ -739,7 +739,7 @@ class RequestInsurance extends SaveRetryingModel
             return;
         }
 
-        if ($response->timedOut()) {
+        if ($response->isTimedOut()) {
             $this->updateOrFail([
                 'response_code' => 0,
             ]);

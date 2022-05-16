@@ -18,12 +18,29 @@ class HttpResponse
     {
         if ($response instanceof ConnectException) {
             $this->connectException = $response;
-        } else {
+        } elseif ($response !== null) {
             $this->response = $response;
         }
     }
 
-    public function timedOut(): bool
+    /**
+     * Returns true if the request is in an inconsistent state,
+     * caused by any reason which left us without any real response.
+     *
+     * @return bool
+     */
+    public function isInconsistent(): bool
+    {
+        return ! isset($this->response)
+            && ! isset($this->connectException);
+    }
+
+    /**
+     * Returns true when the request timed out
+     *
+     * @return bool
+     */
+    public function isTimedOut(): bool
     {
         return isset($this->connectException);
     }
@@ -35,7 +52,7 @@ class HttpResponse
      */
     public function wasSuccessful()
     {
-        if ($this->timedOut()) {
+        if ($this->isInconsistent()) {
             return false;
         }
 
@@ -79,8 +96,12 @@ class HttpResponse
      */
     public function getCode(): int
     {
-        if ($this->timedOut()) {
+        if ($this->isTimedOut()) {
             return 0;
+        }
+
+        if ($this->isInconsistent()) {
+            return -1;
         }
 
         return $this->response->status();
@@ -89,24 +110,24 @@ class HttpResponse
     /**
      * Gets the body of the response
      *
-     * @return string
+     * @return string|null
      */
-    public function getBody(): string
+    public function getBody(): ?string
     {
-        if ($this->timedOut()) {
-            throw new \RuntimeException('No body for timed out request');
+        if ($this->isInconsistent()) {
+            return null;
         }
 
         return $this->response->body();
     }
 
     /**
-     * @return Collection
+     * @return Collection|null
      */
-    public function getHeaders(): Collection
+    public function getHeaders(): ?Collection
     {
-        if ($this->timedOut()) {
-            throw new \RuntimeException('No headers for timed out request');
+        if ($this->isInconsistent()) {
+            return null;
         }
 
         return collect($this->response->headers());
@@ -119,7 +140,7 @@ class HttpResponse
      */
     public function getExecutionTime(): float
     {
-        if ($this->timedOut()) {
+        if ($this->isInconsistent()) {
             return -1;
         }
 
@@ -135,7 +156,7 @@ class HttpResponse
      */
     public function isClientError(): bool
     {
-        if ($this->timedOut()) {
+        if ($this->isInconsistent()) {
             return false;
         }
 
@@ -151,7 +172,7 @@ class HttpResponse
      */
     public function isServerError(): bool
     {
-        if ($this->timedOut()) {
+        if ($this->isInconsistent()) {
             return false;
         }
 
