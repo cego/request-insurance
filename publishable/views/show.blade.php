@@ -113,12 +113,23 @@
                                         <td>{{ $edit->request_insurance_id }}</td>
                                     </tr>
                                     <tr>
+                                        <td>Editor:</td>
+                                        <td>{{ $edit->admin_user }}</td>
+                                    </tr>
+                                    <tr>
                                         <td>Method:</td>
-                                        <td>{{ mb_strtoupper($edit->new_method) }}</td>
+                                        <td>{{ mb_strtoupper($edit->new_method) }}
+                                            <select name="method" id="new_method">
+                                                <option value="GET" {{mb_strtoupper($edit->new_method) == "GET" ? 'selected' : ''}}>GET</option>
+                                                <option value="POST" {{mb_strtoupper($edit->new_method) == "POST" ? 'selected' : ''}}>POST</option>
+                                                <option value="PUT" {{mb_strtoupper($edit->new_method) == "PUT" ? 'selected' : ''}}>PUT</option>
+                                            </select>
+                                        </td>
+
                                     </tr>
                                     <tr>
                                         <td>Url:</td>
-                                        <td>{{ urldecode($edit->new_url) }}</td>
+                                        <td><input name="new_url" value="{{ urldecode($edit->new_url) }}"/></td>
                                     </tr>
                                     <tr>
                                         <td>Payload:</td>

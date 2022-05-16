@@ -77,8 +77,6 @@ class RequestInsuranceController extends Controller
             return redirect()->back();//TODO more error handling?
         }
 
-        dd($request->getUser());
-
         RequestInsuranceEdit::create([
             'request_insurance_id' => $requestInsurance->id,
             'old_priority' => $requestInsurance->priority,
@@ -93,7 +91,7 @@ class RequestInsuranceController extends Controller
             'new_payload' => $requestInsurance->payload,
             'old_encrypted_fields' => $requestInsurance->encrypted_fields,
             'new_encrypted_fields' => $requestInsurance->encrypted_fields,
-            'admin_user' => 'Test',
+            'admin_user' => $request->getUser(),
         ]);
 
         return redirect()->back();
