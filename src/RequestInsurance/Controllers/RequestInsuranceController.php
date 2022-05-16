@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\Controllers;
 
+use Carbon\Carbon;
 use Cego\RequestInsurance\Models\RequestInsuranceEdit;
 use Exception;
 use Illuminate\Support\Facades\Http;
@@ -91,6 +92,7 @@ class RequestInsuranceController extends Controller
             'new_payload' => $requestInsurance->payload,
             'old_encrypted_fields' => $requestInsurance->encrypted_fields,
             'new_encrypted_fields' => $requestInsurance->encrypted_fields,
+            'applied_at' => Carbon::now(),// TODO delete this line - this is for testing only
             'admin_user' => $request->getUser(),
         ]);
 
