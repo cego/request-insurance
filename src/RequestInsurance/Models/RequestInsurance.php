@@ -639,6 +639,13 @@ class RequestInsurance extends SaveRetryingModel
         return in_array($this->state, $states, true);
     }
 
+    /**
+     * Sets the state of the request insurance without saving
+     *
+     * @param string $state
+     *
+     * @return void
+     */
     public function setState(string $state): void
     {
         if ( ! in_array($state, State::getAll(), true)) {
@@ -743,11 +750,20 @@ class RequestInsurance extends SaveRetryingModel
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
         }
 
+        // If the response is inconsistent, then log the error
+        // and save the request and bail out without doing anything else.
+        // Inconsistent is equal with "we have no idea what happened during the request"
         if ($response->isInconsistent()) {
             $response->logInconsistent();
-        // TODO: Add inconsistent state so requests are not stuck in "processing"
-        // TODO: Implement auto retry on inconsistent state option to requests to reduce manual work
-        } elseif ($response->wasSuccessful()) {
+
+            // TODO: Add inconsistent state so requests are not stuck in "processing"
+            // TODO: Implement auto retry on inconsistent state option to requests to reduce manual work
+            $this->save();
+
+            return;
+        }
+
+        if ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
         } elseif ($response->isRetryable()) {
             $this->setState(State::WAITING);
@@ -756,10 +772,6 @@ class RequestInsurance extends SaveRetryingModel
             $this->setState(State::FAILED);
         }
 
-        // It happens that a ->save() causes a deadlock problem,
-        // since this is not really a logic error, we add this retry logic
-        // so the data is persisted.
-        // This will most likely in almost all cases catch the problem before an exception is thrown.
         $this->save();
 
         $this->dispatchPostProcessEvents($response);

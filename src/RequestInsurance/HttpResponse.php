@@ -134,11 +134,11 @@ class HttpResponse
     public function getBody(): ?string
     {
         if ($this->isTimedOut()) {
-            return "<REQUEST_TIMED_OUT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>";
+            return '<REQUEST_TIMED_OUT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
         }
 
         if ($this->isInconsistent()) {
-            return "<REQUEST_INCONSISTENT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>";
+            return '<REQUEST_INCONSISTENT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
         }
 
         return $this->response->body();
