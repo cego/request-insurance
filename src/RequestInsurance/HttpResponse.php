@@ -32,8 +32,7 @@ class HttpResponse
      */
     public function isInconsistent(): bool
     {
-        return ! isset($this->response)
-            && ! isset($this->connectException);
+        return ! isset($this->response);
     }
 
     /**
@@ -71,7 +70,7 @@ class HttpResponse
      */
     public function wasSuccessful()
     {
-        if ($this->isTimedOut() || $this->isInconsistent()) {
+        if ($this->isInconsistent()) {
             return false;
         }
 
@@ -149,7 +148,7 @@ class HttpResponse
      */
     public function getHeaders(): Collection
     {
-        if ($this->isTimedOut() || $this->isInconsistent()) {
+        if ($this->isInconsistent()) {
             return new Collection();
         }
 
@@ -163,7 +162,7 @@ class HttpResponse
      */
     public function getExecutionTime(): float
     {
-        if ($this->isTimedOut() || $this->isInconsistent()) {
+        if ($this->isInconsistent()) {
             return -1;
         }
 
@@ -179,7 +178,7 @@ class HttpResponse
      */
     public function isClientError(): bool
     {
-        if ($this->isTimedOut() || $this->isInconsistent()) {
+        if ($this->isInconsistent()) {
             return false;
         }
 
@@ -195,7 +194,7 @@ class HttpResponse
      */
     public function isServerError(): bool
     {
-        if ($this->isTimedOut() || $this->isInconsistent()) {
+        if ($this->isInconsistent()) {
             return false;
         }
 
