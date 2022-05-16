@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\Controllers;
 
+use Cego\RequestInsurance\Models\RequestInsuranceEdit;
 use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
@@ -69,53 +70,32 @@ class RequestInsuranceController extends Controller
         return redirect()->back();
     }
 
-    public function edit(RequestInsurance $requestInsurance)
+    public function edit(Request $request, RequestInsurance $requestInsurance)
     {
         // Only allow updates for requests that have not completed or been abandoned
         if ($requestInsurance->isCompleted() || $requestInsurance->isAbandoned()){
             return redirect()->back();//TODO more error handling?
         }
 
-        // request data
-        $payload = [
-            'justification' => 'Draft: Request Insurance needs editing (Unedited)',
-            'query' => $this->updateRequestInsuranceSQLQuery($requestInsurance),
-            'required_number_of_approvals' => 1,
-            'connection_id' => '',
-            'user' => '',
-        ];
-        $url = Config::get('request-insurance.edit_endpoint');
-        $response = Http::post($url, $payload);
-        // TODO decode response?
-        if ($response->success){
-            if (empty($query = $response->query)){
-                return redirect()->back();//TODO more error handling?
-            }
+        RequestInsuranceEdit::create([
+            'request_insurance_id' => $requestInsurance->id,
+            'old_priority' => $requestInsurance->priority,
+            'new_priority' => $requestInsurance->priority,
+            'old_url' => $requestInsurance->url,
+            'new_url' => $requestInsurance->url,
+            'old_method' => $requestInsurance->method,
+            'new_method' => $requestInsurance->method,
+            'old_headers' => $requestInsurance->headers,
+            'new_headers' => $requestInsurance->headers,
+            'old_payload' => $requestInsurance->payload,
+            'new_payload' => $requestInsurance->payload,
+            'old_encrypted_fields' => $requestInsurance->encrypted_fields,
+            'new_encrypted_fields' => $requestInsurance->encrypted_fields,
+            'admin_user' => 'Test',
+        ]);
+        dd($request->getUser());
 
-            $viewEndpoint = sprintf(Config::get('request-insurance.view_endpoint'), $query->id);
-            return redirect()->away($viewEndpoint);
-        }
-
-        return redirect()->back();//TODO more error handling?
-    }
-
-    private function updateRequestInsuranceSQLQuery(RequestInsurance $requestInsurance) : string
-    {
-        return sprintf(
-            "
-            UPDATE %s\n
-            SET\n
-            'url' = %s,\n
-            'method' = %s,\n
-            'headers' = %s,\n
-            'payload' = %s\n
-            WHERE id = %s",
-            $requestInsurance->getTable(),
-            $requestInsurance->url,
-            $requestInsurance->headers,
-            $requestInsurance->headers,
-            $requestInsurance->payload,
-            $requestInsurance->id);
+        return redirect()->back();
     }
 
     /**

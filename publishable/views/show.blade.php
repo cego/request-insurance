@@ -18,10 +18,12 @@
                     <div class="card-body">
                         <div class="card-title text-center">
                             <h3>Request</h3>
+                            @if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
                             <form method="POST" action="{{ route('request-insurances.edit', $requestInsurance) }}">
                                 <input type="hidden" name="_method" value="post">
                                 <button class="btn btn-primary" type="submit">Edit</button>
                             </form>
+                            @endif
                             <hr>
                         </div>
                         <div class="card-text">
@@ -63,6 +65,7 @@
             </div>
 
             <!-- Response -->
+            @if ($requestInsurance->doesHaveState(State::COMPLETED))
             <div class="col-6">
                 <div class="card">
                     <div class="card-body">
@@ -91,6 +94,52 @@
                     </div>
                 </div>
             </div>
+            @elseif( ! empty($requestInsurance->edits()))
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title text-center">
+                                <h3>Edit:</h3>
+                                <hr>
+                            </div>
+                            <div class="card-text">
+                                <table class="table-hover w-100 table-vertical table-striped">
+                                    <tbody>
+                                    <tr>
+                                        <td>RequestInsurance Id:</td>
+                                        <td>{{ $requestInsurance->id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Method:</td>
+                                        <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Url:</td>
+                                        <td>{{ urldecode($requestInsurance->url) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Payload:</td>
+                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->getPayloadWithMaskingApplied()"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Headers:</td>
+                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Next attempt at:</td>
+                                        <td>{{ $requestInsurance->retry_at }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Attempts:</td>
+                                        <td>{{ $requestInsurance->retry_count }}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <!-- Logs -->
             <div class="col-12 mt-2">
