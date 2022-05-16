@@ -96,8 +96,8 @@
                 </div>
             </div>
             <!-- Edit(s) -->
-            @elseif( ! empty($requestInsurance->edits()->get()->toArray()))
-                {{$edit = $requestInsurance->edits()->get()}}
+            @elseif( ! empty($requestInsurance->edits()->get()->all()))
+                {{$edit = $requestInsurance->edits()->get()->all()}}
                 {{dd($edit)}}
                 <div class="col-6">
                     <div class="card">
