@@ -719,34 +719,14 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Processes the RequestInsurance instance
      *
-     * @param HttpResponse|null $response
+     * @param HttpResponse $response
      *
      * @throws Throwable
      *
      * @return void
      */
-    public function handleResponse(?HttpResponse $response): void
+    public function handleResponse(HttpResponse $response): void
     {
-        // TODO: post process events
-        // Handle requests without responses
-        if ($response === null) {
-            $this->updateOrFail([
-                'state'            => State::FAILED,
-                'state_changed_at' => Carbon::now(),
-                'response_code'    => 0,
-            ]);
-
-            return;
-        }
-
-        if ($response->isTimedOut()) {
-            $this->updateOrFail([
-                'response_code' => 0,
-            ]);
-
-            return;
-        }
-
         // Update the request with the latest response
         $this->response_body = $response->getBody();
         $this->response_code = $response->getCode();
@@ -763,7 +743,11 @@ class RequestInsurance extends SaveRetryingModel
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
         }
 
-        if ($response->wasSuccessful()) {
+        if ($response->isInconsistent()) {
+            $response->logInconsistent();
+        // TODO: Add inconsistent state so requests are not stuck in "processing"
+        // TODO: Implement auto retry on inconsistent state option to requests to reduce manual work
+        } elseif ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
         } elseif ($response->isRetryable()) {
             $this->setState(State::WAITING);

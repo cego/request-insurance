@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\Response;
 use GuzzleHttp\Exception\ConnectException;
 
@@ -43,6 +44,19 @@ class HttpResponse
     public function isTimedOut(): bool
     {
         return isset($this->connectException);
+    }
+
+    public function logInconsistent(): void
+    {
+        if ( ! $this->isInconsistent()) {
+            return;
+        }
+
+        if ($this->isTimedOut()) {
+            Log::error($this->connectException);
+        } else {
+            Log::error('No response object nor connect exception received for request');
+        }
     }
 
     /**
