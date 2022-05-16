@@ -754,9 +754,8 @@ class RequestInsurance extends SaveRetryingModel
         // and save the request and bail out without doing anything else.
         // Inconsistent is equal with "we have no idea what happened during the request"
         if ($response->isInconsistent()) {
-            $response->logInconsistent();
-        // TODO: Add inconsistent state so requests are not stuck in "processing"
-        // TODO: Implement auto retry on inconsistent state option to requests to reduce manual work
+            $this->setState(State::FAILED);
+            $response->logInconsistentReason();
         } elseif ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
         } elseif ($response->isRetryable()) {

@@ -50,7 +50,7 @@ class HttpResponse
      *
      * @return void
      */
-    public function logInconsistent(): void
+    public function logInconsistentReason(): void
     {
         if ( ! $this->isInconsistent()) {
             return;
