@@ -3,11 +3,11 @@
 namespace Cego\RequestInsurance\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Cego\RequestInsurance\Factories\RequestInsuranceLogFactory;
 
 /**
  * Class RequestInsuranceEdit
@@ -73,6 +73,16 @@ class RequestInsuranceEdit extends SaveRetryingModel
     public function parent()
     {
         return $this->belongsTo(get_class(resolve(RequestInsurance::class)), 'request_insurance_id');
+    }
+
+    /**
+     * Relationship with RequestInsuranceEditApproval
+     *
+     * @return HasMany
+     */
+    public function approvals()
+    {
+        return $this->hasMany(RequestInsuranceEditApproval::class);
     }
 
     /**
