@@ -66,7 +66,7 @@
             </div>
 
             <!-- Response -->
-            @if ($requestInsurance->doesHaveState(State::COMPLETED))
+            @if ($requestInsurance->hasState(State::COMPLETED))
             <div class="col-6">
                 <div class="card">
                     <div class="card-body">
