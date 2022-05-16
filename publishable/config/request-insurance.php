@@ -60,6 +60,17 @@ return [
 
     'batchSize' => env('REQUEST_INSURANCE_BATCH_SIZE', 100),
 
+    /*
+    | Determines if concurrent http requests are enabled or not
+    */
+
+    'concurrentHttpEnabled' => false,
+
+    /*
+    | The maximum number of http requests to send concurrently
+    */
+
+    'concurrentHttpChunkSize' => 5,
 
     /*
      | Set the concrete implementation for HttpRequest

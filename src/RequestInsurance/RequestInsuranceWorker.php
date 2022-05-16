@@ -9,11 +9,15 @@ use Carbon\Carbon;
 use Nbj\Stopwatch;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Enums\State;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class RequestInsuranceWorker
 {
@@ -56,7 +60,7 @@ class RequestInsuranceWorker
     /**
      * RequestInsuranceService constructor.
      */
-    public function __construct(int $batchSize = 100, int $microSecondsToWait = 100000)
+    public function __construct(int $batchSize = 100, int $microSecondsToWait = 200000)
     {
         $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
@@ -168,48 +172,132 @@ class RequestInsuranceWorker
      */
     protected function processRequestInsurances(): void
     {
-        /** @var Collection $requestIds */
-        $requestIds = DB::transaction(function () {
-            try {
-                $measurement = Stopwatch::time(function () {
-                    return $this->acquireLockOnRowsToProcess();
-                });
+        $this->getRequestsToProcess()
+            ->chunk($this->getRequestChunkSize())
+            ->each(fn (EloquentCollection $requestChunk) => rescue(function () use ($requestChunk) {
+                $this->processHttpRequestChunk($requestChunk);
+            }));
+    }
 
-                if ($measurement->seconds() >= 80) {
-                    Log::critical(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
-                } elseif ($measurement->seconds() >= 60) {
-                    Log::warning(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
-                } elseif ($measurement->seconds() >= 30) {
-                    Log::info(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
-                }
+    /**
+     * @param EloquentCollection<RequestInsurance> $requests
+     *
+     * @noinspection CallableParameterUseCaseInTypeContextInspection
+     *
+     * @throws Throwable
+     *
+     * @return void
+     */
+    protected function processHttpRequestChunk(EloquentCollection $requests): void
+    {
+        // An event is dispatched before processing begins
+        // allowing the application to abandon/complete/fail the requests before processing.
+        $requests = $requests
+            ->each(fn (RequestInsurance $requestInsurance)   => Events\RequestBeforeProcess::dispatch($requestInsurance))
+            ->filter(fn (RequestInsurance $requestInsurance) => $requestInsurance->hasState(State::PENDING));
 
-                return $measurement->result();
-            } catch (Throwable $throwable) {
-                Log::error($throwable);
+        // If all requests were cancelled by the listeners, then bail out.
+        if ($requests->isEmpty()) {
+            return;
+        }
 
-                throw $throwable;
+        // Increment the number of attempts and set state to PROCESSING as the very first action
+        $this->setStateToProcessingAndIncrementAttempts($requests);
+
+        // Send the requests concurrently
+        $responses = $this->sendHttpRequestChunk($requests);
+
+        // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
+        /** @var RequestInsurance $request */
+        foreach ($requests as $request) {
+            rescue(fn () => $request->handleResponse($responses->get($request)));
+        }
+    }
+
+    /**
+     * Sends a http request chunk concurrently
+     *
+     * @param EloquentCollection $requests
+     *
+     * @return RequestPoolResponses
+     */
+    protected function sendHttpRequestChunk(EloquentCollection $requests): RequestPoolResponses
+    {
+        $responses = Http::pool(function (Pool $pool) use ($requests) {
+            $requestPool = [];
+
+            /** @var RequestInsurance $request */
+            foreach ($requests as $request) {
+                $requestPool[] = $request->enterHttpRequestPool($pool);
             }
-        }, 5);
 
-        // Gets requests to process ordered by priority
-        $requests = resolve(RequestInsurance::class)::query()
+            return $requestPool;
+        });
+
+        return new RequestPoolResponses($responses);
+    }
+
+    /**
+     * Sets the state to processing and increments the amount of attempts for the given requests
+     *
+     * @param EloquentCollection $requests
+     *
+     * @return void
+     */
+    protected function setStateToProcessingAndIncrementAttempts(EloquentCollection $requests): void
+    {
+        $now = Carbon::now()->toDateTimeString();
+
+        $updatedRows = RequestInsurance::query()
+            ->whereIn('id', $requests->pluck('id'))
+            ->update([
+                'state'            => State::PROCESSING,
+                'state_changed_at' => $now,
+                'retry_count'      => DB::raw('retry_count + 1'),
+            ]);
+
+        if ( ! $updatedRows) {
+            throw new \RuntimeException('Could not update jobs before processing begins');
+        }
+
+        // Reflect the same change in-memory
+        $requests->each(fn (RequestInsurance $requestInsurance) => $requestInsurance->forceFill([
+            'state'            => State::PROCESSING,
+            'state_changed_at' => $now,
+            'retry_count'      => $requestInsurance->retry_count + 1,
+        ]));
+    }
+
+    /**
+     * Returns the concurrent request chunk size
+     *
+     * @return int
+     */
+    protected function getRequestChunkSize(): int
+    {
+        if (Config::get('request-insurance.concurrentHttpEnabled', false)) {
+            return Config::get('request-insurance.concurrentHttpChunkSize', 5);
+        }
+
+        return 1;
+    }
+
+    /**
+     * Returns a collection of requests to process
+     *
+     * @throws Exception
+     *
+     * @return EloquentCollection
+     */
+    protected function getRequestsToProcess(): EloquentCollection
+    {
+        $requestIds = $this->acquireLockOnRowsToProcess();
+
+        // Gets requests to process ordered by priority and id
+        return resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
             ->get()
             ->sortBy(['priority', 'id']);
-
-        $requests->each(function ($request) {
-            /** @var RequestInsurance $request */
-            try {
-                $request->process();
-            } catch (Throwable $throwable) {
-                Log::error($throwable);
-
-                $request->setState($request->wasSuccessful() ? State::COMPLETED : State::FAILED);
-                $request->save();
-            } finally {
-                $request->unstuckPending();
-            }
-        });
     }
 
     /**
@@ -221,27 +309,30 @@ class RequestInsuranceWorker
      */
     public function acquireLockOnRowsToProcess(): Collection
     {
-        $requestIds = $this->getIdsOfReadyRequests();
+        return DB::transaction(function () {
+            $requestIds = $this->getIdsOfReadyRequests();
 
-        // Bail if no request are ready to be processed
-        if ($requestIds->isEmpty()) {
+            // Bail if no request are ready to be processed
+            if ($requestIds->isEmpty()) {
+                return $requestIds;
+            }
+
+            // Mark the selected jobs as PENDING so other workers do not try to consume them
+            $now = CarbonImmutable::now();
+
+            $locksWereObtained = resolve(RequestInsurance::class)::query()
+                ->whereIn('id', $requestIds)
+                ->update([
+                    'state'            => State::PENDING,
+                    'state_changed_at' => $now,
+                ]);
+
+            if ( ! $locksWereObtained) {
+                throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));
+            }
+
             return $requestIds;
-        }
-
-        $now = CarbonImmutable::now();
-
-        $locksWereObtained = resolve(RequestInsurance::class)::query()
-            ->whereIn('id', $requestIds)
-            ->update([
-                'state'            => State::PENDING,
-                'state_changed_at' => $now,
-            ]);
-
-        if ( ! $locksWereObtained) {
-            throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));
-        }
-
-        return $requestIds;
+        }, 5);
     }
 
     /**

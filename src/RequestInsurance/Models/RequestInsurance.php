@@ -9,12 +9,16 @@ use JsonException;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
+use Illuminate\Http\Client\Pool;
 use Cego\RequestInsurance\Events;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\RequestInsuranceBuilder;
@@ -635,6 +639,13 @@ class RequestInsurance extends SaveRetryingModel
         return in_array($this->state, $states, true);
     }
 
+    /**
+     * Sets the state of the request insurance without saving
+     *
+     * @param string $state
+     *
+     * @return void
+     */
     public function setState(string $state): void
     {
         if ( ! in_array($state, State::getAll(), true)) {
@@ -681,30 +692,48 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Processes the RequestInsurance instance
+     * Enters the request into the given http request pool
+     *
+     * @param Pool $pool
      *
      * @throws JsonException
-     * @throws MethodNotAllowedForRequestInsurance
-     * @throws Throwable
      *
-     * @return $this
+     * @return PromiseInterface
      */
-    public function process(): RequestInsurance
+    public function enterHttpRequestPool(Pool $pool): PromiseInterface
     {
-        // An event is dispatched before processing begins
-        // allowing the application to abandon/complete/paused the requests before processing.
-        Events\RequestBeforeProcess::dispatch($this);
+        return $pool->as($this->id)
+            ->withHeaders($this->getHeadersCastToArray())
+            ->withUserAgent('RequestInsurance')
+            ->timeout($this->getEffectiveTimeout())
+            ->send($this->method, $this->url, ['body' => $this->payload]);
+    }
 
-        if ($this->doesNotHaveState(State::PENDING)) {
-            return $this;
+    /**
+     * Returns the effective timeout
+     *
+     * @return int
+     */
+    protected function getEffectiveTimeout(): int
+    {
+        if ($this->timeout_ms === null) {
+            return Config::get('request-insurance.timeoutInSeconds', 20);
         }
 
-        // Increment the number of tries and set state to PROCESSING as the very first action
-        $this->updateOrFail(['state' => State::PROCESSING, 'retry_count' => $this->retry_count + 1]);
+        return ceil($this->timeout_ms / 1000);
+    }
 
-        // Send the request and receive the response
-        $response = $this->sendRequest();
-
+    /**
+     * Processes the RequestInsurance instance
+     *
+     * @param HttpResponse $response
+     *
+     * @throws Throwable
+     *
+     * @return void
+     */
+    public function handleResponse(HttpResponse $response): void
+    {
         // Update the request with the latest response
         $this->response_body = $response->getBody();
         $this->response_code = $response->getCode();
@@ -721,7 +750,10 @@ class RequestInsurance extends SaveRetryingModel
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
         }
 
-        if ($response->wasSuccessful()) {
+        if ($response->isInconsistent()) {
+            $this->setState(State::FAILED);
+            $response->logInconsistentReason();
+        } elseif ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
         } elseif ($response->isRetryable()) {
             $this->setState(State::WAITING);
@@ -730,22 +762,16 @@ class RequestInsurance extends SaveRetryingModel
             $this->setState(State::FAILED);
         }
 
-        // It happens that a ->save() causes a deadlock problem,
-        // since this is not really a logic error, we add this retry logic
-        // so the data is persisted.
-        // This will most likely in almost all cases catch the problem before an exception is thrown.
         $this->save();
 
         $this->dispatchPostProcessEvents($response);
-
-        return $this;
     }
 
     /**
      * Sends the request to the target URL and returns the response
      *
-     * @throws JsonException
      * @throws MethodNotAllowedForRequestInsurance
+     * @throws JsonException
      *
      * @return HttpResponse
      */
@@ -776,6 +802,11 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected function dispatchPostProcessEvents(HttpResponse $response): void
     {
+        // TODO: Maybe add event for inconsistent and timeouts?
+        if ($response->isInconsistent()) {
+            return;
+        }
+
         if ($response->wasSuccessful()) {
             Events\RequestSuccessful::dispatch($this);
         } else {

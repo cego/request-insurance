@@ -8,7 +8,6 @@ use Tests\TestCase;
 use RuntimeException;
 use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Enums\State;
-use Cego\RequestInsurance\RequestInsuranceWorker;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class RequestInsuranceStateTest extends TestCase
@@ -35,8 +34,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
-        $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
-        $requestInsurance->process();
+        $this->runWorkerOnce();
 
         // Assert
         $requestInsurance->refresh();
@@ -51,8 +49,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
-        $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
-        $requestInsurance->process();
+        $this->runWorkerOnce();
 
         // Assert
         $requestInsurance->refresh();
@@ -67,8 +64,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
-        $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
-        $requestInsurance->process();
+        $this->runWorkerOnce();
 
         // Assert
         $requestInsurance->refresh();
@@ -85,10 +81,9 @@ class RequestInsuranceStateTest extends TestCase
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
-        $requestInsurance->updateOrFail(['state' => State::PENDING, 'state_changed_at' => Carbon::now()]);
 
         try {
-            $requestInsurance->process();
+            $this->runWorkerOnce();
         } catch (Exception $exception) {
             // Do nothing
         }
@@ -129,7 +124,7 @@ class RequestInsuranceStateTest extends TestCase
     }
 
     /** @test */
-    public function it_sets_state_to_failed_when_worker_process_jobs_with_exception(): void
+    public function it_leaves_the_request_in_processing_state_when_worker_process_jobs_with_exception(): void
     {
         // Arrange
         Http::fake(function () {
@@ -142,7 +137,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Assert
         $requestInsurance->refresh();
-        $this->assertEquals(State::FAILED, $requestInsurance->state);
+        $this->assertEquals(State::PROCESSING, $requestInsurance->state);
     }
 
     /** @test */
@@ -186,17 +181,5 @@ class RequestInsuranceStateTest extends TestCase
             ->create();
 
         return $requestInsurance->fresh();
-    }
-
-    protected function runWorkerOnce(): void
-    {
-        $this->getWorker()->run(true);
-    }
-
-    protected function getWorker(): RequestInsuranceWorker
-    {
-        putenv('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT=false');
-
-        return new RequestInsuranceWorker();
     }
 }

@@ -2,55 +2,65 @@
 
 namespace Cego\RequestInsurance;
 
-use Exception;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
-use Cego\RequestInsurance\Contracts\HttpRequest;
+use GuzzleHttp\Exception\ConnectException;
 
 class HttpResponse
 {
     protected Response $response;
+    protected ConnectException $connectException;
 
     /**
-     * Holds the body of the response
-     *
-     * @var bool|string $body
+     * @param Response|ConnectException $response
      */
-    protected $body;
-
-    /**
-     * Named constructor for creating a new response instance
-     *
-     * @param HttpRequest $request
-     *
-     * @return HttpResponse
-     */
-    public static function create(HttpRequest $request)
+    public function __construct($response)
     {
-        return (new static)
-            ->setRequest($request);
+        if ($response instanceof ConnectException) {
+            $this->connectException = $response;
+        } elseif ($response !== null) {
+            $this->response = $response;
+        }
     }
 
     /**
-     * Sets the request that produced the response
+     * Returns true if the request is in an inconsistent state,
+     * caused by any reason which left us without any real response.
      *
-     * @param HttpRequest $request
-     *
-     * @throws Exception
-     *
-     * @return $this
+     * @return bool
      */
-    public function setRequest(HttpRequest $request)
+    public function isInconsistent(): bool
     {
-        $this->response = Http::withHeaders($request->getHeaders())
-            ->withUserAgent($request->getUserAgent())
-            ->timeout($request->getTimeout())
-            ->send($request->getMethod(), $request->getUrl(), [
-                'body' => $request->getPayload(),
-            ]);
+        return ! isset($this->response);
+    }
 
-        return $this;
+    /**
+     * Returns true when the request timed out
+     *
+     * @return bool
+     */
+    public function isTimedOut(): bool
+    {
+        return isset($this->connectException);
+    }
+
+    /**
+     * Logs the reason for the inconsistent state if the response is in an inconsistent state
+     *
+     * @return void
+     */
+    public function logInconsistentReason(): void
+    {
+        if ( ! $this->isInconsistent()) {
+            return;
+        }
+
+        if ($this->isTimedOut()) {
+            Log::error($this->connectException);
+        } else {
+            Log::error('No response object nor connect exception received for request');
+        }
     }
 
     /**
@@ -60,6 +70,10 @@ class HttpResponse
      */
     public function wasSuccessful()
     {
+        if ($this->isInconsistent()) {
+            return false;
+        }
+
         return $this->isResponseCodeBetween(200, 299);
     }
 
@@ -98,18 +112,34 @@ class HttpResponse
      *
      * @return int
      */
-    public function getCode()
+    public function getCode(): int
     {
+        if ($this->isTimedOut()) {
+            return 0;
+        }
+
+        if ($this->isInconsistent()) {
+            return -1;
+        }
+
         return $this->response->status();
     }
 
     /**
      * Gets the body of the response
      *
-     * @return string
+     * @return string|null
      */
-    public function getBody(): string
+    public function getBody(): ?string
     {
+        if ($this->isTimedOut()) {
+            return '<REQUEST_TIMED_OUT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
+        }
+
+        if ($this->isInconsistent()) {
+            return '<REQUEST_INCONSISTENT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
+        }
+
         return $this->response->body();
     }
 
@@ -118,6 +148,10 @@ class HttpResponse
      */
     public function getHeaders(): Collection
     {
+        if ($this->isInconsistent()) {
+            return new Collection();
+        }
+
         return collect($this->response->headers());
     }
 
@@ -128,6 +162,10 @@ class HttpResponse
      */
     public function getExecutionTime(): float
     {
+        if ($this->isInconsistent()) {
+            return -1;
+        }
+
         return $this->response->handlerStats()['total_time'] ?? 0;
     }
 
@@ -140,6 +178,10 @@ class HttpResponse
      */
     public function isClientError(): bool
     {
+        if ($this->isInconsistent()) {
+            return false;
+        }
+
         return $this->isResponseCodeBetween(400, 499);
     }
 
@@ -152,6 +194,10 @@ class HttpResponse
      */
     public function isServerError(): bool
     {
+        if ($this->isInconsistent()) {
+            return false;
+        }
+
         return $this->isResponseCodeBetween(500, 599);
     }
 
