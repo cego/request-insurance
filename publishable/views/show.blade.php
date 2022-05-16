@@ -155,7 +155,7 @@
                             <div class="card-text">
                                 <hr>
                                 @if($edit->admin_user != 'jabjaaa'){{-- TODO figure out how to read the user name --}}
-                                <form method="POST" action="{{ route('request-insurances.approve', $requestInsurance) }}">
+                                <form method="POST" action="{{ route('request-insurances.approve_edit', $requestInsurance) }}">
                                     <input type="hidden" name="_method" value="post">
                                     <button class="btn btn-primary" type="submit">Approve</button>
                                 </form>
