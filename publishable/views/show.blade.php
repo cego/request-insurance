@@ -20,10 +20,10 @@
                         <div class="card-title text-center">
                             <h3>Request</h3>
                             @if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
-                            <form method="POST" action="{{ route('request-insurances.edit', $requestInsurance) }}">
-                                <input type="hidden" name="_method" value="post">
-                                <button class="btn btn-primary" type="submit">Edit</button>
-                            </form>
+                                <form method="POST" action="{{ route('request-insurances.edit', $requestInsurance) }}">
+                                    <input type="hidden" name="_method" value="post">
+                                    <button class="btn btn-primary" type="submit">Edit</button>
+                                </form>
                             @endif
                             <hr>
                         </div>
@@ -67,43 +67,49 @@
 
             <!-- Response -->
             @if ($requestInsurance->hasState(State::COMPLETED))
-            <div class="col-6">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title text-center">
-                            <h3>Response:</h3>
-                            <hr>
-                        </div>
-                        <div class="card-text">
-                            <table class="table-hover w-100 table-vertical table-striped">
-                                <tbody>
-                                <tr>
-                                    <td>Response code:</td>
-                                    <td><h4><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}"/></h4></td>
-                                </tr>
-                                <tr>
-                                    <td>Response headers:</td>
-                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->response_headers"/></td>
-                                </tr>
-                                <tr>
-                                    <td>Response body</td>
-                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->response_body"/></td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Edit(s) -->
-            @elseif( ! empty($requestInsurance->edits()->all()))
-                {{$edit = $requestInsurance->edits()->all()}}
-                {{dd($edit)}}
                 <div class="col-6">
                     <div class="card">
                         <div class="card-body">
                             <div class="card-title text-center">
-                                <h3>Edit:</h3>
+                                <h3>Response:</h3>
+                                <hr>
+                            </div>
+                            <div class="card-text">
+                                <table class="table-hover w-100 table-vertical table-striped">
+                                    <tbody>
+                                    <tr>
+                                        <td>Response code:</td>
+                                        <td><h4><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}"/></h4></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Response headers:</td>
+                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->response_headers"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Response body</td>
+                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->response_body"/></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Edit(s) -->
+            @elseif( ! empty($requestInsurance->edits()->first()->get()))
+                <?php $edit = $requestInsurance->edits()->first(); ?>
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title text-center">
+                                <h3>
+                                    Edit:
+                                    @if($edit->applied_at == null)
+                                        <div class="badge badge-primary">Pending</div>
+                                    @else
+                                        <div class="badge badge-success">Applied</div>
+                                    @endif
+                                </h3>
                                 <hr>
                             </div>
                             <div class="card-text">
@@ -119,18 +125,18 @@
                                     </tr>
                                     <tr>
                                         <td>Method:</td>
-                                        <td>{{ mb_strtoupper($edit->new_method) }}
+                                        <td>
                                             <select name="method" id="new_method">
-                                                <option value="GET" {{mb_strtoupper($edit->new_method) == "GET" ? 'selected' : ''}}>GET</option>
-                                                <option value="POST" {{mb_strtoupper($edit->new_method) == "POST" ? 'selected' : ''}}>POST</option>
-                                                <option value="PUT" {{mb_strtoupper($edit->new_method) == "PUT" ? 'selected' : ''}}>PUT</option>
+                                                <option value="GET" @selected(mb_strtoupper($edit->new_method) == "GET")>GET</option>
+                                                <option value="POST" @selected(mb_strtoupper($edit->new_method) == "POST")>POST</option>
+                                                <option value="PUT" @selected(mb_strtoupper($edit->new_method) == "PUT")>PUT</option>
                                             </select>
                                         </td>
 
                                     </tr>
                                     <tr>
                                         <td>Url:</td>
-                                        <td><input name="new_url" value="{{ urldecode($edit->new_url) }}"/></td>
+                                        <td><input name="new_url" class="w-100" value="{{ urldecode($edit->new_url) }}"/></td>
                                     </tr>
                                     <tr>
                                         <td>Payload:</td>
@@ -145,6 +151,21 @@
                                     <!-- TODO new encrypted fields? -->
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="card-text">
+                                <hr>
+                                @if($edit->admin_user != 'jabjaaa'){{-- TODO figure out how to read the user name --}}
+                                <form method="POST" action="{{ route('request-insurances.approve', $requestInsurance) }}">
+                                    <input type="hidden" name="_method" value="post">
+                                    <button class="btn btn-primary" type="submit">Approve</button>
+                                </form>
+                                @endif
+                                @if($edit->admin_user == 'jabj'){{-- TODO figure out how to read the user name --}}
+                                <form method="POST" action="{{ route('request-insurances.apply_edit', $requestInsurance) }}">
+                                    <input type="hidden" name="_method" value="post">
+                                    <button class="btn btn-primary" type="submit">Apply</button>
+                                </form>
+                                @endif
                             </div>
                         </div>
                     </div>

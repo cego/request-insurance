@@ -71,6 +71,11 @@ class RequestInsuranceController extends Controller
         return redirect()->back();
     }
 
+    /**
+     * @param Request $request
+     * @param RequestInsurance $requestInsurance
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function edit(Request $request, RequestInsurance $requestInsurance)
     {
         // Only allow updates for requests that have not completed or been abandoned
@@ -97,6 +102,26 @@ class RequestInsuranceController extends Controller
         ]);
 
         return redirect()->back();
+    }
+
+    /**
+     * @param Request $request
+     * @param RequestInsurance $requestInsurance
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function approve_edit(Request $request, RequestInsurance $requestInsurance)
+    {
+        return redirect()->back();//TODO actually implement
+    }
+
+    /**
+     * @param Request $request
+     * @param RequestInsurance $requestInsurance
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function apply_edit(Request $request, RequestInsurance $requestInsurance)
+    {
+        return redirect()->back();//TODO actually implement
     }
 
     /**

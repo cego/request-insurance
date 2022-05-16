@@ -45,4 +45,14 @@ Route::namespace('Cego\RequestInsurance\Controllers')
             'uses' => 'RequestInsuranceController@edit',
             'as'   => 'request-insurances.edit',
         ])->withoutMiddleware(VerifyCsrfToken::class);
+
+        Route::post('request-insurances/{request_insurance}/approve_edit', [
+            'uses' => 'RequestInsuranceController@approve_edit',
+            'as'   => 'request-insurances.approve_edit',
+        ])->withoutMiddleware(VerifyCsrfToken::class);
+
+        Route::post('request-insurances/{request_insurance}/apply_edit', [
+            'uses' => 'RequestInsuranceController@apply_edit',
+            'as'   => 'request-insurances.apply_edit',
+        ])->withoutMiddleware(VerifyCsrfToken::class);
     });
