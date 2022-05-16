@@ -5,14 +5,14 @@ namespace Cego\RequestInsurance\Factories;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class RequestInsuranceEditFactory extends Factory
+class RequestInsuranceEditApprovalFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
      * @var string
      */
-    protected $model = RequestInsuranceEdit::class;
+    protected $model = RequestInsuranceApproval::class;
 
     /**
      * Define the model's default state.

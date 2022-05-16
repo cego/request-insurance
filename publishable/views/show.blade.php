@@ -160,7 +160,7 @@
                                     <button class="btn btn-primary" type="submit">Approve</button>
                                 </form>
                                 @endif
-                                @if($edit->admin_user == 'jabj'){{-- TODO figure out how to read the user name --}}
+                                @if($edit->required_approvals <= $edit->approvals()->count()){{-- TODO figure out how to read the user name --}}
                                 <form method="POST" action="{{ route('request-insurances.apply_edit', $requestInsurance) }}">
                                     <input type="hidden" name="_method" value="post">
                                     <button class="btn btn-primary" type="submit">Apply</button>
