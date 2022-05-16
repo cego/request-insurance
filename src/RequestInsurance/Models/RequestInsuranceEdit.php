@@ -20,14 +20,14 @@ use Cego\RequestInsurance\Factories\RequestInsuranceLogFactory;
  * @property string $new_url
  * @property string $old_method
  * @property string $new_method
- * @property string $old_headers
- * @property string $new_headers
- * @property string $old_payload
- * @property string $new_payload
- * @property string $old_encrypted_fields
- * @property string $new_encrypted_fields
+ * @property string|null $old_headers
+ * @property string|null $new_headers
+ * @property string|null $old_payload
+ * @property string|null $new_payload
+ * @property string|null $old_encrypted_fields
+ * @property string|null $new_encrypted_fields
  * @property string $admin_user
- * @property Carbon $applied_at
+ * @property Carbon|null $applied_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
