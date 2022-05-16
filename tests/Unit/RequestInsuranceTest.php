@@ -2,8 +2,9 @@
 
 namespace Tests\Unit;
 
-use Carbon\Carbon;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Http;
+use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
@@ -149,12 +150,15 @@ class RequestInsuranceTest extends TestCase
     public function it_always_increment_the_tries_count(): void
     {
         // Arrange
+        Http::fake(fn () => Http::response([], 200));
+
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
             ->method('get')
             ->create();
 
         $requestInsurance->refresh();
+        $requestInsurance->update(['state' => State::PENDING]);
 
         // Act & Assert
         $this->assertEquals(0, $requestInsurance->retry_count);
@@ -162,7 +166,7 @@ class RequestInsuranceTest extends TestCase
         $requestInsurance->process();
         $this->assertEquals(1, $requestInsurance->retry_count);
 
-        $requestInsurance->update(['completed_at' => null]);
+        $requestInsurance->update(['state' => State::PENDING]);
         $requestInsurance->process();
 
         $this->assertEquals(2, $requestInsurance->retry_count);
@@ -177,92 +181,14 @@ class RequestInsuranceTest extends TestCase
             ->method('get')
             ->create();
 
-        $requestInsurance->update(['paused_at' => Carbon::now(), 'abandoned_at' => Carbon::now()]);
+        $requestInsurance->updateOrFail(['state' => State::FAILED]);
         $requestInsurance->refresh();
-
-        $this->assertNotNull($requestInsurance->paused_at);
-        $this->assertNull($requestInsurance->completed_at);
-        $this->assertNull($requestInsurance->locked_at);
-        $this->assertNotNull($requestInsurance->abandoned_at);
 
         // Act & Assert
-        $requestInsurance->resume();
+        $requestInsurance->retryNow();
 
-        $this->assertNull($requestInsurance->paused_at);
-        $this->assertNull($requestInsurance->completed_at);
-        $this->assertNull($requestInsurance->locked_at);
-        $this->assertNull($requestInsurance->abandoned_at);
-    }
-
-    /** @test */
-    public function it_can_retry_request_insurances(): void
-    {
-        // Arrange
-        $requestInsurance = RequestInsurance::getBuilder()
-            ->url('https://test.lupinsdev.dk')
-            ->method('get')
-            ->create();
-
-        $requestInsurance->update(['paused_at' => Carbon::now(), 'abandoned_at' => Carbon::now(), 'completed_at' => Carbon::now()]);
-        $requestInsurance->refresh();
-
-        $this->assertNotNull($requestInsurance->paused_at);
-        $this->assertNotNull($requestInsurance->completed_at);
-        $this->assertNotNull($requestInsurance->abandoned_at);
+        $this->assertTrue($requestInsurance->hasState(State::READY));
         $this->assertNull($requestInsurance->retry_at);
-        $this->assertNull($requestInsurance->locked_at);
-
-        // Act & Assert
-        $requestInsurance->retry();
-
-        $this->assertNull($requestInsurance->paused_at);
-        $this->assertNull($requestInsurance->completed_at);
-        $this->assertNull($requestInsurance->abandoned_at);
-        $this->assertNotNull($requestInsurance->retry_at);
-        $this->assertNull($requestInsurance->locked_at);
-    }
-
-    /** @test */
-    public function it_uses_exponential_backoff(): void
-    {
-        // Arrange
-        $now = Carbon::now()->startOfSecond();
-
-        $this->travelTo($now); // Freeze time
-
-        $requestInsurance = RequestInsurance::getBuilder()
-            ->url('https://test.lupinsdev.dk')
-            ->method('get')
-            ->create();
-
-        $requestInsurance->refresh();
-
-        $this->assertNull($requestInsurance->locked_at);
-
-        // Act & Assert
-        $requestInsurance->retry_count = 0;
-        $requestInsurance->retry();
-        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(1));
-
-        $requestInsurance->retry_count = 1;
-        $requestInsurance->retry();
-        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(2));
-
-        $requestInsurance->retry_count = 2;
-        $requestInsurance->retry();
-        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(4));
-
-        $requestInsurance->retry_count = 3;
-        $requestInsurance->retry();
-        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(8));
-
-        $requestInsurance->retry_count = 4;
-        $requestInsurance->retry();
-        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(16));
-
-        $requestInsurance->retry_count = 5;
-        $requestInsurance->retry();
-        $this->assertEquals($requestInsurance->retry_at, $now->addSeconds(32));
     }
 
     /** @test */
@@ -275,14 +201,14 @@ class RequestInsuranceTest extends TestCase
             ->create();
 
         // Act
-        $requestInsurance->update(['completed_at' => Carbon::now()]);
+        $requestInsurance->update(['state' => State::COMPLETED]);
 
         // Assert
         $this->assertFalse($requestInsurance->isRetryable());
     }
 
     /** @test */
-    public function it_is_retryable_if_not_completed_but_paused(): void
+    public function it_is_retryable_if_not_completed_but_failed(): void
     {
         // Arrange
         $requestInsurance = RequestInsurance::getBuilder()
@@ -291,7 +217,7 @@ class RequestInsuranceTest extends TestCase
             ->create();
 
         // Act
-        $requestInsurance->update(['completed_at' => null, 'paused_at' => Carbon::now()]);
+        $requestInsurance->update(['state' => State::FAILED]);
 
         // Assert
         $this->assertTrue($requestInsurance->isRetryable());
@@ -307,7 +233,7 @@ class RequestInsuranceTest extends TestCase
             ->create();
 
         // Act
-        $requestInsurance->update(['completed_at' => null, 'abandoned_at' => Carbon::now()]);
+        $requestInsurance->updateOrFail(['state' => State::ABANDONED]);
 
         // Assert
         $this->assertTrue($requestInsurance->isRetryable());

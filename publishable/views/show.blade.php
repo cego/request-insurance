@@ -48,27 +48,11 @@
                                     <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
                                 </tr>
                                 <tr>
-                                    <td>Completed at:</td>
-                                    <td>{{ $requestInsurance->completed_at }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Paused at:</td>
-                                    <td>{{ $requestInsurance->paused_at }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Abandoned at:</td>
-                                    <td>{{ $requestInsurance->abandoned_at }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Locked at:</td>
-                                    <td>{{ $requestInsurance->locked_at }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Next retry at:</td>
+                                    <td>Next attempt at:</td>
                                     <td>{{ $requestInsurance->retry_at }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Retry count:</td>
+                                    <td>Attempts:</td>
                                     <td>{{ $requestInsurance->retry_count }}</td>
                                 </tr>
                                 </tbody>

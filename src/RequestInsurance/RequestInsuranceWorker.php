@@ -2,14 +2,17 @@
 
 namespace Cego\RequestInsurance;
 
+use Closure;
 use Exception;
 use Throwable;
 use Carbon\Carbon;
 use Nbj\Stopwatch;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class RequestInsuranceWorker
@@ -44,6 +47,13 @@ class RequestInsuranceWorker
     protected int $batchSize;
 
     /**
+     * Timestamp used for running stuff at most once every second
+     *
+     * @var array
+     */
+    protected array $secondIntervalTimestamp;
+
+    /**
      * RequestInsuranceService constructor.
      */
     public function __construct(int $batchSize = 100, int $microSecondsToWait = 100000)
@@ -51,6 +61,8 @@ class RequestInsuranceWorker
         $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
+        $this->secondIntervalTimestamp = hrtime();
+        Log::withContext(['worker.id' => $this->runningHash]);
     }
 
     /**
@@ -74,6 +86,7 @@ class RequestInsuranceWorker
 
                 $executionTime = Stopwatch::time(function () {
                     $this->processRequestInsurances();
+                    $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
                 });
 
                 $waitTime = (int) max($this->microSecondsToWait - $executionTime->microseconds(), 0);
@@ -116,6 +129,39 @@ class RequestInsuranceWorker
     }
 
     /**
+     * Method for running the given closure at most once every second.
+     * This method cannot be reused multiple time.
+     *
+     * @param Closure $closure
+     *
+     * @return void
+     */
+    protected function atMostOnceEverySecond(Closure $closure): void
+    {
+        // $now[0 => seconds, 1 => nanoseconds]
+        $now = hrtime();
+
+        // If a second has passed
+        if ($this->secondIntervalTimestamp[0] < $now[0]) {
+            $this->secondIntervalTimestamp = $now;
+            $closure();
+        }
+    }
+
+    /**
+     * Marks waiting request insurances as ready
+     *
+     * @return void
+     */
+    protected function readyWaitingRequestInsurances(): void
+    {
+        RequestInsurance::query()
+            ->where('state', State::WAITING)
+            ->where('retry_at', '<=', Carbon::now())
+            ->update(['state' => State::READY, 'state_changed_at' => Carbon::now(), 'retry_at' => null]);
+    }
+
+    /**
      * Processes all requests ready to be processed
      *
      * @throws Throwable
@@ -124,26 +170,32 @@ class RequestInsuranceWorker
     {
         /** @var Collection $requestIds */
         $requestIds = DB::transaction(function () {
-            $measurement = Stopwatch::time(function () {
-                return $this->acquireLockOnRowsToProcess();
-            });
+            try {
+                $measurement = Stopwatch::time(function () {
+                    return $this->acquireLockOnRowsToProcess();
+                });
 
-            if ($measurement->seconds() >= 80) {
-                Log::critical(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
-            } elseif ($measurement->seconds() >= 60) {
-                Log::warning(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
-            } elseif ($measurement->seconds() >= 30) {
-                Log::info(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
+                if ($measurement->seconds() >= 80) {
+                    Log::critical(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
+                } elseif ($measurement->seconds() >= 60) {
+                    Log::warning(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
+                } elseif ($measurement->seconds() >= 30) {
+                    Log::info(sprintf('%s: Selecting RI rows for processing took %d seconds!', __METHOD__, $measurement->seconds()));
+                }
+
+                return $measurement->result();
+            } catch (Throwable $throwable) {
+                Log::error($throwable);
+
+                throw $throwable;
             }
-
-            return $measurement->result();
-        }, 3);
+        }, 5);
 
         // Gets requests to process ordered by priority
         $requests = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
-            ->orderBy('priority')
-            ->get();
+            ->get()
+            ->sortBy(['priority', 'id']);
 
         $requests->each(function ($request) {
             /** @var RequestInsurance $request */
@@ -152,21 +204,22 @@ class RequestInsuranceWorker
             } catch (Throwable $throwable) {
                 Log::error($throwable);
 
-                $request->pause();
+                $request->setState($request->wasSuccessful() ? State::COMPLETED : State::FAILED);
+                $request->save();
             } finally {
-                $request->unlock();
+                $request->unstuckPending();
             }
         });
     }
 
     /**
-     * Acquires a lock on the next rows to process, by setting the locked_at column
+     * Acquires a lock on the next rows to process
      *
      * @throws Exception
      *
      * @return Collection
      */
-    protected function acquireLockOnRowsToProcess(): Collection
+    public function acquireLockOnRowsToProcess(): Collection
     {
         $requestIds = $this->getIdsOfReadyRequests();
 
@@ -175,9 +228,14 @@ class RequestInsuranceWorker
             return $requestIds;
         }
 
+        $now = CarbonImmutable::now();
+
         $locksWereObtained = resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
-            ->update(['locked_at' => Carbon::now(), 'updated_at' => Carbon::now()]);
+            ->update([
+                'state'            => State::PENDING,
+                'state_changed_at' => $now,
+            ]);
 
         if ( ! $locksWereObtained) {
             throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));

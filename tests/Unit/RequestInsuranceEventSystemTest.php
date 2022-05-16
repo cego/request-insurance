@@ -2,11 +2,11 @@
 
 namespace Tests\Unit;
 
-use Carbon\Carbon;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Event;
+use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Events\RequestFailed;
-use Cego\RequestInsurance\Mocks\MockCurlRequest;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Events\RequestSuccessful;
 use Cego\RequestInsurance\Events\RequestClientError;
@@ -19,12 +19,14 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_successful_event_for_200_responses(): void
     {
         // Arrange
-        MockCurlRequest::setNextResponse(['info' => ['http_code' => 200]]);
+        Http::fake(fn () => Http::response([], 200));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
             ->method('get')
             ->create();
+
+        $requestInsurance->setState(State::PENDING);
 
         // Act
         Event::fake();
@@ -40,12 +42,14 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_failed_event_for_400_responses(): void
     {
         // Arrange
-        MockCurlRequest::setNextResponse(['info' => ['http_code' => 400]]);
+        Http::fake(fn () => Http::response([], 400));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
             ->method('get')
             ->create();
+
+        $requestInsurance->setState(State::PENDING);
 
         // Act
         Event::fake();
@@ -61,12 +65,14 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_failed_event_for_500_responses(): void
     {
         // Arrange
-        MockCurlRequest::setNextResponse(['info' => ['http_code' => 500]]);
+        Http::fake(fn () => Http::response([], 500));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
             ->method('get')
             ->create();
+
+        $requestInsurance->setState(State::PENDING);
 
         // Act
         Event::fake();
@@ -82,12 +88,14 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_client_error_event_for_400_responses(): void
     {
         // Arrange
-        MockCurlRequest::setNextResponse(['info' => ['http_code' => 400]]);
+        Http::fake(fn () => Http::response([], 400));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
             ->method('get')
             ->create();
+
+        $requestInsurance->setState(State::PENDING);
 
         // Act
         Event::fake();
@@ -103,12 +111,14 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_server_error_event_for_500_responses(): void
     {
         // Arrange
-        MockCurlRequest::setNextResponse(['info' => ['http_code' => 500]]);
+        Http::fake(fn () => Http::response([], 500));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
             ->method('get')
             ->create();
+
+        $requestInsurance->setState(State::PENDING);
 
         // Act
         Event::fake();
@@ -133,13 +143,12 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
+        $requestInsurance->setState(State::PENDING);
+
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
-        $this->assertNull($requestInsurance->paused_at);
-        $this->assertNull($requestInsurance->completed_at);
-        $this->assertNull($requestInsurance->locked_at);
-        $this->assertNull($requestInsurance->abandoned_at);
+        $this->assertTrue($requestInsurance->hasState(State::READY));
 
         // Act
         $requestInsurance->process();
@@ -148,10 +157,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
-        $this->assertNull($requestInsurance->paused_at);
-        $this->assertNull($requestInsurance->completed_at);
-        $this->assertNull($requestInsurance->locked_at);
-        $this->assertNotNull($requestInsurance->abandoned_at);
+        $this->assertTrue($requestInsurance->hasState(State::ABANDONED));
     }
 
     /** @test */
@@ -159,7 +165,7 @@ class RequestInsuranceEventSystemTest extends TestCase
     {
         // Arrange
         Event::listen(function (RequestBeforeProcess $event) {
-            $event->requestInsurance->update(['completed_at' => Carbon::now()]);
+            $event->requestInsurance->update(['state' => State::COMPLETED]);
         });
 
         $requestInsurance = RequestInsurance::getBuilder()
@@ -167,13 +173,12 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
+        $requestInsurance->setState(State::PENDING);
+
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
-        $this->assertNull($requestInsurance->paused_at);
-        $this->assertNull($requestInsurance->completed_at);
-        $this->assertNull($requestInsurance->locked_at);
-        $this->assertNull($requestInsurance->abandoned_at);
+        $this->assertTrue($requestInsurance->hasState(State::READY));
 
         // Act
         $requestInsurance->process();
@@ -182,18 +187,16 @@ class RequestInsuranceEventSystemTest extends TestCase
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
-        $this->assertNull($requestInsurance->paused_at);
-        $this->assertNotNull($requestInsurance->completed_at);
-        $this->assertNull($requestInsurance->locked_at);
-        $this->assertNull($requestInsurance->abandoned_at);
+        $this->assertTrue($requestInsurance->hasState(State::COMPLETED));
     }
 
     /** @test */
-    public function it_can_pause_requests_before_they_are_sent(): void
+    public function it_can_fail_requests_before_they_are_sent(): void
     {
         // Arrange
         Event::listen(function (RequestBeforeProcess $event) {
-            $event->requestInsurance->pause();
+            $event->requestInsurance->setState(State::FAILED);
+            $event->requestInsurance->save();
         });
 
         $requestInsurance = RequestInsurance::getBuilder()
@@ -201,13 +204,12 @@ class RequestInsuranceEventSystemTest extends TestCase
             ->method('get')
             ->create();
 
+        $requestInsurance->updateOrFail(['state' => State::PENDING]);
+
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
-        $this->assertNull($requestInsurance->paused_at);
-        $this->assertNull($requestInsurance->completed_at);
-        $this->assertNull($requestInsurance->locked_at);
-        $this->assertNull($requestInsurance->abandoned_at);
+        $this->assertTrue($requestInsurance->hasState(State::PENDING));
 
         // Act
         $requestInsurance->process();
@@ -216,9 +218,6 @@ class RequestInsuranceEventSystemTest extends TestCase
         $requestInsurance->refresh();
 
         $this->assertEquals(0, $requestInsurance->retry_count);
-        $this->assertNotNull($requestInsurance->paused_at);
-        $this->assertNull($requestInsurance->completed_at);
-        $this->assertNull($requestInsurance->locked_at);
-        $this->assertNull($requestInsurance->abandoned_at);
+        $this->assertTrue($requestInsurance->hasState(State::FAILED));
     }
 }

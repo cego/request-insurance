@@ -63,6 +63,21 @@ class RequestInsuranceBuilderTest extends TestCase
     }
 
     /** @test */
+    public function it_allows_url_with_special_chars(): void
+    {
+        // Act
+        $builder = RequestInsurance::getBuilder()
+            ->payload(['data' => [1, 2, 3]])
+            ->headers(['Content-Type' => 'application/json'])
+            ->method('POST')
+            ->url('https://marketing-automation-test.spilnu.dk/api/v1/contacts/æøåäö@gmail.com')
+            ->create();
+
+        // Assert
+        $this->assertEquals('https://marketing-automation-test.spilnu.dk/api/v1/contacts/æøåäö@gmail.com', $builder->url);
+    }
+
+    /** @test */
     public function it_can_convert_arrays_to_json(): void
     {
         // Arrange

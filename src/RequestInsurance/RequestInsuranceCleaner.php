@@ -4,6 +4,7 @@ namespace Cego\RequestInsurance;
 
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Cego\RequestInsurance\Enums\State;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -25,7 +26,8 @@ class RequestInsuranceCleaner
 
         // Delete RI that have been completed for more than cleanUpKeepDays
         $query->select(['id'])
-            ->where('completed_at', '<', $deletionCutoff)
+            ->whereIn('state', [State::COMPLETED, State::ABANDONED])
+            ->where('state_changed_at', '<', $deletionCutoff)
             ->chunkById($chunkSize, fn (Collection $idsToDelete) => static::deleteChunk($idsToDelete->pluck('id')));
     }
 

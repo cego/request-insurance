@@ -2,12 +2,20 @@
 
 namespace Cego\RequestInsurance\Contracts;
 
+use JsonException;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
 abstract class HttpRequest
 {
+    protected string $userAgent = 'RequestInsurance';
+    protected array $headers = [];
+    protected int $timeout;
+    protected string $url;
+    protected string $method;
+    protected string $payload;
+
     /**
      * Protected constructor to force use of named constructor
      */
@@ -27,11 +35,7 @@ abstract class HttpRequest
         /** @var HttpRequest $instance */
         $instance = (new $class);
 
-        $instance->setOption(CURLOPT_USERAGENT, 'RequestInsurance CurlRequest')
-            ->setOption(CURLOPT_RETURNTRANSFER, true)
-            ->setOption(CURLOPT_FOLLOWLOCATION, true)
-            ->setOption(CURLOPT_TCP_KEEPALIVE, Config::get('request-insurance.keepAlive', true))
-            ->setTimeoutMs(Config::get('request-insurance.timeoutInSeconds', 5) * 1000);
+        $instance->timeout = Config::get('request-insurance.timeoutInSeconds', 5);
 
         return $instance;
     }
@@ -45,31 +49,23 @@ abstract class HttpRequest
      */
     public function setUrl($url)
     {
-        return $this->setOption(CURLOPT_URL, $url);
+        $this->url = $url;
+
+        return $this;
     }
 
     /**
-     * Sets the timeout in ms
+     * Sets the timeout in seconds
      *
      * @param int $timeout
      *
      * @return $this
      */
-    public function setTimeoutMs(int $timeout)
+    public function setTimeout(int $timeout)
     {
-        if ($timeout < 1000) {
-            /**
-             * There is a bug with the CURLOPT_TIMEOUT_MS variant, if the timeout is less than a second.
-             * To get around this, we need to set the CURLOPT_NOSIGNAL to 1.
-             *
-             * See the link below for an explanation.
-             *
-             * @url https://www.php.net/manual/en/function.curl-setopt.php#104597
-             */
-            $this->setOption(CURLOPT_NOSIGNAL, 1);
-        }
+        $this->timeout = $timeout;
 
-        return $this->setOption(CURLOPT_TIMEOUT_MS, $timeout);
+        return $this;
     }
 
     /**
@@ -89,11 +85,13 @@ abstract class HttpRequest
             'GET', 'HEAD', 'POST', 'DELETE', 'PUT', 'PATCH',
         ];
 
-        if ( ! in_array($method, $allowedMethods)) {
-            throw new MethodNotAllowedForRequestInsurance;
+        if ( ! in_array($method, $allowedMethods, false)) {
+            throw new MethodNotAllowedForRequestInsurance($method);
         }
 
-        return $this->setOption(CURLOPT_CUSTOMREQUEST, mb_strtoupper($method));
+        $this->method = $method;
+
+        return $this;
     }
 
     /**
@@ -101,25 +99,19 @@ abstract class HttpRequest
      *
      * @param string|array $headers
      *
+     * @throws JsonException
+     *
      * @return $this
      */
     public function setHeaders($headers)
     {
-        // If $headers is already an array we assume it is correct and pass it directly on
-        if (is_array($headers)) {
-            return $this->setOption(CURLOPT_HTTPHEADER, $headers);
+        if ( ! is_array($headers)) {
+            $headers = json_decode($headers, true, 512, JSON_THROW_ON_ERROR);
         }
 
-        // Otherwise it is a string and we assume it is json.
-        // An exception is thrown if we cannot decode the string
-        $headers = collect(json_decode($headers, true, JSON_THROW_ON_ERROR))
-            ->map(function ($value, $header) {
-                return sprintf('%s: %s', $header, $value);
-            })
-            ->flatten()
-            ->toArray();
+        $this->headers = $headers;
 
-        return $this->setOption(CURLOPT_HTTPHEADER, $headers);
+        return $this;
     }
 
     /**
@@ -131,7 +123,9 @@ abstract class HttpRequest
      */
     public function setPayload($payload)
     {
-        return $this->setOption(CURLOPT_POSTFIELDS, $payload);
+        $this->payload = $payload;
+
+        return $this;
     }
 
     /**
@@ -145,47 +139,50 @@ abstract class HttpRequest
     }
 
     /**
-     * Sets an option
-     *
-     * @param int $option
-     * @param mixed $value
-     *
-     * @return $this
-     */
-    abstract public function setOption($option, $value);
-
-    /**
-     * Gets information about the request
-     *
-     * @return mixed
-     */
-    abstract public function getInfo();
-
-    /**
-     * Gets the error number if set
-     *
-     * @return int
-     */
-    abstract public function getErrorNumber();
-
-    /**
-     * Gets the error message if set
-     *
      * @return string
      */
-    abstract public function getError();
+    public function getUserAgent(): string
+    {
+        return $this->userAgent;
+    }
 
     /**
-     * Executes the request
-     *
-     * @return string|bool
+     * @return array
      */
-    abstract public function getResponse();
+    public function getHeaders(): array
+    {
+        return $this->headers;
+    }
 
     /**
-     * Closes the resource
-     *
-     * @return $this
+     * @return int
      */
-    abstract public function close();
+    public function getTimeout(): int
+    {
+        return $this->timeout;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrl(): string
+    {
+        return $this->url;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMethod(): string
+    {
+        return $this->method;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPayload(): string
+    {
+        return $this->payload;
+    }
 }
