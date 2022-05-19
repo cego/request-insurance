@@ -17,8 +17,8 @@ class RequestInsuranceCleaner
      */
     public static function cleanUp(): void
     {
-        $deletionCutoff = Carbon::now()->subDays(Config::get('requestInsurance.cleanUpKeepDays', 14));
-        $chunkSize = Config::get('requestInsurance.cleanChunkSize', 1000);
+        $deletionCutoff = Carbon::now()->subDays(Config::get('request-insurance.cleanUpKeepDays', 14));
+        $chunkSize = Config::get('request-insurance.cleanChunkSize', 1000);
 
         // Get RI ids to delete
         /** @var Builder $query */
@@ -27,7 +27,7 @@ class RequestInsuranceCleaner
         // Delete RI that have been completed for more than cleanUpKeepDays
         $query->select(['id'])
             ->whereIn('state', [State::COMPLETED, State::ABANDONED])
-            ->where('state_changed_at', '<', $deletionCutoff)
+            ->where('created_at', '<', $deletionCutoff)
             ->chunkById($chunkSize, fn (Collection $idsToDelete) => static::deleteChunk($idsToDelete->pluck('id')));
     }
 
