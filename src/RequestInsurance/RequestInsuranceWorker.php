@@ -264,13 +264,15 @@ class RequestInsuranceWorker
      */
     protected function sendHttpRequestChunk(EloquentCollection $requests): RequestPoolResponses
     {
-//        $requestGenerator = function (EloquentCollection $requests) {
-//            /** @var RequestInsurance $request */
-//            foreach ($requests as $request) {
-//                yield $request->id => $request->toRequestPromise($this->guzzle);
-//            }
-//        };
-//
+        $requestGenerator = function (EloquentCollection $requests) {
+            /** @var RequestInsurance $request */
+            foreach ($requests as $request) {
+                yield $request->id => $request->toRequestPromise($this->guzzle);
+            }
+        };
+
+        $requestGenerator($requests);
+
 //        $pool = new \GuzzleHttp\Pool($this->guzzle, $requestGenerator($requests), [
 //            'concurrency' => $this->getRequestChunkSize(),
 //            'fulfilled' => function (Response $response, $requestId) {
