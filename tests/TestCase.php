@@ -45,7 +45,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $this->getWorker($batchSize)->run(true);
     }
 
-    protected function getWorker(int $batchSize): RequestInsuranceWorker
+    protected function getWorker(int $batchSize = 100): RequestInsuranceWorker
     {
         putenv('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT=false');
 
