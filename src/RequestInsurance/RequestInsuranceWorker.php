@@ -84,14 +84,20 @@ class RequestInsuranceWorker
 
         do {
             try {
+                $this->logMemory("Loop Start");
+
                 if (env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)) {
                     DB::reconnect();
                 }
+
+                $this->logMemory("After Reconnect");
 
                 $executionTime = Stopwatch::time(function () {
                     $this->processRequestInsurances();
                     $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
                 });
+
+                $this->logMemory("After Process");
 
                 $waitTime = (int) max($this->microSecondsToWait - $executionTime->microseconds(), 0);
 
@@ -105,6 +111,21 @@ class RequestInsuranceWorker
         } while ( ! $runOnlyOnce && ! $this->shutdownSignalReceived);
 
         Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
+    }
+
+    /**
+     * Logs the current memory usage along with a message
+     *
+     * @param string $message
+     *
+     * @return void
+     */
+    private function logMemory(string $message): void
+    {
+        $usageMb = ceil(memory_get_usage(true) / 1e6);
+        $peakUsageMb = ceil(memory_get_peak_usage(true) / 1e6);
+
+        Log::debug(sprintf("[%3d / %3d] %s", $usageMb, $peakUsageMb, $message));
     }
 
     /**
@@ -190,6 +211,7 @@ class RequestInsuranceWorker
      */
     protected function processHttpRequestChunk(EloquentCollection $requests): void
     {
+        $this->logMemory("Before Chunk");
         // An event is dispatched before processing begins
         // allowing the application to abandon/complete/fail the requests before processing.
         $requests = $requests
@@ -205,13 +227,19 @@ class RequestInsuranceWorker
         $this->setStateToProcessingAndIncrementAttempts($requests);
 
         // Send the requests concurrently
+        $this->logMemory("Before Chunk Send");
+
         $responses = $this->sendHttpRequestChunk($requests);
+
+        $this->logMemory("After Chunk Send");
 
         // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
         /** @var RequestInsurance $request */
         foreach ($requests as $request) {
             rescue(fn () => $request->handleResponse($responses->get($request)));
         }
+
+        $this->logMemory("After Handle");
     }
 
     /**
