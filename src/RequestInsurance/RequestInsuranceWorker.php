@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ConnectException;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
@@ -278,13 +279,18 @@ class RequestInsuranceWorker
             'fulfilled' => function (Response $response, $requestId) {
                 Log::info("Fulfilled Request: $requestId");
             },
-            'rejected' => function (RequestException $reason, $requestId) {
+            'rejected' => function ($reason, $requestId) {
+                /** @var ConnectException|RequestException $reason */
                 Log::info("Rejected Request: $requestId");
             },
         ]);
 
         $promise = $pool->promise();
-        $promise->wait();
+        $response = $promise->wait();
+
+        Log::info(print_r($response, true));
+
+        sleep(10);
 
         return new RequestPoolResponses([]);
     }
