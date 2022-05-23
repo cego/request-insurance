@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Cego\RequestInsurance\Enums\State;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Events\RequestSuccessful;
+use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
 class RequestInsuranceWorkerTest extends TestCase
 {
@@ -24,7 +26,7 @@ class RequestInsuranceWorkerTest extends TestCase
     public function it_can_process_a_single_available_record(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -49,7 +51,7 @@ class RequestInsuranceWorkerTest extends TestCase
     public function it_can_process_a_multiple_available_record(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         $requestInsurance1 = RequestInsurance::getBuilder()->url('https://test.lupinsdev.dk')->method('get')->create();
         $requestInsurance2 = RequestInsurance::getBuilder()->url('https://test.lupinsdev.dk')->method('get')->create();
@@ -75,7 +77,7 @@ class RequestInsuranceWorkerTest extends TestCase
     public function it_does_not_consume_failed_records(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -100,7 +102,7 @@ class RequestInsuranceWorkerTest extends TestCase
     public function it_does_not_consume_abandoned_records(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -125,7 +127,7 @@ class RequestInsuranceWorkerTest extends TestCase
     public function it_does_not_consume_pending_records(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -150,7 +152,7 @@ class RequestInsuranceWorkerTest extends TestCase
     public function it_only_consumes_to_a_given_batch_size(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         $requestInsurance1 = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -179,7 +181,7 @@ class RequestInsuranceWorkerTest extends TestCase
     public function it_pauses_requests_with_listeners_that_throw_exceptions_when_the_response_is_not_200(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 400));
+        RequestInsuranceClient::fake(fn () => Http::response([], 400));
         Event::listen(function (RequestFailed $event) {
             throw new \InvalidArgumentException();
         });
@@ -203,10 +205,53 @@ class RequestInsuranceWorkerTest extends TestCase
     }
 
     /** @test */
+    public function it_does_not_exit_processing_of_other_jobs_if_a_listener_throws_an_exception(): void
+    {
+        // Arrange
+        Config::set('request-insurance.concurrentHttpEnabled', true);
+        Config::set('request-insurance.concurrentHttpChunkSize', 2);
+
+        RequestInsuranceClient::fake([
+            Http::response([], 400),
+            Http::response([], 200),
+        ]);
+
+        Event::listen(function (RequestFailed $event) {
+            throw new \InvalidArgumentException();
+        });
+
+        $requestInsurance1 = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance2 = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance1->refresh();
+        $requestInsurance2->refresh();
+
+        // Act
+        $this->runWorkerOnce();
+
+        // Assert
+        $requestInsurance1->refresh();
+        $requestInsurance2->refresh();
+
+        $this->assertEquals(State::FAILED, $requestInsurance1->state);
+        $this->assertEquals(1, $requestInsurance1->retry_count);
+
+        $this->assertEquals(State::COMPLETED, $requestInsurance2->state);
+        $this->assertEquals(1, $requestInsurance2->retry_count);
+    }
+
+    /** @test */
     public function it_completes_requests_with_listeners_that_throw_exceptions_when_the_response_is_200(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         Event::listen(function (RequestSuccessful $event) {
             throw new \InvalidArgumentException();
@@ -234,7 +279,7 @@ class RequestInsuranceWorkerTest extends TestCase
     public function headers_are_still_encrypted_in_db_after_processing_unkeyed_payload()
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')

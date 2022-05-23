@@ -9,16 +9,13 @@ use JsonException;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
-use Illuminate\Http\Client\Pool;
 use Cego\RequestInsurance\Events;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
-use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\RequestInsuranceBuilder;
@@ -616,6 +613,24 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Returns true if the RI has any of the given states
+     *
+     * @param array $states
+     *
+     * @return bool
+     */
+    public function hasAnyOfStates(array $states): bool
+    {
+        foreach ($states as $state) {
+            if ($this->hasState($state)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Returns true if the request insurance does not have the given state
      *
      * @param string $state
@@ -692,29 +707,11 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Enters the request into the given http request pool
-     *
-     * @param Pool $pool
-     *
-     * @throws JsonException
-     *
-     * @return PromiseInterface
-     */
-    public function enterHttpRequestPool(Pool $pool): PromiseInterface
-    {
-        return $pool->as($this->id)
-            ->withHeaders($this->getHeadersCastToArray())
-            ->withUserAgent('RequestInsurance')
-            ->timeout($this->getEffectiveTimeout())
-            ->send($this->method, $this->url, ['body' => $this->payload]);
-    }
-
-    /**
      * Returns the effective timeout
      *
      * @return int
      */
-    protected function getEffectiveTimeout(): int
+    public function getEffectiveTimeout(): int
     {
         if ($this->timeout_ms === null) {
             return Config::get('request-insurance.timeoutInSeconds', 20);
@@ -764,14 +761,24 @@ class RequestInsurance extends SaveRetryingModel
 
         $this->save();
 
-        $this->dispatchPostProcessEvents($response);
+        try {
+            $this->dispatchPostProcessEvents($response);
+        } catch (Throwable $throwable) {
+            Log::error($throwable);
+
+            // If the request would have been retried, but a listener threw an exception
+            // then mark the request as FAILED - To force human eyes to look at the request.
+            if ($this->hasAnyOfStates([State::WAITING, State::READY]) && $response->wasNotSuccessful()) {
+                $this->setState(State::FAILED);
+            }
+        }
     }
 
     /**
      * Sends the request to the target URL and returns the response
      *
-     * @throws MethodNotAllowedForRequestInsurance
      * @throws JsonException
+     * @throws MethodNotAllowedForRequestInsurance
      *
      * @return HttpResponse
      */

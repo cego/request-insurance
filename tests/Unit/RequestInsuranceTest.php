@@ -8,6 +8,7 @@ use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
+use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
 class RequestInsuranceTest extends TestCase
 {
@@ -150,7 +151,7 @@ class RequestInsuranceTest extends TestCase
     public function it_always_increment_the_tries_count(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')

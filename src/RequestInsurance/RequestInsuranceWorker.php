@@ -9,14 +9,13 @@ use Carbon\Carbon;
 use Nbj\Stopwatch;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
-use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class RequestInsuranceWorker
@@ -57,6 +56,8 @@ class RequestInsuranceWorker
      */
     protected array $secondIntervalTimestamp;
 
+    protected RequestInsuranceClient $client;
+
     /**
      * RequestInsuranceService constructor.
      */
@@ -66,6 +67,7 @@ class RequestInsuranceWorker
         $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
         $this->secondIntervalTimestamp = hrtime();
+        $this->client = resolve(RequestInsuranceClient::class);
         Log::withContext(['worker.id' => $this->runningHash]);
     }
 
@@ -98,6 +100,11 @@ class RequestInsuranceWorker
                 usleep($waitTime);
             } catch (Throwable $throwable) {
                 Log::error($throwable);
+
+                if ($runOnlyOnce) {
+                    throw $throwable;
+                }
+
                 sleep(5); // Sleep to avoid spamming the log
             }
 
@@ -205,36 +212,13 @@ class RequestInsuranceWorker
         $this->setStateToProcessingAndIncrementAttempts($requests);
 
         // Send the requests concurrently
-        $responses = $this->sendHttpRequestChunk($requests);
+        $responses = $this->client->pool($requests);
 
         // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
         /** @var RequestInsurance $request */
         foreach ($requests as $request) {
             rescue(fn () => $request->handleResponse($responses->get($request)));
         }
-    }
-
-    /**
-     * Sends a http request chunk concurrently
-     *
-     * @param EloquentCollection $requests
-     *
-     * @return RequestPoolResponses
-     */
-    protected function sendHttpRequestChunk(EloquentCollection $requests): RequestPoolResponses
-    {
-        $responses = Http::pool(function (Pool $pool) use ($requests) {
-            $requestPool = [];
-
-            /** @var RequestInsurance $request */
-            foreach ($requests as $request) {
-                $requestPool[] = $request->enterHttpRequestPool($pool);
-            }
-
-            return $requestPool;
-        });
-
-        return new RequestPoolResponses($responses);
     }
 
     /**
