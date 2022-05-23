@@ -7,6 +7,7 @@ use Throwable;
 use Carbon\Carbon;
 use JsonException;
 use Ramsey\Uuid\Uuid;
+use GuzzleHttp\Client;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Http\Client\Pool;
@@ -98,9 +99,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Perform any actions required after the model boots.
      *
+     * @return void
      * @throws JsonException
      *
-     * @return void
      */
     protected static function booted(): void
     {
@@ -320,9 +321,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @param string $attribute
      *
+     * @return array
      * @throws JsonException
      *
-     * @return array
      */
     private function getAttributeCastToArray(string $attribute): array
     {
@@ -353,9 +354,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Returns the headers cast to array
      *
+     * @return array
      * @throws JsonException
      *
-     * @return array
      */
     public function getHeadersCastToArray(): array
     {
@@ -368,9 +369,9 @@ class RequestInsurance extends SaveRetryingModel
      * @param string $attribute
      * @param bool $reversed
      *
+     * @return array
      * @throws JsonException
      *
-     * @return array
      */
     protected function getEncryptedAttribute(string $attribute, bool $reversed = false)
     {
@@ -390,9 +391,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @param bool $reversed
      *
+     * @return array
      * @throws JsonException
      *
-     * @return array
      */
     protected function getEncryptedHeaders(bool $reversed = false): array
     {
@@ -404,9 +405,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @param bool $reversed
      *
+     * @return array
      * @throws JsonException
      *
-     * @return array
      */
     protected function getEncryptedPayload(bool $reversed = false): array
     {
@@ -417,9 +418,9 @@ class RequestInsurance extends SaveRetryingModel
      * Returns the headers as a json string, with encrypted headers marked as [ ENCRYPTED ].
      * We use this to avoid breaking the interface with long encrypted values.
      *
+     * @return string
      * @throws JsonException
      *
-     * @return string
      */
     public function getHeadersWithMaskingApplied(): string
     {
@@ -440,9 +441,9 @@ class RequestInsurance extends SaveRetryingModel
      * Returns the payload as a json string, with encrypted headers marked as [ ENCRYPTED ].
      * We use this to avoid breaking the interface with long encrypted values.
      *
+     * @return string
      * @throws JsonException
      *
-     * @return string
      */
     public function getPayloadWithMaskingApplied(): string
     {
@@ -573,9 +574,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Unstuck the RequestInsurance instance if was left in the PENDING state
      *
+     * @return $this
      * @throws Exception
      *
-     * @return $this
      */
     public function unstuckPending(): RequestInsurance
     {
@@ -590,9 +591,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Abandons the RequestInsurance instance
      *
+     * @return $this
      * @throws Exception
      *
-     * @return $this
      */
     public function abandon(): RequestInsurance
     {
@@ -663,9 +664,9 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Retries the RI right now, instead of using backoff logic
      *
+     * @return $this
      * @throws Exception
      *
-     * @return $this
      */
     public function retryNow(): RequestInsurance
     {
@@ -696,9 +697,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @param Pool $pool
      *
+     * @return PromiseInterface
      * @throws JsonException
      *
-     * @return PromiseInterface
      */
     public function enterHttpRequestPool(Pool $pool): PromiseInterface
     {
@@ -707,6 +708,24 @@ class RequestInsurance extends SaveRetryingModel
             ->withUserAgent('RequestInsurance')
             ->timeout($this->getEffectiveTimeout())
             ->send($this->method, $this->url, ['body' => $this->payload]);
+    }
+
+    /**
+     * Converts the request insurance into a guzzle request
+     *
+     * @param Client $client
+     *
+     * @return PromiseInterface
+     * @throws JsonException
+     */
+    public function toRequestPromise(Client $client): PromiseInterface
+    {
+        return $client->requestAsync($this->method, $this->url, [
+            'headers'     => array_merge($this->getHeadersCastToArray(), ['User-Agent' => 'RequestInsurance']),
+            'body'        => $this->payload,
+            'timeout'     => $this->getEffectiveTimeout(),
+            'http_errors' => false,
+        ]);
     }
 
     /**
@@ -728,9 +747,9 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @param HttpResponse $response
      *
+     * @return void
      * @throws Throwable
      *
-     * @return void
      */
     public function handleResponse(HttpResponse $response): void
     {
@@ -753,9 +772,9 @@ class RequestInsurance extends SaveRetryingModel
         if ($response->isInconsistent()) {
             $this->setState(State::FAILED);
             $response->logInconsistentReason();
-        } elseif ($response->wasSuccessful()) {
+        } else if ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
-        } elseif ($response->isRetryable()) {
+        } else if ($response->isRetryable()) {
             $this->setState(State::WAITING);
             $this->setNextRetryAt();
         } else {
@@ -770,10 +789,10 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Sends the request to the target URL and returns the response
      *
-     * @throws MethodNotAllowedForRequestInsurance
+     * @return HttpResponse
      * @throws JsonException
      *
-     * @return HttpResponse
+     * @throws MethodNotAllowedForRequestInsurance
      */
     protected function sendRequest(): HttpResponse
     {
