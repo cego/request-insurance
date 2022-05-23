@@ -125,7 +125,7 @@ class RequestInsuranceWorker
         $usageMb = ceil(memory_get_usage(true) / 1e6);
         $peakUsageMb = ceil(memory_get_peak_usage(true) / 1e6);
 
-        Log::debug(sprintf("[%3d / %3d] %s", $usageMb, $peakUsageMb, $message));
+        Log::debug(sprintf("[%3dmb / %3dmb] %s", $usageMb, $peakUsageMb, $message));
     }
 
     /**
