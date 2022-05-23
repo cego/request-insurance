@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Cego\RequestInsurance\Enums\State;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -201,6 +202,49 @@ class RequestInsuranceWorkerTest extends TestCase
 
         $this->assertEquals(State::FAILED, $requestInsurance->state);
         $this->assertEquals(1, $requestInsurance->retry_count);
+    }
+
+    /** @test */
+    public function it_does_not_exit_processing_of_other_jobs_if_a_listener_throws_an_exception(): void
+    {
+        // Arrange
+        Config::set('request-insurance.concurrentHttpEnabled', true);
+        Config::set('request-insurance.concurrentHttpChunkSize', 2);
+
+        RequestInsuranceClient::fake([
+            Http::response([], 400),
+            Http::response([], 200),
+        ]);
+
+        Event::listen(function (RequestFailed $event) {
+            throw new \InvalidArgumentException();
+        });
+
+        $requestInsurance1 = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance2 = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance1->refresh();
+        $requestInsurance2->refresh();
+
+        // Act
+        $this->runWorkerOnce();
+
+        // Assert
+        $requestInsurance1->refresh();
+        $requestInsurance2->refresh();
+
+        $this->assertEquals(State::FAILED, $requestInsurance1->state);
+        $this->assertEquals(1, $requestInsurance1->retry_count);
+
+        $this->assertEquals(State::COMPLETED, $requestInsurance2->state);
+        $this->assertEquals(1, $requestInsurance2->retry_count);
     }
 
     /** @test */

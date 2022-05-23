@@ -40,15 +40,15 @@ class TestCase extends \Orchestra\Testbench\TestCase
         ];
     }
 
-    protected function runWorkerOnce(): void
+    protected function runWorkerOnce(int $batchSize = 100): void
     {
-        $this->getWorker()->run(true);
+        $this->getWorker($batchSize)->run(true);
     }
 
-    protected function getWorker(): RequestInsuranceWorker
+    protected function getWorker(int $batchSize): RequestInsuranceWorker
     {
         putenv('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT=false');
 
-        return new RequestInsuranceWorker();
+        return new RequestInsuranceWorker($batchSize);
     }
 }

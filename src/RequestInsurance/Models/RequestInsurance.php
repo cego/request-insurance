@@ -613,6 +613,24 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Returns true if the RI has any of the given states
+     *
+     * @param array $states
+     *
+     * @return bool
+     */
+    public function hasAnyOfStates(array $states): bool
+    {
+        foreach ($states as $state) {
+            if ($this->hasState($state)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Returns true if the request insurance does not have the given state
      *
      * @param string $state
@@ -743,7 +761,17 @@ class RequestInsurance extends SaveRetryingModel
 
         $this->save();
 
-        $this->dispatchPostProcessEvents($response);
+        try {
+            $this->dispatchPostProcessEvents($response);
+        } catch (Throwable $throwable) {
+            Log::error($throwable);
+
+            // If the request would have been retried, but a listener threw an exception
+            // then mark the request as FAILED - To force human eyes to look at the request.
+            if ($this->hasAnyOfStates([State::WAITING, State::READY]) && $response->wasNotSuccessful()) {
+                $this->setState(State::FAILED);
+            }
+        }
     }
 
     /**
