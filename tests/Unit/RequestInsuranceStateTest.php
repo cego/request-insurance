@@ -9,6 +9,7 @@ use RuntimeException;
 use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
 class RequestInsuranceStateTest extends TestCase
 {
@@ -30,7 +31,7 @@ class RequestInsuranceStateTest extends TestCase
     public function it_sets_state_completed_on_successful_processing(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
@@ -45,7 +46,7 @@ class RequestInsuranceStateTest extends TestCase
     public function it_sets_state_failed_on_400(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 400));
+        RequestInsuranceClient::fake(fn () => Http::response([], 400));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
@@ -60,7 +61,7 @@ class RequestInsuranceStateTest extends TestCase
     public function it_sets_state_waiting_on_500(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 500));
+        RequestInsuranceClient::fake(fn () => Http::response([], 500));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
@@ -75,7 +76,7 @@ class RequestInsuranceStateTest extends TestCase
     public function it_exits_on_state_processing_on_unhandled_exceptions_in_processing(): void
     {
         // Arrange
-        Http::fake(function () {
+        RequestInsuranceClient::fake(function () {
             throw new RuntimeException('test');
         });
 
@@ -97,7 +98,7 @@ class RequestInsuranceStateTest extends TestCase
     public function it_sets_state_to_ready_when_worker_process_jobs_with_500_response(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 500));
+        RequestInsuranceClient::fake(fn () => Http::response([], 500));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
@@ -112,7 +113,7 @@ class RequestInsuranceStateTest extends TestCase
     public function it_sets_state_to_failed_when_worker_process_jobs_with_400_response(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 400));
+        RequestInsuranceClient::fake(fn () => Http::response([], 400));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
@@ -127,7 +128,7 @@ class RequestInsuranceStateTest extends TestCase
     public function it_leaves_the_request_in_processing_state_when_worker_process_jobs_with_exception(): void
     {
         // Arrange
-        Http::fake(function () {
+        RequestInsuranceClient::fake(function () {
             throw new RuntimeException('test');
         });
 
@@ -144,7 +145,7 @@ class RequestInsuranceStateTest extends TestCase
     public function it_sets_state_to_completed_when_worker_process_jobs_with_200_response(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
@@ -159,7 +160,7 @@ class RequestInsuranceStateTest extends TestCase
     public function it_sets_state_pending_when_workers_lock_rows(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();

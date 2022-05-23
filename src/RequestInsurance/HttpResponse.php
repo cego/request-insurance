@@ -2,9 +2,9 @@
 
 namespace Cego\RequestInsurance;
 
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Client\Response;
 use GuzzleHttp\Exception\ConnectException;
 
 class HttpResponse
@@ -122,7 +122,7 @@ class HttpResponse
             return -1;
         }
 
-        return $this->response->status();
+        return $this->response->getStatusCode();
     }
 
     /**
@@ -140,7 +140,7 @@ class HttpResponse
             return '<REQUEST_INCONSISTENT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
         }
 
-        return $this->response->body();
+        return $this->response->getBody()->getContents();
     }
 
     /**
@@ -152,7 +152,7 @@ class HttpResponse
             return new Collection();
         }
 
-        return collect($this->response->headers());
+        return collect($this->response->getHeaders());
     }
 
     /**
@@ -166,7 +166,7 @@ class HttpResponse
             return -1;
         }
 
-        return $this->response->handlerStats()['total_time'] ?? 0;
+        return $this->response->getHandlerContext()['total_time'] ?? 0;
     }
 
     /**

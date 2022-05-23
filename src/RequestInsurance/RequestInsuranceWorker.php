@@ -5,25 +5,17 @@ namespace Cego\RequestInsurance;
 use Closure;
 use Exception;
 use Throwable;
-use Generator;
 use Carbon\Carbon;
 use Nbj\Stopwatch;
-use JsonException;
-use GuzzleHttp\Client;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Response;
-use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\ConnectException;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class RequestInsuranceWorker
@@ -64,7 +56,7 @@ class RequestInsuranceWorker
      */
     protected array $secondIntervalTimestamp;
 
-    protected Client $guzzle;
+    protected RequestInsuranceClient $client;
 
     /**
      * RequestInsuranceService constructor.
@@ -75,7 +67,7 @@ class RequestInsuranceWorker
         $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
         $this->secondIntervalTimestamp = hrtime();
-        $this->guzzle = new Client();
+        $this->client = resolve(RequestInsuranceClient::class);
         Log::withContext(['worker.id' => $this->runningHash]);
     }
 
@@ -94,26 +86,31 @@ class RequestInsuranceWorker
 
         do {
             try {
-                $this->logMemory("Loop Start");
+                $this->logMemory('Loop Start');
 
                 if (env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)) {
                     DB::reconnect();
                 }
 
-                $this->logMemory("After Reconnect");
+                $this->logMemory('After Reconnect');
 
                 $executionTime = Stopwatch::time(function () {
                     $this->processRequestInsurances();
                     $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
                 });
 
-                $this->logMemory("After Process");
+                $this->logMemory('After Process');
 
                 $waitTime = (int) max($this->microSecondsToWait - $executionTime->microseconds(), 0);
 
                 usleep($waitTime);
             } catch (Throwable $throwable) {
                 Log::error($throwable);
+
+                if ($runOnlyOnce) {
+                    throw $throwable;
+                }
+
                 sleep(5); // Sleep to avoid spamming the log
             }
 
@@ -135,7 +132,7 @@ class RequestInsuranceWorker
         $usageMb = ceil(memory_get_usage(true) / 1e6);
         $peakUsageMb = ceil(memory_get_peak_usage(true) / 1e6);
 
-        Log::debug(sprintf("[%3dmb / %3dmb] %s", $usageMb, $peakUsageMb, $message));
+        Log::debug(sprintf('[%3dmb / %3dmb] %s', $usageMb, $peakUsageMb, $message));
     }
 
     /**
@@ -221,7 +218,7 @@ class RequestInsuranceWorker
      */
     protected function processHttpRequestChunk(EloquentCollection $requests): void
     {
-        $this->logMemory("Before Chunk");
+        $this->logMemory('Before Chunk');
         // An event is dispatched before processing begins
         // allowing the application to abandon/complete/fail the requests before processing.
         $requests = $requests
@@ -237,62 +234,21 @@ class RequestInsuranceWorker
         $this->setStateToProcessingAndIncrementAttempts($requests);
 
         // Send the requests concurrently
-        $this->logMemory("Before Chunk Send");
+        $this->logMemory('Before Chunk Send');
 
-        $responses = $this->sendHttpRequestChunk($requests);
+        $responses = $this->client->pool($requests);
 
-        $this->logMemory("After Chunk Send");
+        $this->logMemory('After Chunk Send');
 
-        return;
-//
-//
-//        // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
-//        /** @var RequestInsurance $request */
-//        foreach ($requests as $request) {
-//            rescue(fn () => $request->handleResponse($responses->get($request)));
-//        }
-//
-//        $this->logMemory("After Handle");
-    }
+        // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
+        /** @var RequestInsurance $request */
+        foreach ($requests as $request) {
+            rescue(fn () => $request->handleResponse($responses->get($request)), function (Exception $exception) {
+                throw $exception;
+            });
+        }
 
-    /**
-     * Sends a http request chunk concurrently
-     *
-     * @param EloquentCollection $requests
-     *
-     * @return RequestPoolResponses
-     * @throws JsonException
-     */
-    protected function sendHttpRequestChunk(EloquentCollection $requests): RequestPoolResponses
-    {
-        $requestGenerator = function (EloquentCollection $requests) {
-            /** @var RequestInsurance $request */
-            foreach ($requests as $request) {
-                yield $request->id => fn () => $request->toRequestPromise($this->guzzle);
-            }
-        };
-
-        $requestGenerator($requests);
-
-        $pool = new \GuzzleHttp\Pool($this->guzzle, $requestGenerator($requests), [
-            'concurrency' => $this->getRequestChunkSize(),
-            'fulfilled' => function (Response $response, $requestId) {
-                Log::info("Fulfilled Request: $requestId");
-            },
-            'rejected' => function ($reason, $requestId) {
-                /** @var ConnectException|RequestException $reason */
-                Log::info("Rejected Request: $requestId");
-            },
-        ]);
-
-        $promise = $pool->promise();
-        $response = $promise->wait();
-
-        Log::info(print_r($response, true));
-
-        sleep(10);
-
-        return new RequestPoolResponses([]);
+        $this->logMemory('After Handle');
     }
 
     /**

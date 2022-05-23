@@ -12,6 +12,7 @@ use Cego\RequestInsurance\Events\RequestSuccessful;
 use Cego\RequestInsurance\Events\RequestClientError;
 use Cego\RequestInsurance\Events\RequestServerError;
 use Cego\RequestInsurance\Events\RequestBeforeProcess;
+use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
 class RequestInsuranceEventSystemTest extends TestCase
 {
@@ -19,7 +20,7 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_successful_event_for_200_responses(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -40,7 +41,7 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_failed_event_for_400_responses(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 400));
+        RequestInsuranceClient::fake(fn () => Http::response([], 400));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -61,7 +62,7 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_failed_event_for_500_responses(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 500));
+        RequestInsuranceClient::fake(fn () => Http::response([], 500));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -82,7 +83,7 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_client_error_event_for_400_responses(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 400));
+        RequestInsuranceClient::fake(fn () => Http::response([], 400));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -103,7 +104,7 @@ class RequestInsuranceEventSystemTest extends TestCase
     public function it_triggers_server_error_event_for_500_responses(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 500));
+        RequestInsuranceClient::fake(fn () => Http::response([], 500));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
