@@ -267,7 +267,7 @@ class RequestInsuranceWorker
         $requestGenerator = function (EloquentCollection $requests) {
             /** @var RequestInsurance $request */
             foreach ($requests as $request) {
-                yield $request->id => $request->toRequestPromise($this->guzzle);
+                yield $request->id => fn () => $request->toRequestPromise($this->guzzle);
             }
         };
 
