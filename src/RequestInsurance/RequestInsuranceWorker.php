@@ -273,18 +273,18 @@ class RequestInsuranceWorker
 
         $requestGenerator($requests);
 
-//        $pool = new \GuzzleHttp\Pool($this->guzzle, $requestGenerator($requests), [
-//            'concurrency' => $this->getRequestChunkSize(),
-//            'fulfilled' => function (Response $response, $requestId) {
-//                Log::info("Fulfilled Request: $requestId");
-//            },
-//            'rejected' => function (RequestException $reason, $requestId) {
-//                Log::info("Rejected Request: $requestId");
-//            },
-//        ]);
-//
-//        $promise = $pool->promise();
-//        $promise->wait(false);
+        $pool = new \GuzzleHttp\Pool($this->guzzle, $requestGenerator($requests), [
+            'concurrency' => $this->getRequestChunkSize(),
+            'fulfilled' => function (Response $response, $requestId) {
+                Log::info("Fulfilled Request: $requestId");
+            },
+            'rejected' => function (RequestException $reason, $requestId) {
+                Log::info("Rejected Request: $requestId");
+            },
+        ]);
+
+        $promise = $pool->promise();
+        $promise->wait();
 
         return new RequestPoolResponses([]);
     }
