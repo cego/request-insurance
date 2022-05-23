@@ -6,8 +6,12 @@ use Exception;
 use Carbon\Carbon;
 use Tests\TestCase;
 use RuntimeException;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Enums\State;
+use Illuminate\Support\Facades\Config;
+use GuzzleHttp\Exception\ConnectException;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
@@ -92,6 +96,31 @@ class RequestInsuranceStateTest extends TestCase
         // Assert
         $requestInsurance->refresh();
         $this->assertEquals(State::PROCESSING, $requestInsurance->state);
+    }
+
+    /** @test */
+    public function it_can_handle_that_some_requests_timeout_in_the_batch_but_not_all(): void
+    {
+        // Arrange
+        Config::set('request-insurance.concurrentHttpEnabled', true);
+        Config::set('request-insurance.concurrentHttpChunkSize', 2);
+
+        RequestInsuranceClient::fake([
+            new ConnectException('Message', new Request('POST', 'test')),
+            new Response(),
+        ]);
+
+        // Act
+        $requestInsurance1 = $this->createDummyRequestInsurance();
+        $requestInsurance2 = $this->createDummyRequestInsurance();
+
+        $this->runWorkerOnce();
+
+        // Assert
+        $requestInsurance1->refresh();
+        $requestInsurance2->refresh();
+        $this->assertEquals(State::FAILED, $requestInsurance1->state);
+        $this->assertEquals(State::COMPLETED, $requestInsurance2->state);
     }
 
     /** @test */

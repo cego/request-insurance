@@ -17,7 +17,9 @@ class RequestInsuranceClient
      */
     public function __construct()
     {
-        $this->guzzle = new Client();
+        $this->guzzle = new Client([
+            'http_errors' => false,
+        ]);
     }
 
     /**
