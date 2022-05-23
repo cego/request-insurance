@@ -264,25 +264,25 @@ class RequestInsuranceWorker
      */
     protected function sendHttpRequestChunk(EloquentCollection $requests): RequestPoolResponses
     {
-        $requestGenerator = function (EloquentCollection $requests) {
-            /** @var RequestInsurance $request */
-            foreach ($requests as $request) {
-                yield $request->id => $request->toRequestPromise($this->guzzle);
-            }
-        };
-
-        $pool = new \GuzzleHttp\Pool($this->guzzle, $requestGenerator($requests), [
-            'concurrency' => $this->getRequestChunkSize(),
-            'fulfilled' => function (Response $response, $requestId) {
-                Log::info("Fulfilled Request: $requestId");
-            },
-            'rejected' => function (RequestException $reason, $requestId) {
-                Log::info("Rejected Request: $requestId");
-            },
-        ]);
-
-        $promise = $pool->promise();
-        $promise->wait(false);
+//        $requestGenerator = function (EloquentCollection $requests) {
+//            /** @var RequestInsurance $request */
+//            foreach ($requests as $request) {
+//                yield $request->id => $request->toRequestPromise($this->guzzle);
+//            }
+//        };
+//
+//        $pool = new \GuzzleHttp\Pool($this->guzzle, $requestGenerator($requests), [
+//            'concurrency' => $this->getRequestChunkSize(),
+//            'fulfilled' => function (Response $response, $requestId) {
+//                Log::info("Fulfilled Request: $requestId");
+//            },
+//            'rejected' => function (RequestException $reason, $requestId) {
+//                Log::info("Rejected Request: $requestId");
+//            },
+//        ]);
+//
+//        $promise = $pool->promise();
+//        $promise->wait(false);
 
         return new RequestPoolResponses([]);
     }
