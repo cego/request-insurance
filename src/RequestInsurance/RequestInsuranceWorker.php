@@ -252,14 +252,10 @@ class RequestInsuranceWorker
     protected function sendHttpRequestChunk(EloquentCollection $requests): RequestPoolResponses
     {
         $responses = Http::pool(function (Pool $pool) use ($requests) {
-            $requestPool = [];
-
             /** @var RequestInsurance $request */
             foreach ($requests as $request) {
-                $requestPool[] = $request->enterHttpRequestPool($pool);
+                yield $request->enterHttpRequestPool($pool);
             }
-
-            return $requestPool;
         });
 
         return new RequestPoolResponses($responses);
