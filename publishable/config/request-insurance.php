@@ -67,6 +67,11 @@ return [
 
     'httpRequestClass' => env('REQUEST_INSURANCE_HTTP_REQUEST_CLASS', \Cego\RequestInsurance\CurlRequest::class),
 
+    /*
+    | Set the implementation for IdentityProvider
+    */
+
+    'identityProvider' => null,
 
     /*
     | Sets if load should be condensed to a value between 0 and 1, and have values above 1 being overload
