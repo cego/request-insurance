@@ -151,7 +151,7 @@
                                         <!-- TODO pretty print from edit instead -->
                                         <td>
                                             @if($canModifyEdit)
-                                                <x-request-insurance-pretty-print-text-area :name='"new_payload"' :content="$edit->new_payload" :disabled="$canModifyEdit"/>
+                                                <x-request-insurance-pretty-print-text-area :name='"new_payload"' :content="$edit->new_payload" :disabled=" ! $canModifyEdit"/>
                                             @else
                                                 <x-request-insurance-pretty-print :content="$edit->new_payload"/>
                                             @endif
@@ -162,7 +162,7 @@
                                         {{--                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>--}}
                                         <td>
                                             @if($canModifyEdit)
-                                                <x-request-insurance-pretty-print-text-area :name='"new_headers"' :content="$edit->new_headers" :disabled="$canModifyEdit"/>
+                                                <x-request-insurance-pretty-print-text-area :name='"new_headers"' :content="$edit->new_headers" :disabled=" ! $canModifyEdit"/>
                                             @else
                                                 <x-request-insurance-pretty-print :content="$edit->new_headers"/>
                                             @endif
