@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance;
 
 use Cego\RequestInsurance\ViewComponents\EditApprovalsStatus;
+use Cego\RequestInsurance\ViewComponents\PrettyPrintTextArea;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
@@ -60,6 +61,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             InlinePrint::class,
             Status::class,
             EditApprovalsStatus::class,
+            PrettyPrintTextArea::class,
         ]);
     }
 
