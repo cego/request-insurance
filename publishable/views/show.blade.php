@@ -96,8 +96,12 @@
                     </div>
                 </div>
                 <!-- Edit(s) -->
-            @elseif( ! empty($requestInsurance->edits()->first()->get()))
+            @elseif( ! empty($requestInsurance->edits()->first()))
                 <?php $edit = $requestInsurance->edits()->first(); ?>
+                {{--            TODO use identityProvider --}}
+                @php
+                    $canModifyEdit = $edit->applied_at == null;
+                @endphp
                 <div class="col-6">
                     <div class="card">
                         <div class="card-body">
@@ -126,7 +130,7 @@
                                     <tr>
                                         <td>Method:</td>
                                         <td>
-                                            <select name="method" id="new_method">
+                                            <select name="method" id="new_method" @disabled( ! $canModifyEdit)>
                                                 <option value="GET" @selected(mb_strtoupper($edit->new_method) == "GET")>GET</option>
                                                 <option value="POST" @selected(mb_strtoupper($edit->new_method) == "POST")>POST</option>
                                                 <option value="PUT" @selected(mb_strtoupper($edit->new_method) == "PUT")>PUT</option>
@@ -136,16 +140,64 @@
                                     </tr>
                                     <tr>
                                         <td>Url:</td>
-                                        <td><input name="new_url" class="w-100" value="{{ urldecode($edit->new_url) }}"/></td>
+                                        <td>
+                                            <input name="new_url" class="w-100"
+                                                   @disabled( ! $canModifyEdit)
+                                                   value="{{ urldecode($edit->new_url) }}"/>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>Payload:</td>
-                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->getPayloadWithMaskingApplied()"/></td>
+                                        <!--<td><x-request-insurance-pretty-print :content="$requestInsurance->getPayloadWithMaskingApplied()"/></td>-->
                                         <!-- TODO pretty print from edit instead -->
+                                        <td>
+                                            @foreach(json_decode($edit->new_headers) as $key => $value)
+                                                <div class="w-100">
+                                                    <label>{{$key}}: </label>
+                                                    @if(gettype($value) == 'string')
+                                                        <input name="new_payload_{{$key}}" type="text" @disabled( ! $canModifyEdit) value='"{{$value}}"'>
+                                                    @else
+                                                        <input name="new_payload_{{$key}}" type="text" @disabled( ! $canModifyEdit) value="{{$value}}">
+                                                    @endif
+
+                                                    @php
+                                                        $encryptedFields = json_decode($edit->new_encrypted_fields);
+                                                        $fieldIsEncrypted = ! empty($encryptedFields) &&
+                                                            property_exists($encryptedFields, 'payload') &&
+                                                            in_array($key, $encryptedFields->payload);
+                                                    @endphp
+                                                    @if($fieldIsEncrypted)
+                                                        <span class="badge badge-warning">ENCRYPTED</span>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>Headers:</td>
-                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
+                                        {{--                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>--}}
+                                        <td>
+                                            @foreach(json_decode($edit->new_headers) as $key => $value)
+                                                <div class="w-100">
+                                                    <label>{{$key}}: </label>
+                                                    @if(gettype($value) == 'string')
+                                                        <input name="new_headers_{{$key}}" type="text" @disabled( ! $canModifyEdit) value='"{{$value}}"'>
+                                                    @else
+                                                        <input name="new_headers_{{$key}}" type="text" @disabled( ! $canModifyEdit) value="{{$value}}">
+                                                    @endif
+
+                                                    @php
+                                                        $encryptedFields = json_decode($edit->new_encrypted_fields);
+                                                        $fieldIsEncrypted = ! empty($encryptedFields) &&
+                                                            property_exists($encryptedFields, 'headers') &&
+                                                            in_array($key, $encryptedFields->headers);
+                                                    @endphp
+                                                    @if($fieldIsEncrypted)
+                                                        <span class="badge badge-warning">ENCRYPTED</span>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </td>
                                         <!-- TODO pretty print from edit instead -->
                                     </tr>
                                     <!-- TODO new encrypted fields? -->
@@ -175,12 +227,14 @@
                                 {{-- TODO fix conditions for disabled --}}
                                 <form method="POST" action="{{ route('request-insurances.approve_edit', $requestInsurance) }}">
                                     <input type="hidden" name="_method" value="post">
-                                    <button class="btn btn-primary" type="submit" @disabled($edit->applied_at != null && $edit->admin_user == 'jabj')>Approve</button>
+                                    <button class="btn btn-primary" type="submit"
+                                            @disabled($edit->applied_at != null && $edit->admin_user == 'jabj')>Approve</button>
                                 </form>
 
                                 <form method="POST" action="{{ route('request-insurances.apply_edit', $requestInsurance) }}">
                                     <input type="hidden" name="_method" value="post">
-                                    <button class="btn btn-primary" type="submit" @disabled($edit->approvals()->count() < $edit->required_number_of_approvals)>Apply</button>
+                                    <button class="btn btn-primary" type="submit"
+                                            @disabled($edit->approvals()->count() < $edit->required_number_of_approvals)>Apply</button>
                                 </form>
                             </div>
                         </div>
