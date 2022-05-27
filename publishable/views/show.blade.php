@@ -100,7 +100,7 @@
                 <?php $edit = $requestInsurance->edits()->first(); ?>
                 {{--            TODO use identityProvider --}}
                 @php
-                    $canModifyEdit = $edit->applied_at == null;
+                    $canModifyEdit = $edit->applied_at == null && $edit->admin_user == $user;
                 @endphp
                 <div class="col-6">
                     <div class="card">

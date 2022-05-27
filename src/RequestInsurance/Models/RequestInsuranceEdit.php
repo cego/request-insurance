@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  *
  * @property int $id
  * @property int $request_insurance_id
+ * @property int $required_number_of_approvals
  * @property int $old_priority
  * @property int $new_priority
  * @property string $old_url

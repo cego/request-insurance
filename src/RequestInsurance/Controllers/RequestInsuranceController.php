@@ -46,15 +46,19 @@ class RequestInsuranceController extends Controller
     /**
      * Shows a specific request insurance
      *
+     * @param Request $request
      * @param RequestInsurance $requestInsurance
      *
      * @return View|Factory
      */
-    public function show(RequestInsurance $requestInsurance)
+    public function show(Request $request, RequestInsurance $requestInsurance)
     {
         $requestInsurance->load('logs');
 
-        return view('request-insurance::show')->with(['requestInsurance' => $requestInsurance]);
+        return view('request-insurance::show')->with([
+            'requestInsurance' => $requestInsurance,
+            'user' => resolve(Config::get('request-insurance.identityProvider'))->getUser($request),
+        ]);
     }
 
     /**
@@ -98,7 +102,7 @@ class RequestInsuranceController extends Controller
             'old_encrypted_fields' => $requestInsurance->encrypted_fields,
             'new_encrypted_fields' => $requestInsurance->encrypted_fields,
             'applied_at' => Carbon::now(),// TODO delete this line - this is for testing only
-            'admin_user' => $request->getUser(),
+            'admin_user' => resolve(Config::get('request-insurance.identityProvider'))->getUser($request),
         ]);
 
         return redirect()->back();
