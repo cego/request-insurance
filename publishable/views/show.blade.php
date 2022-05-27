@@ -66,42 +66,40 @@
             </div>
 
             <!-- Response -->
-            @if ($requestInsurance->hasState(State::COMPLETED))
-                <div class="col-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="card-title text-center">
-                                <h3>Response:</h3>
-                                <hr>
-                            </div>
-                            <div class="card-text">
-                                <table class="table-hover w-100 table-vertical table-striped">
-                                    <tbody>
-                                    <tr>
-                                        <td>Response code:</td>
-                                        <td><h4><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}"/></h4></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Response headers:</td>
-                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->response_headers"/></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Response body</td>
-                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->response_body"/></td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title text-center">
+                            <h3>Response:</h3>
+                            <hr>
+                        </div>
+                        <div class="card-text">
+                            <table class="table-hover w-100 table-vertical table-striped">
+                                <tbody>
+                                <tr>
+                                    <td>Response code:</td>
+                                    <td><h4><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}"/></h4></td>
+                                </tr>
+                                <tr>
+                                    <td>Response headers:</td>
+                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->response_headers"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Response body</td>
+                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->response_body"/></td>
+                                </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-                <!-- Edit(s) -->
-            @elseif( ! empty($requestInsurance->edits()->first()))
-                <?php $edit = $requestInsurance->edits()->first(); ?>
+            </div>
+            <!-- Edit(s) -->
+            @foreach($requestInsurance->edits()->get() as $edit)
                 @php
-                    $canModifyEdit = $edit->applied_at == null && $edit->admin_user == $user;
-                    $canApproveEdit = $edit->applied_at == null && $edit->admin != $user;
-                    $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals;
+                    $canModifyEdit = true;//$edit->applied_at == null && $edit->admin_user == $user;
+                    $canApproveEdit = true;//$edit->applied_at == null && $edit->admin != $user;
+                    $canApplyEdit = true;//$edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals;
                 @endphp
                 <div class="col-6">
                     <div class="card">
@@ -152,52 +150,22 @@
                                         <!--<td><x-request-insurance-pretty-print :content="$requestInsurance->getPayloadWithMaskingApplied()"/></td>-->
                                         <!-- TODO pretty print from edit instead -->
                                         <td>
-                                            @foreach(json_decode($edit->new_headers) as $key => $value)
-                                                <div class="w-100">
-                                                    <label>{{$key}}: </label>
-                                                    @if(gettype($value) == 'string')
-                                                        <input name="new_payload_{{$key}}" type="text" @disabled( ! $canModifyEdit) value='"{{$value}}"'>
-                                                    @else
-                                                        <input name="new_payload_{{$key}}" type="text" @disabled( ! $canModifyEdit) value="{{$value}}">
-                                                    @endif
-
-                                                    @php
-                                                        $encryptedFields = json_decode($edit->new_encrypted_fields);
-                                                        $fieldIsEncrypted = ! empty($encryptedFields) &&
-                                                            property_exists($encryptedFields, 'payload') &&
-                                                            in_array($key, $encryptedFields->payload);
-                                                    @endphp
-                                                    @if($fieldIsEncrypted)
-                                                        <span class="badge badge-warning">ENCRYPTED</span>
-                                                    @endif
-                                                </div>
-                                            @endforeach
+                                            @if($canModifyEdit)
+                                                <textarea name="new_payload" class="w-100 form-control" @disabled( ! $canModifyEdit)>{{$edit->new_payload}}</textarea>
+                                            @else
+                                                <x-request-insurance-pretty-print :content="$edit->new_payload"/>
+                                            @endif
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>Headers:</td>
                                         {{--                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>--}}
                                         <td>
-                                            @foreach(json_decode($edit->new_headers) as $key => $value)
-                                                <div class="w-100">
-                                                    <label>{{$key}}: </label>
-                                                    @if(gettype($value) == 'string')
-                                                        <input name="new_headers_{{$key}}" type="text" @disabled( ! $canModifyEdit) value='"{{$value}}"'>
-                                                    @else
-                                                        <input name="new_headers_{{$key}}" type="text" @disabled( ! $canModifyEdit) value="{{$value}}">
-                                                    @endif
-
-                                                    @php
-                                                        $encryptedFields = json_decode($edit->new_encrypted_fields);
-                                                        $fieldIsEncrypted = ! empty($encryptedFields) &&
-                                                            property_exists($encryptedFields, 'headers') &&
-                                                            in_array($key, $encryptedFields->headers);
-                                                    @endphp
-                                                    @if($fieldIsEncrypted)
-                                                        <span class="badge badge-warning">ENCRYPTED</span>
-                                                    @endif
-                                                </div>
-                                            @endforeach
+                                            @if($canModifyEdit)
+                                                <textarea name="new_headers" class="w-100 form-control" @disabled( ! $canModifyEdit)>{{$edit->new_headers}}</textarea>
+                                            @else
+                                                <x-request-insurance-pretty-print :content="$edit->new_headers"/>
+                                            @endif
                                         </td>
                                         <!-- TODO pretty print from edit instead -->
                                     </tr>
@@ -225,22 +193,29 @@
                                     </tbody>
                                 </table>
                                 <hr>
-                                <form method="POST" action="{{ route('request-insurances.approve_edit', $requestInsurance) }}">
-                                    <input type="hidden" name="_method" value="post">
-                                    <button class="btn btn-primary" type="submit"
-                                            @disabled($canApproveEdit)>Approve</button>
-                                </form>
-
-                                <form method="POST" action="{{ route('request-insurances.apply_edit', $requestInsurance) }}">
-                                    <input type="hidden" name="_method" value="post">
-                                    <button class="btn btn-primary" type="submit"
-                                            @disabled($canApplyEdit)>Apply</button>
-                                </form>
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <form method="POST" action="{{ route('request-insurances.approve_edit', $requestInsurance) }}">
+                                                <input type="hidden" name="_method" value="post">
+                                                <button class="btn btn-primary" type="submit"
+                                                        @disabled( ! $canApproveEdit)>Approve</button>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <form method="POST" action="{{ route('request-insurances.apply_edit', $requestInsurance) }}">
+                                                <input type="hidden" name="_method" value="post">
+                                                <button class="btn btn-primary" type="submit"
+                                                        @disabled( ! $canApplyEdit)>Apply</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            @endif
+            @endforeach
 
             <!-- Logs -->
             <div class="col-12 mt-2">
