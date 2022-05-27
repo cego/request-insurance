@@ -98,9 +98,10 @@
                 <!-- Edit(s) -->
             @elseif( ! empty($requestInsurance->edits()->first()))
                 <?php $edit = $requestInsurance->edits()->first(); ?>
-                {{--            TODO use identityProvider --}}
                 @php
                     $canModifyEdit = $edit->applied_at == null && $edit->admin_user == $user;
+                    $canApproveEdit = $edit->applied_at == null && $edit->admin != $user;
+                    $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals;
                 @endphp
                 <div class="col-6">
                     <div class="card">
@@ -206,7 +207,7 @@
                             </div>
                             <div class="card-text">
                                 <hr>
-                                <h4>Approvals</h4>
+                                <h4>Approvals <x-request-insurance-edit-approvals-status :requestInsuranceEdit="$edit" /></h4>
                                 <table class="table table-hover border bg-white">
                                     <thead>
                                     <tr>
@@ -224,17 +225,16 @@
                                     </tbody>
                                 </table>
                                 <hr>
-                                {{-- TODO fix conditions for disabled --}}
                                 <form method="POST" action="{{ route('request-insurances.approve_edit', $requestInsurance) }}">
                                     <input type="hidden" name="_method" value="post">
                                     <button class="btn btn-primary" type="submit"
-                                            @disabled($edit->applied_at != null && $edit->admin_user == 'jabj')>Approve</button>
+                                            @disabled($canApproveEdit)>Approve</button>
                                 </form>
 
                                 <form method="POST" action="{{ route('request-insurances.apply_edit', $requestInsurance) }}">
                                     <input type="hidden" name="_method" value="post">
                                     <button class="btn btn-primary" type="submit"
-                                            @disabled($edit->approvals()->count() < $edit->required_number_of_approvals)>Apply</button>
+                                            @disabled($canApplyEdit)>Apply</button>
                                 </form>
                             </div>
                         </div>
