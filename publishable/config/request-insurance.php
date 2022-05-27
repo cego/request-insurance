@@ -71,7 +71,7 @@ return [
     | Set the concrete implementation for IdentityProvider
     */
 
-    'identityProvider' => env('REQUEST_INSURANCE_IDENTITY_PROVIDER', \Cego\RequestInsurance\Providers\IdentityProvider::class),
+    'identityProvider' => \Cego\RequestInsurance\Providers\IdentityProvider::class,
 
     /*
     | Sets if load should be condensed to a value between 0 and 1, and have values above 1 being overload

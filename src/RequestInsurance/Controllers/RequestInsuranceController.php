@@ -89,6 +89,7 @@ class RequestInsuranceController extends Controller
 
         RequestInsuranceEdit::create([
             'request_insurance_id' => $requestInsurance->id,
+            // TODO should the required_amount_of_approvals be read from config (default is 1 in migration)
             'old_priority' => $requestInsurance->priority,
             'new_priority' => $requestInsurance->priority,
             'old_url' => $requestInsurance->url,

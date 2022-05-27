@@ -2,14 +2,16 @@
 
 namespace Cego\RequestInsurance\Providers;
 
+use Illuminate\Http\Request;
+
 class IdentityProvider
 {
     /**
-     * @param $request
+     * @param Request $request
      * @return string|null
      */
-    public function getUser($request) : ?string
+    public function getUser(Request $request) : ?string
     {
-        return null;
+        return $request->header('remote-user', null);
     }
 }
