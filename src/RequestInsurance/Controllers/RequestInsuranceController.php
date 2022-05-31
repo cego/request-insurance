@@ -116,18 +116,18 @@ class RequestInsuranceController extends Controller
      */
     public function update_edit(Request $request, RequestInsuranceEdit $requestInsuranceEdit)//TODO can I send the edit from the form?
     {
-        // Only allow updates for requests that have not completed or been abandoned
+        // Only allow updates if it has not been applied
         if ($requestInsuranceEdit->applied_at != null){
             return redirect()->back();//TODO more error handling?
         }
 
         $requestInsuranceEdit->update([
-            'new_priority' => $requestInsuranceEdit->new_priority,
-            'new_url' => $requestInsuranceEdit->new_url,
-            'new_method' => $requestInsuranceEdit->new_method,
-            'new_headers' => $requestInsuranceEdit->new_headers,//TODO should these by decrypted/encrypted
-            'new_payload' => $requestInsuranceEdit->new_payload,//TODO should these by decrypted/encrypted
-            'new_encrypted_fields' => $requestInsuranceEdit->new_encrypted_fields,
+            'new_priority' => $request->post('new_priority', $requestInsuranceEdit->new_priority),
+            'new_url' => $request->post('new_url', $requestInsuranceEdit->new_url),
+            'new_method' => $request->post('new_method', $requestInsuranceEdit->new_method),
+            'new_headers' => $request->post('new_headers', $requestInsuranceEdit->new_headers),//TODO should these by decrypted/encrypted
+            'new_payload' => $request->post('new_payload', $requestInsuranceEdit->new_payload),//TODO should these by decrypted/encrypted
+            'new_encrypted_fields' => $request->post('new_encrypted_fields', $requestInsuranceEdit->new_encrypted_fields),
         ]);
 
         return redirect()->back();
