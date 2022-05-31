@@ -111,20 +111,54 @@ class RequestInsuranceController extends Controller
 
     /**
      * @param Request $request
-     * @param RequestInsurance $requestInsurance
+     * @param RequestInsuranceEdit $requestInsuranceEdit
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function approve_edit(Request $request, RequestInsurance $requestInsurance)
+    public function update_edit(Request $request, RequestInsuranceEdit $requestInsuranceEdit)//TODO can I send the edit from the form?
+    {
+        // Only allow updates for requests that have not completed or been abandoned
+        if ($requestInsuranceEdit->applied_at != null){
+            return redirect()->back();//TODO more error handling?
+        }
+
+        $requestInsuranceEdit->update([
+            'new_priority' => $requestInsuranceEdit->new_priority,
+            'new_url' => $requestInsuranceEdit->new_url,
+            'new_method' => $requestInsuranceEdit->new_method,
+            'new_headers' => $requestInsuranceEdit->new_headers,//TODO should these by decrypted/encrypted
+            'new_payload' => $requestInsuranceEdit->new_payload,//TODO should these by decrypted/encrypted
+            'new_encrypted_fields' => $requestInsuranceEdit->new_encrypted_fields,
+        ]);
+
+        return redirect()->back();
+    }
+
+    /**
+     * @param Request $request
+     * @param RequestInsuranceEdit $requestInsuranceEdit
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function approve_edit(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
     {
         return redirect()->back();//TODO actually implement
     }
 
     /**
      * @param Request $request
-     * @param RequestInsurance $requestInsurance
+     * @param RequestInsuranceEditApproval $requestInsuranceEditApproval
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function apply_edit(Request $request, RequestInsurance $requestInsurance)
+    public function remove_edit_approval(Request $request, RequestInsuranceEditApproval $requestInsuranceEditApproval)
+    {
+        return redirect()->back();//TODO actually implement
+    }
+
+    /**
+     * @param Request $request
+     * @param RequestInsuranceEdit $requestInsuranceEdit
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function apply_edit(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
     {
         return redirect()->back();//TODO actually implement
     }

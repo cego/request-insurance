@@ -13,13 +13,22 @@
             <div class="col-12">
                 <h1 class="">Inspecting request insurance <strong>#{{ $requestInsurance->id }}</strong> <x-request-insurance-status :requestInsurance="$requestInsurance" /></h1>
             </div>
-            <!-- Request -->
+            @php
+                $anEditHasBeenApplied = $requestInsurance->edits()->where('applied_at', '!=', null)->count() > 0;
+            @endphp
+                    <!-- Request -->
             <div class="col-6">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title text-center">
-                            <h3>Request</h3>
-                            @if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
+                            <h3>Request
+                                @if($anEditHasBeenApplied)
+                                    {{--                                <a class="btn btn-warning" href="./{{$requestInsurance->edits()->where('applied_at', '!=', null)->first()->new_requestInsurance}}"></a>--}}
+                                    <a class="btn btn-warning" href="./{{73}}">OLD</a>
+                                @endif
+                            </h3>
+                            @if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED)
+                              && ! $anEditHasBeenApplied)
                                 <form method="POST" action="{{ route('request-insurances.edit', $requestInsurance) }}">
                                     <input type="hidden" name="_method" value="post">
                                     <button class="btn btn-primary" type="submit">Edit</button>
@@ -98,10 +107,10 @@
             @foreach($requestInsurance->edits()->get() as $edit)
                 @php
                     $canModifyEdit = true;//$edit->applied_at == null && $edit->admin_user == $user;
-                    $canApproveEdit = true;//$edit->applied_at == null && $edit->admin != $user;
-                    $canApplyEdit = true;//$edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals;
+                    $canApproveEdit = $edit->applied_at == null && $edit->admin != $user;
+                    $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals;
                 @endphp
-                <div class="col-6">
+                <div class="col-6 mt-2">
                     <div class="card">
                         <div class="card-body">
                             <div class="card-title text-center">
@@ -135,21 +144,16 @@
                                                 <option value="PUT" @selected(mb_strtoupper($edit->new_method) == "PUT")>PUT</option>
                                             </select>
                                         </td>
-
                                     </tr>
-                                    <tr>
+                                    <tr class="w-100">
                                         <td>Url:</td>
-                                        <td>
-                                            <input name="new_url" class="w-100"
+                                        <td><input name="new_url" class="w-100"
                                                    @disabled( ! $canModifyEdit)
-                                                   value="{{ urldecode($edit->new_url) }}"/>
-                                        </td>
+                                                   value="{{ urldecode($edit->new_url) }}"/></td>
                                     </tr>
                                     <tr>
                                         <td>Payload:</td>
-                                        <!--<td><x-request-insurance-pretty-print :content="$requestInsurance->getPayloadWithMaskingApplied()"/></td>-->
-                                        <!-- TODO pretty print from edit instead -->
-                                        <td>
+                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
                                             @if($canModifyEdit)
                                                 <x-request-insurance-pretty-print-text-area :name='"new_payload"' :content="$edit->new_payload" :disabled=" ! $canModifyEdit"/>
                                             @else
@@ -159,19 +163,34 @@
                                     </tr>
                                     <tr>
                                         <td>Headers:</td>
-                                        {{--                                        <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>--}}
-                                        <td>
+                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
                                             @if($canModifyEdit)
                                                 <x-request-insurance-pretty-print-text-area :name='"new_headers"' :content="$edit->new_headers" :disabled=" ! $canModifyEdit"/>
                                             @else
                                                 <x-request-insurance-pretty-print :content="$edit->new_headers"/>
                                             @endif
                                         </td>
-                                        <!-- TODO pretty print from edit instead -->
                                     </tr>
-                                    <!-- TODO new encrypted fields? -->
+                                    <tr>
+                                        <td>Encrypted fields:</td>
+                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
+                                            @if($canModifyEdit)
+                                                <x-request-insurance-pretty-print-text-area :name='"new_encrypted_fields"' :content="$edit->new_encrypted_fields" :disabled=" ! $canModifyEdit"/>
+                                            @else
+                                                <x-request-insurance-pretty-print :content="$edit->new_encrypted_fields"/>
+                                            @endif
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
+                                <div>
+                                    @if ( ! $anEditHasBeenApplied)
+                                        <form method="POST" action="{{ route('request-insurances.edit', $requestInsurance) }}">
+                                            <input type="hidden" name="_method" value="post">
+                                            <button class="btn btn-primary" type="submit">Save</button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
                             <div class="card-text">
                                 <hr>
@@ -196,17 +215,20 @@
                                 <table>
                                     <tr>
                                         <td>
-                                            <form method="POST" action="{{ route('request-insurances.approve_edit', $requestInsurance) }}">
+                                            <form class="ml-2" method="POST" action="{{ route('request-insurances.approve_edit', $requestInsurance) }}">
                                                 <input type="hidden" name="_method" value="post">
                                                 <button class="btn btn-primary" type="submit"
                                                         @disabled( ! $canApproveEdit)>Approve</button>
                                             </form>
                                         </td>
                                         <td>
-                                            <form method="POST" action="{{ route('request-insurances.apply_edit', $requestInsurance) }}">
+                                            <form class="ml-2" method="POST" action="{{ route('request-insurances.apply_edit', $requestInsurance) }}">
                                                 <input type="hidden" name="_method" value="post">
                                                 <button class="btn btn-primary" type="submit"
                                                         @disabled( ! $canApplyEdit)>Apply</button>
+                                                @if($edit->applied_at != null)
+                                                    <span class="ml-2">Applied at {{$edit->applied_at}}</span>
+                                                @endif
                                             </form>
                                         </td>
                                     </tr>
