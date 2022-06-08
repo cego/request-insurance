@@ -1,4 +1,4 @@
-<?php use \Cego\RequestInsurance\Enums\State; ?>
+<?php ?>
 @extends('request-insurance::layouts.master')
 
 @section('content')

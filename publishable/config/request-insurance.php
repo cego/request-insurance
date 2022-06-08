@@ -14,13 +14,11 @@ return [
 
     'enabled' => env('REQUEST_INSURANCE_ENABLED', true),
 
-
     /*
     | Sets if keep alive should be sent with curl requests
     */
 
     'keepAlive' => true,
-
 
     /*
     | Sets the timeout for a curl request, this is the time execute() has to complete the requests
@@ -28,13 +26,11 @@ return [
 
     'timeoutInSeconds' => 20,
 
-
     /*
     | Set the amount of microseconds to wait between each run cycle
     */
 
     'microSecondsToWait' => 2000000,
-
 
     /*
     | Set the maximum number of retires before backing off completely
@@ -78,7 +74,6 @@ return [
 
     'httpRequestClass' => env('REQUEST_INSURANCE_HTTP_REQUEST_CLASS', \Cego\RequestInsurance\CurlRequest::class),
 
-
     /*
     | Sets if load should be condensed to a value between 0 and 1, and have values above 1 being overload
     | if false value will accumulate from all running instances. E.g. 3 instances will give a value
@@ -92,12 +87,12 @@ return [
     */
 
     'fieldsToAutoEncrypt' => [
-        'headers' => ['Authorization', 'authorization']
+        'headers' => ['Authorization', 'authorization'],
     ],
 
     /*
      | Sets the table name to look for request insurances
      */
-    'table'        => null,
-    'table_logs'   => null,
+    'table'      => null,
+    'table_logs' => null,
 ];

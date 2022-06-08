@@ -27,7 +27,7 @@ class RequestInsuranceBuilderTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         $this->assertEquals(['data' => [1, 2, 3]], json_decode($requestInsurance->payload, true, 512, JSON_THROW_ON_ERROR));
-        $this->assertEquals(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123'], json_decode($requestInsurance->headers, true, 512, JSON_THROW_ON_ERROR));
+        $this->assertEquals(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123', 'X-Sensitive-Request-Headers-JSON' => ['Authorization', 'authorization']], json_decode($requestInsurance->headers, true, 512, JSON_THROW_ON_ERROR));
         $this->assertEquals('POST', $requestInsurance->method);
         $this->assertEquals('https://MyDev.lupinsdev.dk', $requestInsurance->url);
     }
@@ -98,6 +98,6 @@ class RequestInsuranceBuilderTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         $this->assertEquals(json_encode(['data' => [1, 2, 3]], JSON_THROW_ON_ERROR), $requestInsurance->payload);
-        $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123'], JSON_THROW_ON_ERROR), $requestInsurance->headers);
+        $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123', 'X-Sensitive-Request-Headers-JSON' => ['Authorization', 'authorization']], JSON_THROW_ON_ERROR), $requestInsurance->headers);
     }
 }

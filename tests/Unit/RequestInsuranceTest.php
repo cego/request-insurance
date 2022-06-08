@@ -80,7 +80,7 @@ class RequestInsuranceTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         $this->assertEquals(json_encode(['data' => [1, 2, 3]], JSON_THROW_ON_ERROR), $requestInsurance->payload);
-        $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123'], JSON_THROW_ON_ERROR), $requestInsurance->headers);
+        $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123', 'X-Sensitive-Request-Headers-JSON' => ['Authorization', 'authorization']], JSON_THROW_ON_ERROR), $requestInsurance->headers);
     }
 
     /** @test */
