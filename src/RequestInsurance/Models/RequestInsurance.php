@@ -168,11 +168,11 @@ class RequestInsurance extends SaveRetryingModel
             }
 
             if (Arr::has($encryptedAttributes, 'headers')) {
-                $request->headers = array_merge($request->headers, ['X-Sensitive-Request-Headers-JSON' => Arr::get($encryptedAttributes, 'headers')]);
+                $request->headers = array_merge($request->headers, ['X-Sensitive-Request-Headers-JSON' => json_encode(Arr::get($encryptedAttributes, 'headers'))]);
             }
 
             if (Arr::has($encryptedAttributes, 'payload')) {
-                $request->headers = array_merge($request->headers, ['X-Sensitive-Request-Body-JSON' => Arr::get($encryptedAttributes, 'payload')]);
+                $request->headers = array_merge($request->headers, ['X-Sensitive-Request-Body-JSON' => json_encode(Arr::get($encryptedAttributes, 'payload'))]);
             }
 
             $request->encrypted_fields = $encryptedAttributes;
