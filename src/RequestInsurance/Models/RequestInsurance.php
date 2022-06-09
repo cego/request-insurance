@@ -564,15 +564,19 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Gets the shortened version of the payload
      *
+     * @throws JsonException
+     *
      * @return string
      */
     public function getShortenedPayload(): string
     {
-        if (strlen($this->payload) <= 125) {
-            return $this->payload;
+        $payload = $this->getPayloadWithMaskingApplied();
+
+        if (strlen($payload) <= 125) {
+            return $payload;
         }
 
-        return sprintf('%s...', substr($this->payload, 0, 125));
+        return sprintf('%s...', substr($payload, 0, 125));
     }
 
     /**
