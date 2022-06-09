@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Schema;
-use Cego\RequestInsurance\Enums\State;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
@@ -48,6 +47,5 @@ class RemoveOldStateColumnsInRequestInsurance extends Migration
             $table->index(['completed_at', 'created_at']);                                                                        // Interface search - created_at
             $table->index(['abandoned_at', 'created_at']);                                                                        // Interface search - abandoned_at
         });
-
     }
 }
