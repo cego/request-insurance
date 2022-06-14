@@ -1,11 +1,10 @@
 <?php
 
-use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddNewStateColumnsToRequestInsurance extends Migration
+class AddRetryInconsistentOptionInRequestInsurance extends Migration
 {
     /**
      * Run the migrations.
@@ -15,11 +14,7 @@ class AddNewStateColumnsToRequestInsurance extends Migration
     public function up(): void
     {
         Schema::table('request_insurances', function (Blueprint $table) {
-            $table->enum('state', State::getAll())->default(State::READY)->after('retry_at');
-            $table->timestamp('state_changed_at')->after('state')->nullable()->default(null);
-
-            $table->index(['state', 'created_at']);
-            $table->index(['state', 'priority']);
+            $table->boolean('retry_inconsistent')->default(false)->after('retry_at');
         });
     }
 
@@ -30,6 +25,8 @@ class AddNewStateColumnsToRequestInsurance extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('request_insurances');
+        Schema::table('request_insurances', function (Blueprint $table) {
+            $table->dropColumn('retry_inconsistent');
+        });
     }
 }

@@ -2,9 +2,7 @@
 
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Cego\RequestInsurance\Enums\State;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Cego\RequestInsurance\Models\RequestInsurance;
 

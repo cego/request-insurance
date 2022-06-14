@@ -14,13 +14,11 @@ return [
 
     'enabled' => env('REQUEST_INSURANCE_ENABLED', true),
 
-
     /*
     | Sets if keep alive should be sent with curl requests
     */
 
     'keepAlive' => true,
-
 
     /*
     | Sets the timeout for a curl request, this is the time execute() has to complete the requests
@@ -28,13 +26,11 @@ return [
 
     'timeoutInSeconds' => 20,
 
-
     /*
     | Set the amount of microseconds to wait between each run cycle
     */
 
     'microSecondsToWait' => 2000000,
-
 
     /*
     | Set the maximum number of retires before backing off completely
@@ -60,6 +56,17 @@ return [
 
     'batchSize' => env('REQUEST_INSURANCE_BATCH_SIZE', 100),
 
+    /*
+    | Determines if concurrent http requests are enabled or not
+    */
+
+    'concurrentHttpEnabled' => false,
+
+    /*
+    | The maximum number of http requests to send concurrently
+    */
+
+    'concurrentHttpChunkSize' => 5,
 
     /*
      | Set the concrete implementation for HttpRequest
@@ -86,7 +93,7 @@ return [
     */
 
     'fieldsToAutoEncrypt' => [
-        'headers' => ['Authorization', 'authorization']
+        'headers' => ['Authorization', 'authorization'],
     ],
 
     /*

@@ -11,6 +11,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Cego\RequestInsurance\Events;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Crypt;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
@@ -44,6 +45,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property int $retry_factor
  * @property int $retry_cap
  * @property Carbon|null $retry_at
+ * @property bool $retry_inconsistent
  * @property string $state
  * @property Carbon $state_changed_at
  * @property Carbon $created_at
@@ -164,6 +166,14 @@ class RequestInsurance extends SaveRetryingModel
 
             foreach ($encryptedAttributes as $outerKey => $encryptedFields) {
                 $encryptedAttributes[$outerKey] = array_unique($encryptedFields);
+            }
+
+            if (Arr::has($encryptedAttributes, 'headers')) {
+                $request->headers = array_merge($request->headers, ['X-Sensitive-Request-Headers-JSON' => json_encode(Arr::get($encryptedAttributes, 'headers'))]);
+            }
+
+            if (Arr::has($encryptedAttributes, 'payload')) {
+                $request->headers = array_merge($request->headers, ['X-Sensitive-Request-Body-JSON' => json_encode(Arr::get($encryptedAttributes, 'payload'))]);
             }
 
             $request->encrypted_fields = $encryptedAttributes;
@@ -555,15 +565,19 @@ class RequestInsurance extends SaveRetryingModel
     /**
      * Gets the shortened version of the payload
      *
+     * @throws JsonException
+     *
      * @return string
      */
     public function getShortenedPayload(): string
     {
-        if (strlen($this->payload) <= 125) {
-            return $this->payload;
+        $payload = $this->getPayloadWithMaskingApplied();
+
+        if (strlen($payload) <= 125) {
+            return $payload;
         }
 
-        return sprintf('%s...', substr($this->payload, 0, 125));
+        return sprintf('%s...', substr($payload, 0, 125));
     }
 
     /**
@@ -612,6 +626,24 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Returns true if the RI has any of the given states
+     *
+     * @param array $states
+     *
+     * @return bool
+     */
+    public function hasAnyOfStates(array $states): bool
+    {
+        foreach ($states as $state) {
+            if ($this->hasState($state)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Returns true if the request insurance does not have the given state
      *
      * @param string $state
@@ -635,6 +667,13 @@ class RequestInsurance extends SaveRetryingModel
         return in_array($this->state, $states, true);
     }
 
+    /**
+     * Sets the state of the request insurance without saving
+     *
+     * @param string $state
+     *
+     * @return void
+     */
     public function setState(string $state): void
     {
         if ( ! in_array($state, State::getAll(), true)) {
@@ -671,6 +710,27 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Retries the request insurance at a later time
+     *
+     * @param bool $save
+     *
+     * @throws Exception
+     *
+     * @return $this
+     */
+    public function retryLater(bool $save = true): RequestInsurance
+    {
+        $this->setState(State::WAITING);
+        $this->setNextRetryAt();
+
+        if ($save) {
+            $this->save();
+        }
+
+        return $this;
+    }
+
+    /**
      * Tells is the request insurance is retryable
      *
      * @return bool
@@ -681,30 +741,30 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Processes the RequestInsurance instance
+     * Returns the effective timeout
      *
-     * @throws JsonException
-     * @throws MethodNotAllowedForRequestInsurance
-     * @throws Throwable
-     *
-     * @return $this
+     * @return int
      */
-    public function process(): RequestInsurance
+    public function getEffectiveTimeout(): int
     {
-        // An event is dispatched before processing begins
-        // allowing the application to abandon/complete/paused the requests before processing.
-        Events\RequestBeforeProcess::dispatch($this);
-
-        if ($this->doesNotHaveState(State::PENDING)) {
-            return $this;
+        if ($this->timeout_ms === null) {
+            return Config::get('request-insurance.timeoutInSeconds', 20);
         }
 
-        // Increment the number of tries and set state to PROCESSING as the very first action
-        $this->updateOrFail(['state' => State::PROCESSING, 'retry_count' => $this->retry_count + 1]);
+        return ceil($this->timeout_ms / 1000);
+    }
 
-        // Send the request and receive the response
-        $response = $this->sendRequest();
-
+    /**
+     * Processes the RequestInsurance instance
+     *
+     * @param HttpResponse $response
+     *
+     * @throws Throwable
+     *
+     * @return void
+     */
+    public function handleResponse(HttpResponse $response): void
+    {
         // Update the request with the latest response
         $this->response_body = $response->getBody();
         $this->response_code = $response->getCode();
@@ -713,32 +773,43 @@ class RequestInsurance extends SaveRetryingModel
         // Create a log for the request to track all attempts
         try {
             $this->logs()->create([
-                'response_body'    => $response->getBody(),
-                'response_code'    => $response->getCode(),
-                'response_headers' => $response->getHeaders(),
+                'response_body'    => $this->response_body,
+                'response_code'    => $this->response_code,
+                'response_headers' => $this->response_headers,
             ]);
         } catch (Exception $exception) {
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
         }
 
-        if ($response->wasSuccessful()) {
+        if ($response->isInconsistent()) {
+            $response->logInconsistentReason();
+
+            if ($this->retry_inconsistent) {
+                $this->retryLater(false);
+            } else {
+                $this->setState(State::FAILED);
+            }
+        } elseif ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
         } elseif ($response->isRetryable()) {
-            $this->setState(State::WAITING);
-            $this->setNextRetryAt();
+            $this->retryLater(false);
         } else {
             $this->setState(State::FAILED);
         }
 
-        // It happens that a ->save() causes a deadlock problem,
-        // since this is not really a logic error, we add this retry logic
-        // so the data is persisted.
-        // This will most likely in almost all cases catch the problem before an exception is thrown.
         $this->save();
 
-        $this->dispatchPostProcessEvents($response);
+        try {
+            $this->dispatchPostProcessEvents($response);
+        } catch (Throwable $throwable) {
+            Log::error($throwable);
 
-        return $this;
+            // If the request would have been retried, but a listener threw an exception
+            // then mark the request as FAILED - To force human eyes to look at the request.
+            if ($this->hasAnyOfStates([State::WAITING, State::READY]) && $response->wasNotSuccessful()) {
+                $this->setState(State::FAILED);
+            }
+        }
     }
 
     /**
@@ -776,6 +847,12 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected function dispatchPostProcessEvents(HttpResponse $response): void
     {
+        if ($response->isInconsistent()) {
+            Events\RequestInconsistent::dispatch($this);
+
+            return;
+        }
+
         if ($response->wasSuccessful()) {
             Events\RequestSuccessful::dispatch($this);
         } else {

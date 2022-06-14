@@ -294,4 +294,23 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $requestInsurance->save();
         $this->assertEquals(['payload' => ['Key1', 'Key2']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
     }
+
+    /** @test */
+    public function it_sends_info_about_encrypted_body_as_header(): void
+    {
+        // Arrange
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->payload(['Key1' => 'Value1', 'Key2' => 'Value2'])
+            ->encryptPayload(['Key1', 'Key2'])
+            ->create();
+
+        $headers = json_decode($requestInsurance->headers, true);
+
+        // Assert
+        $this->assertEquals(array_merge(['Key1', 'Key2'], Config::get('request-insurance.fieldsToAutoEncrypt.payload', [])), $headers['X-Sensitive-Request-Body-JSON']);
+    }
 }

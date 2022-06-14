@@ -27,9 +27,30 @@ class RequestInsuranceBuilderTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         $this->assertEquals(['data' => [1, 2, 3]], json_decode($requestInsurance->payload, true, 512, JSON_THROW_ON_ERROR));
-        $this->assertEquals(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123'], json_decode($requestInsurance->headers, true, 512, JSON_THROW_ON_ERROR));
+        $this->assertEquals(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123', 'X-Sensitive-Request-Headers-JSON' => ['Authorization', 'authorization']], json_decode($requestInsurance->headers, true, 512, JSON_THROW_ON_ERROR));
         $this->assertEquals('POST', $requestInsurance->method);
         $this->assertEquals('https://MyDev.lupinsdev.dk', $requestInsurance->url);
+    }
+
+    /** @test */
+    public function it_can_set_retry_inconsistent(): void
+    {
+        // Arrange
+
+        // Act
+        RequestInsurance::getBuilder()
+            ->method('POST')
+            ->url('https://MyDev.lupinsdev.dk')
+            ->headers(['Content-Type' => 'application/json'])
+            ->payload(['data' => [1, 2, 3]])
+            ->retryInconsistentState()
+            ->create();
+
+        // Assert
+        $this->assertCount(1, RequestInsurance::all());
+        $requestInsurance = RequestInsurance::first();
+
+        $this->assertEquals(true, $requestInsurance->retry_inconsistent);
     }
 
     /** @test */
@@ -98,6 +119,6 @@ class RequestInsuranceBuilderTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         $this->assertEquals(json_encode(['data' => [1, 2, 3]], JSON_THROW_ON_ERROR), $requestInsurance->payload);
-        $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123'], JSON_THROW_ON_ERROR), $requestInsurance->headers);
+        $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123', 'X-Sensitive-Request-Headers-JSON' => ['Authorization', 'authorization']], JSON_THROW_ON_ERROR), $requestInsurance->headers);
     }
 }

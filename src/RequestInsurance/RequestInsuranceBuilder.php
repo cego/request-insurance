@@ -102,6 +102,16 @@ class RequestInsuranceBuilder
     }
 
     /**
+     * Makes RI automatically retry inconsistent request insurances, instead of failing them.
+     *
+     * @return $this
+     */
+    public function retryInconsistentState(): RequestInsuranceBuilder
+    {
+        return $this->set('retry_inconsistent', true);
+    }
+
+    /**
      * Sets the trace id field
      *
      * @param string $traceId

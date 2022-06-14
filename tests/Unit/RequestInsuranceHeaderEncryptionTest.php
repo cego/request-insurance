@@ -294,4 +294,23 @@ class RequestInsuranceHeaderEncryptionTest extends TestCase
         $requestInsurance->save();
         $this->assertEquals(['headers' => ['Content-Type', 'x-test']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
     }
+
+    /** @test */
+    public function it_sends_info_about_encrypted_headers_as_header(): void
+    {
+        // Arrange
+
+        // Act
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://MyDev.lupinsdev.dk')
+            ->method('POST')
+            ->headers(['Content-Type' => 'application/json'])
+            ->encryptHeader('Content-Type')
+            ->create();
+
+        $headers = json_decode($requestInsurance->headers, true);
+
+        // Assert
+        $this->assertEquals(array_merge(['Content-Type'], Config::get('request-insurance.fieldsToAutoEncrypt.headers', [])), $headers['X-Sensitive-Request-Headers-JSON']);
+    }
 }

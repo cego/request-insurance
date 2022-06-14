@@ -8,6 +8,7 @@ use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
+use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
 class RequestInsuranceTest extends TestCase
 {
@@ -79,7 +80,7 @@ class RequestInsuranceTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         $this->assertEquals(json_encode(['data' => [1, 2, 3]], JSON_THROW_ON_ERROR), $requestInsurance->payload);
-        $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123'], JSON_THROW_ON_ERROR), $requestInsurance->headers);
+        $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123', 'X-Sensitive-Request-Headers-JSON' => ['Authorization', 'authorization']], JSON_THROW_ON_ERROR), $requestInsurance->headers);
     }
 
     /** @test */
@@ -150,7 +151,7 @@ class RequestInsuranceTest extends TestCase
     public function it_always_increment_the_tries_count(): void
     {
         // Arrange
-        Http::fake(fn () => Http::response([], 200));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
@@ -158,18 +159,17 @@ class RequestInsuranceTest extends TestCase
             ->create();
 
         $requestInsurance->refresh();
-        $requestInsurance->update(['state' => State::PENDING]);
 
         // Act & Assert
         $this->assertEquals(0, $requestInsurance->retry_count);
 
-        $requestInsurance->process();
-        $this->assertEquals(1, $requestInsurance->retry_count);
+        $this->runWorkerOnce();
+        $this->assertEquals(1, $requestInsurance->refresh()->retry_count);
 
-        $requestInsurance->update(['state' => State::PENDING]);
-        $requestInsurance->process();
+        $requestInsurance->update(['state' => State::READY]);
+        $this->runWorkerOnce();
 
-        $this->assertEquals(2, $requestInsurance->retry_count);
+        $this->assertEquals(2, $requestInsurance->refresh()->retry_count);
     }
 
     /** @test */
