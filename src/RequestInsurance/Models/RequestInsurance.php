@@ -45,6 +45,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property int $retry_factor
  * @property int $retry_cap
  * @property Carbon|null $retry_at
+ * @property boolean $retry_inconsistent
  * @property string $state
  * @property Carbon $state_changed_at
  * @property Carbon $created_at
