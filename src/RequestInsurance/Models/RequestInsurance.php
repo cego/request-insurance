@@ -773,9 +773,9 @@ class RequestInsurance extends SaveRetryingModel
         // Create a log for the request to track all attempts
         try {
             $this->logs()->create([
-                'response_body'    => $response->getBody(),
-                'response_code'    => $response->getCode(),
-                'response_headers' => $response->getHeaders(),
+                'response_body'    => $this->response_body,
+                'response_code'    => $this->response_code,
+                'response_headers' => $this->response_headers,
             ]);
         } catch (Exception $exception) {
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
