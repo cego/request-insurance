@@ -821,8 +821,9 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected function dispatchPostProcessEvents(HttpResponse $response): void
     {
-        // TODO: Maybe add event for inconsistent and timeouts?
         if ($response->isInconsistent()) {
+            Events\RequestInconsistent::dispatch($this);
+
             return;
         }
 
