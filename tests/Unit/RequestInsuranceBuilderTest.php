@@ -33,6 +33,27 @@ class RequestInsuranceBuilderTest extends TestCase
     }
 
     /** @test */
+    public function it_can_set_retry_inconsistent(): void
+    {
+        // Arrange
+
+        // Act
+        RequestInsurance::getBuilder()
+            ->method('POST')
+            ->url('https://MyDev.lupinsdev.dk')
+            ->headers(['Content-Type' => 'application/json'])
+            ->payload(['data' => [1, 2, 3]])
+            ->retryInconsistentState()
+            ->create();
+
+        // Assert
+        $this->assertCount(1, RequestInsurance::all());
+        $requestInsurance = RequestInsurance::first();
+
+        $this->assertEquals(true, $requestInsurance->retry_inconsistent);
+    }
+
+    /** @test */
     public function it_does_not_allow_empty_method(): void
     {
         // Assert

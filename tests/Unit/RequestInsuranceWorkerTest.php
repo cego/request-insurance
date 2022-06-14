@@ -3,11 +3,13 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
+use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
+use GuzzleHttp\Exception\ConnectException;
 use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -296,5 +298,52 @@ class RequestInsuranceWorkerTest extends TestCase
         $authorizationHeaderInDB = json_decode(RequestInsurance::first()->getOriginal('headers'), true)['Authorization'];
         $this->assertNotEquals('Basic 12345', $authorizationHeaderInDB);
         $this->assertEquals('Basic 12345', Crypt::decrypt($authorizationHeaderInDB));
+    }
+
+    /** @test */
+    public function it_marks_timeouts_as_inconsistent()
+    {
+        // Arrange
+        RequestInsuranceClient::fake(function () {
+            throw new ConnectException('', new Request('get', ''));
+        });
+
+        RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('post')
+            ->headers(['Authorization' => 'Basic 12345'])
+            ->payload('The payload is not an array json_encoded string.')
+            ->create();
+
+        // Act
+        $worker = new RequestInsuranceWorker(1);
+        $worker->run(true);
+
+        // Assert
+        $this->assertEquals(State::FAILED, RequestInsurance::first()->state);
+    }
+
+    /** @test */
+    public function it_can_retry_inconsistent_jobs()
+    {
+        // Arrange
+        RequestInsuranceClient::fake(function () {
+            throw new ConnectException('', new Request('get', ''));
+        });
+
+        RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('post')
+            ->headers(['Authorization' => 'Basic 12345'])
+            ->payload('The payload is not an array json_encoded string.')
+            ->retryInconsistentState()
+            ->create();
+
+        // Act
+        $worker = new RequestInsuranceWorker(1);
+        $worker->run(true);
+
+        // Assert
+        $this->assertEquals(State::WAITING, RequestInsurance::first()->state);
     }
 }
