@@ -14,7 +14,7 @@ class AddRetryInconsistentOptionInRequestInsurance extends Migration
     public function up(): void
     {
         Schema::table('request_insurances', function (Blueprint $table) {
-            $table->boolean('retry_inconsistent')->after('retry_at');
+            $table->boolean('retry_inconsistent')->default(false)->after('retry_at');
         });
     }
 
