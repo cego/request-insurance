@@ -45,7 +45,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property int $retry_factor
  * @property int $retry_cap
  * @property Carbon|null $retry_at
- * @property boolean $retry_inconsistent
+ * @property bool $retry_inconsistent
  * @property string $state
  * @property Carbon $state_changed_at
  * @property Carbon $created_at
@@ -710,6 +710,27 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Retries the request insurance at a later time
+     *
+     * @param bool $save
+     *
+     * @throws Exception
+     *
+     * @return $this
+     */
+    public function retryLater(bool $save = true): RequestInsurance
+    {
+        $this->setState(State::WAITING);
+        $this->setNextRetryAt();
+
+        if ($save) {
+            $this->save();
+        }
+
+        return $this;
+    }
+
+    /**
      * Tells is the request insurance is retryable
      *
      * @return bool
@@ -761,13 +782,17 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         if ($response->isInconsistent()) {
-            $this->setState(State::FAILED);
             $response->logInconsistentReason();
+
+            if ($this->retry_inconsistent) {
+                $this->retryLater(false);
+            } else {
+                $this->setState(State::FAILED);
+            }
         } elseif ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
         } elseif ($response->isRetryable()) {
-            $this->setState(State::WAITING);
-            $this->setNextRetryAt();
+            $this->retryLater(false);
         } else {
             $this->setState(State::FAILED);
         }
