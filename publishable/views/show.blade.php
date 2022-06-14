@@ -225,14 +225,17 @@
                                     <tr>
                                         <td>
                                             @if($canApproveEdit)
-                                                @if($edit->approvals()->where('approver_admin_user', $user)->count() == 0)
+                                                @php
+                                                    $approvalsByUser = $edit->approvals()->where('approver_admin_user', $user);
+                                                @endphp
+                                                @if($approvalsByUser->count() == 0)
                                                     <form class="ml-2" method="POST" action="{{ route('request-insurances.approve_edit', $edit) }}">
                                                         <input type="hidden" name="_method" value="post">
                                                         <button class="btn btn-primary" type="submit"
                                                                 @disabled( ! $canApproveEdit)>Approve</button>
                                                     </form>
                                                 @else
-                                                    <form class="ml-2" method="POST" action="{{ route('request-insurances.remove_edit_approval', $edit) }}">
+                                                    <form class="ml-2" method="POST" action="{{ route('request-insurances.remove_edit_approval', $approvalsByUser->first()) }}">
                                                         <input type="hidden" name="_method" value="post">
                                                         <button class="btn btn-secondary" type="submit">Remove approval</button>
                                                     </form>
