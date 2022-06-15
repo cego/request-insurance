@@ -47,7 +47,6 @@ class RequestInsuranceEditController extends Controller
             'new_payload' => $requestInsurance->getOriginal('payload'),
             'old_encrypted_fields' => $requestInsurance->encrypted_fields,
             'new_encrypted_fields' => $requestInsurance->encrypted_fields,
-            'applied_at' => Carbon::now(),// TODO delete this line - this is for testing only
             'admin_user' => resolve(Config::get('request-insurance.identityProvider'))->getUser($request),
         ]);
 
@@ -62,7 +61,7 @@ class RequestInsuranceEditController extends Controller
     public function destroy(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
     {
         // Only allow delete if not already applied and request is from the edit author
-        if ($requestInsuranceEdit->applied_at != null || resolve(Config::get('request-insurance.identityProvider'))->getUser($request) != $requestInsuranceEdit->approver_admin_user){
+        if ($requestInsuranceEdit->applied_at != null || resolve(Config::get('request-insurance.identityProvider'))->getUser($request) != $requestInsuranceEdit->admin_user){
             return redirect()->back();//TODO more error handling
         }
         $requestInsuranceEdit->delete();
@@ -78,7 +77,7 @@ class RequestInsuranceEditController extends Controller
     public function update(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
     {
         // Only allow updates if it has not been applied
-        if ($requestInsuranceEdit->applied_at != null){
+        if ($requestInsuranceEdit->applied_at != null || resolve(Config::get('request-insurance.identityProvider'))->getUser($request) != $requestInsuranceEdit->admin_user){
             return redirect()->back();//TODO more error handling?
         }
 
@@ -105,6 +104,11 @@ class RequestInsuranceEditController extends Controller
      */
     public function apply(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
     {
+        // Only allow updates if it has not been applied
+        if ($requestInsuranceEdit->applied_at != null || $requestInsuranceEdit->approvals()->count() < $requestInsuranceEdit->required_number_of_approvals){
+            return redirect()->back();//TODO more error handling?
+        }
+
         $requestInsuranceEdit->update(['applied_at' => Carbon::now()]);
 
         // Update the request insurance

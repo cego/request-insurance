@@ -57,20 +57,4 @@ class RequestInsuranceEditApprovalController extends Controller
 
         return redirect()->back();
     }
-
-    /**
-     * @param Request $request
-     * @param RequestInsuranceEdit $requestInsuranceEdit
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy_all(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
-    {
-        // Only allow if not already applied
-        if ($requestInsuranceEdit->applied_at != null){
-            return redirect()->back();//TODO more error handling
-        }
-        $requestInsuranceEdit->approvals()->delete();
-
-        return redirect()->back();
-    }
 }

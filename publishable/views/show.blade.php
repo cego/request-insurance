@@ -35,8 +35,8 @@
                             @endphp
                             @if($appliedEdits->count() > 0)
                                 <div class="mt-2">
-                                    <form method="POST" action="{{ route('request-insurances.edit_history', $requestInsurance) }}">
-                                        <input type="hidden" name="_method" value="post">
+                                    <form method="GET" action="{{ route('request-insurances.edit_history', $requestInsurance) }}">
+                                        <input type="hidden" name="_method" value="get">
                                         <button class="btn btn-warning" type="submit">History</button>
                                     </form>
                                 </div>
@@ -60,11 +60,11 @@
                                 </tr>
                                 <tr>
                                     <td>Payload:</td>
-                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->getPayloadWithMaskingApplied()"/></td>
+                                    <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->getPayloadWithMaskingApplied()"/></td>
                                 </tr>
                                 <tr>
                                     <td>Headers:</td>
-                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
+                                    <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
                                 </tr>
                                 <tr>
                                     <td>Next attempt at:</td>
@@ -94,15 +94,15 @@
                                 <tbody>
                                 <tr>
                                     <td>Response code:</td>
-                                    <td><h4><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}"/></h4></td>
+                                    <td style="max-width:1px"><h4><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}"/></h4></td>
                                 </tr>
                                 <tr>
                                     <td>Response headers:</td>
-                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->response_headers"/></td>
+                                    <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->response_headers"/></td>
                                 </tr>
                                 <tr>
                                     <td>Response body</td>
-                                    <td><x-request-insurance-pretty-print :content="$requestInsurance->response_body"/></td>
+                                    <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->response_body"/></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -128,10 +128,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="collapse" id="collapseEdits">
+                    <div class="collapse show" id="collapseEdits">
                         @foreach($pendingEdits->get() as $edit)
                             @php
-                                $canModifyEdit = true;//$edit->applied_at == null && $edit->admin_user == $user;
+                                $canModifyEdit = $edit->applied_at == null && $edit->admin_user == $user;
                                 $canApproveEdit = $edit->applied_at == null && $edit->admin != $user;
                                 $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals;
                             @endphp
