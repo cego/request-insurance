@@ -72,7 +72,7 @@ Route::namespace('Cego\RequestInsurance\Controllers')
         ])->withoutMiddleware(VerifyCsrfToken::class);
 
         Route::post('request-insurances/{request_insurance_edit}/apply_edit', [
-            'uses' => 'RequestInsuranceController@apply_edit',
-            'as'   => 'request-insurances.apply_edit',
+            'uses' => 'RequestInsuranceController@apply',
+            'as'   => 'request-insurances-edits.apply',
         ])->withoutMiddleware(VerifyCsrfToken::class);
     });

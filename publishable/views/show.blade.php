@@ -108,6 +108,24 @@
                 </div>
             </div>
             <!-- Edit(s) -->
+            <style>
+                @-o-keyframes fadeIt {
+                    0%   { background-color: #FFFFFF; }
+                    50%  { background-color: #AD301B; }
+                    100% { background-color: #FFFFFF; }
+                }
+                @keyframes fadeIt {
+                    0%   { background-color: #FFFFFF; }
+                    50%  { background-color: #AD301B; }
+                    100% { background-color: #FFFFFF; }
+                }
+
+                .backgroundAnimated{
+                    background-image:none !important;
+                    -o-animation: fadeIt .5s ease-in-out;
+                    animation: fadeIt .5s ease-in-out;
+                }
+            </style>
             @php
                 $pendingEdits = $requestInsurance->edits()->where('applied_at', null)->orderBy('updated_at', 'DESC');
             @endphp
@@ -133,7 +151,7 @@
                                 $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals;
                             @endphp
                             <div class="col-6 mt-2">
-                                <div class="card">
+                                <div class="card {{$edit->created_at->diffInSeconds(\Carbon\Carbon::now()) < 5 ? 'backgroundAnimated' : ''}}">
                                     <div class="card-body">
                                         <div class="card-title text-center">
                                             <h3>
@@ -267,7 +285,7 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        <form class="ml-2" method="POST" action="{{ route('request-insurances.apply_edit', $edit) }}">
+                                                        <form class="ml-2" method="POST" action="{{ route('request-insurances-edits.apply', $edit) }}">
                                                             <input type="hidden" name="_method" value="post">
                                                             <button class="btn btn-primary" type="submit"
                                                                     @disabled( ! $canApplyEdit)>Apply</button>
