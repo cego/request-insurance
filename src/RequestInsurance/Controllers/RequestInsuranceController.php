@@ -62,6 +62,24 @@ class RequestInsuranceController extends Controller
     }
 
     /**
+     * Shows edit history for a specific request insurance
+     *
+     * @param Request $request
+     * @param RequestInsurance $requestInsurance
+     *
+     * @return View|Factory
+     */
+    public function edit_history(Request $request, RequestInsurance $requestInsurance)
+    {
+        $requestInsurance->load('edits');
+
+        return view('request-insurance::edit-history')->with([
+            'requestInsurance' => $requestInsurance,
+            'user' => resolve(Config::get('request-insurance.identityProvider'))->getUser($request),
+        ]);
+    }
+
+    /**
      * Abandons a request insurance
      *
      * @param RequestInsurance $requestInsurance

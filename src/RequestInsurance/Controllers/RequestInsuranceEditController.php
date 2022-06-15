@@ -106,7 +106,9 @@ class RequestInsuranceEditController extends Controller
     public function apply(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
     {
         $requestInsuranceEdit->update(['applied_at' => Carbon::now()]);
-        RequestInsurance::create([
+
+        // Update the request insurance
+        $requestInsuranceEdit->parent()->update([
             'priority' => $requestInsuranceEdit->new_priority,
             'url' => $requestInsuranceEdit->new_url,
             'method' => $requestInsuranceEdit->new_method,
