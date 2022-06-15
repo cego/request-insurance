@@ -161,7 +161,7 @@
                                                     <tr>
                                                         <td>Method:</td>
                                                         <td>
-                                                            <select name="method" id="new_method" @disabled( ! $canModifyEdit)>
+                                                            <select name="new_method" @disabled( ! $canModifyEdit)>
                                                                 <option value="GET" @selected(mb_strtoupper($edit->new_method) == "GET")>GET</option>
                                                                 <option value="POST" @selected(mb_strtoupper($edit->new_method) == "POST")>POST</option>
                                                                 <option value="PUT" @selected(mb_strtoupper($edit->new_method) == "PUT")>PUT</option>
