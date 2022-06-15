@@ -24,7 +24,7 @@
                             <h3>Request</h3>
                             @if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
                                 <div class="mt-2">
-                                    <form method="POST" action="{{ route('request-insurances.edit', $requestInsurance) }}">
+                                    <form method="POST" action="{{ route('request-insurance-edits.create', $requestInsurance) }}">
                                         <input type="hidden" name="_method" value="post">
                                         <button class="btn btn-primary" type="submit">Edit</button>
                                     </form>
@@ -112,7 +112,7 @@
             </div>
             <!-- Edit(s) -->
             @php
-                $pendingEdits = $requestInsurance->edits()->where('applied_at', null);
+                $pendingEdits = $requestInsurance->edits()->where('applied_at', null)->orderBy('updated_at', 'DESC');
             @endphp
             @if($pendingEdits->count() > 0)
                 <div class="col-12 mt-2">
@@ -121,7 +121,7 @@
                             <div class="card-title text-center">
                                 <h3>Edits
                                     <span class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" id="toggleCollapseEdits" data-toggle="collapse" data-target="#collapseEdits">
+                                    <input type="checkbox" checked class="custom-control-input" id="toggleCollapseEdits" data-toggle="collapse" data-target="#collapseEdits">
                                     <label class="custom-control-label" for="toggleCollapseEdits"></label>
                                 </span>
                                 </h3>
@@ -150,7 +150,7 @@
                                             <hr>
                                         </div>
                                         <div class="card-text">
-                                            <form method="POST" action="{{ route('request-insurances.update_edit', $edit) }}">
+                                            <form method="POST" action="{{ route('request-insurance-edits.update', $edit) }}">
                                                 <table class="table-hover w-100 table-vertical table-striped">
                                                     <tbody>
                                                     <tr>
@@ -218,7 +218,7 @@
                                                     @endif
                                                 </div>
                                             </form>
-                                            <form method="POST" action="{{ route('request-insurances.delete_edit', $edit) }}">
+                                            <form method="POST" action="{{ route('request-insurance-edits.destroy', $edit) }}">
                                                 <div class="m-2">
                                                     @if ( $canModifyEdit )
                                                         <input type="hidden" name="_method" value="post">
@@ -256,13 +256,13 @@
                                                                 $approvalsByUser = $edit->approvals()->where('approver_admin_user', $user);
                                                             @endphp
                                                             @if($approvalsByUser->count() == 0)
-                                                                <form class="ml-2" method="POST" action="{{ route('request-insurances.approve_edit', $edit) }}">
+                                                                <form class="ml-2" method="POST" action="{{ route('request-insurance-edit-approvals.create', $edit) }}">
                                                                     <input type="hidden" name="_method" value="post">
                                                                     <button class="btn btn-primary" type="submit"
                                                                             @disabled( ! $canApproveEdit)>Approve</button>
                                                                 </form>
                                                             @else
-                                                                <form class="ml-2" method="POST" action="{{ route('request-insurances.remove_edit_approval', $approvalsByUser->first()) }}">
+                                                                <form class="ml-2" method="POST" action="{{ route('request-insurance-edit-approvals.destroy', $approvalsByUser->first()) }}">
                                                                     <input type="hidden" name="_method" value="post">
                                                                     <button class="btn btn-secondary" type="submit">Remove approval</button>
                                                                 </form>
