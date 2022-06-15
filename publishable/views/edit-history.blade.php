@@ -13,13 +13,50 @@
             <div class="col-12">
                 <h1 class="">Inspecting request insurance edit history <strong>#{{ $requestInsurance->id }}</strong> <x-request-insurance-status :requestInsurance="$requestInsurance" /></h1>
             </div>
+            <!-- Request -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title text-center">
+                            <h3>Current Request</h3>
+                            <hr>
+                        </div>
+                        <div class="card-text">
+                            <table class="table-hover w-100 table-vertical table-striped">
+                                <tbody>
+                                <tr>
+                                    <td>RequestInsurance Id:</td>
+                                    <td>{{ $requestInsurance->id }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Method:</td>
+                                    <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Url:</td>
+                                    <td>{{ urldecode($requestInsurance->url) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Payload:</td>
+                                    <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->getOriginal('payload')"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Headers:</td>
+                                    <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->getOriginal('headers')"/></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
             @php
                 // Get edits from most recent to oldest
                 $appliedEdits = $requestInsurance->edits()->where('applied_at', '<>', null)->orderBy('applied_at', 'DESC');
             @endphp
             @foreach($appliedEdits->get() as $edit)
-                <!-- Request -->
-                <div class="col-6">
+                <!-- Earlier Request States -->
+                <div class="col-12 mt-3">
                     <div class="card">
                         <div class="card-body">
                             <div class="card-title text-center">
@@ -35,19 +72,19 @@
                                     </tr>
                                     <tr>
                                         <td>Method:</td>
-                                        <td>{{ mb_strtoupper($edit->new_method) }}</td>
+                                        <td>{{ mb_strtoupper($edit->old_method) }}</td>
                                     </tr>
                                     <tr>
                                         <td>Url:</td>
-                                        <td>{{ urldecode($edit->new_url) }}</td>
+                                        <td>{{ urldecode($edit->old_url) }}</td>
                                     </tr>
                                     <tr>
                                         <td>Payload:</td>
-                                        <td style="max-width:1px"><x-request-insurance-pretty-print :content="$edit->new_payload"/></td>
+                                        <td style="max-width:1px"><x-request-insurance-pretty-print :content="$edit->old_payload"/></td>
                                     </tr>
                                     <tr>
                                         <td>Headers:</td>
-                                        <td style="max-width:1px"><x-request-insurance-pretty-print :content="$edit->new_headers"/></td>
+                                        <td style="max-width:1px"><x-request-insurance-pretty-print :content="$edit->old_headers"/></td>
                                     </tr>
                                     </tbody>
                                 </table>

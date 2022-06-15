@@ -13,10 +13,7 @@
             <div class="col-12">
                 <h1 class="">Inspecting request insurance <strong>#{{ $requestInsurance->id }}</strong> <x-request-insurance-status :requestInsurance="$requestInsurance" /></h1>
             </div>
-            @php
-                $anEditHasBeenApplied = $requestInsurance->edits()->where('applied_at', '!=', null)->count() > 0;
-            @endphp
-                    <!-- Request -->
+            <!-- Request -->
             <div class="col-6">
                 <div class="card">
                     <div class="card-body">
@@ -132,7 +129,7 @@
                         @foreach($pendingEdits->get() as $edit)
                             @php
                                 $canModifyEdit = $edit->applied_at == null && $edit->admin_user == $user;
-                                $canApproveEdit = $edit->applied_at == null && $edit->admin != $user;
+                                $canApproveEdit = $edit->applied_at == null && ! $canModifyEdit;
                                 $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals;
                             @endphp
                             <div class="col-6 mt-2">
@@ -212,7 +209,7 @@
                                                     </tbody>
                                                 </table>
                                                 <div class="m-2">
-                                                    @if ( ! $anEditHasBeenApplied && $canModifyEdit )
+                                                    @if ( $canModifyEdit )
                                                         <input type="hidden" name="_method" value="post">
                                                         <button class="btn btn-primary" type="submit">Save</button>
                                                     @endif
