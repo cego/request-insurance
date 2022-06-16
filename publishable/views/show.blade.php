@@ -264,7 +264,7 @@
                                                     @endif
                                                 </div>
                                             </form>
-                                            <form method="DELETE" action="{{ route('request-insurance-edits.destroy', $edit) }}">
+                                            <form method="POST" action="{{ route('request-insurance-edits.destroy', $edit) }}">
                                                 <div class="m-2">
                                                     @if ( $canModifyEdit )
                                                         <input type="hidden" name="_method" value="delete">
@@ -308,7 +308,7 @@
                                                                             @disabled( ! $canApproveEdit)>Approve</button>
                                                                 </form>
                                                             @else
-                                                                <form class="ml-2" method="DELETE" action="{{ route('request-insurance-edit-approvals.destroy', $approvalsByUser->first()) }}">
+                                                                <form class="ml-2" method="POST" action="{{ route('request-insurance-edit-approvals.destroy', $approvalsByUser->first()) }}">
                                                                     <input type="hidden" name="_method" value="delete">
                                                                     <button class="btn btn-secondary" type="submit">Remove approval</button>
                                                                 </form>
