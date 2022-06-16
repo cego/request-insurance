@@ -171,11 +171,11 @@
                                     <div class="card-body">
                                         <div class="card-title text-center">
                                             <h3>
-                                                Edit:
-                                                @if($edit->applied_at == null)
+                                                Edit
+                                                @if($edit->approvals()->count() < $edit->required_number_of_approvals)
                                                     <div class="badge badge-primary">Pending</div>
                                                 @else
-                                                    <div class="badge badge-success">Applied</div>
+                                                    <div class="badge badge-success">Approved</div>
                                                 @endif
                                             </h3>
                                             <hr>
