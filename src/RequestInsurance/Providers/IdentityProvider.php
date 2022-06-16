@@ -8,9 +8,10 @@ class IdentityProvider
 {
     /**
      * @param Request $request
-     * @return string|null
+     *
+     * @return string
      */
-    public function getUser(Request $request) : ?string
+    public function getUser(Request $request): string
     {
         return $request->header('remote-user', '');
     }

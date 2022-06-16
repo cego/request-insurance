@@ -2,7 +2,6 @@
 
 namespace Cego\RequestInsurance\Factories;
 
-use Cego\RequestInsurance\Models\RequestInsurance;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class RequestInsuranceEditApprovalFactory extends Factory
@@ -23,7 +22,7 @@ class RequestInsuranceEditApprovalFactory extends Factory
     {
         return [
             'request_insurance_edit_id' => RequestInsuranceEdit::factory(),
-            'approver_admin_user' => '',
+            'approver_admin_user'       => '',
         ];
     }
 }

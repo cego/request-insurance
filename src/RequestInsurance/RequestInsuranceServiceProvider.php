@@ -2,8 +2,6 @@
 
 namespace Cego\RequestInsurance;
 
-use Cego\RequestInsurance\ViewComponents\EditApprovalsStatus;
-use Cego\RequestInsurance\ViewComponents\PrettyPrintTextArea;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
@@ -13,6 +11,8 @@ use Cego\RequestInsurance\ViewComponents\Status;
 use Cego\RequestInsurance\ViewComponents\HttpCode;
 use Cego\RequestInsurance\ViewComponents\InlinePrint;
 use Cego\RequestInsurance\ViewComponents\PrettyPrint;
+use Cego\RequestInsurance\ViewComponents\EditApprovalsStatus;
+use Cego\RequestInsurance\ViewComponents\PrettyPrintTextArea;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
 {

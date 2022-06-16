@@ -2,10 +2,7 @@
 
 namespace Cego\RequestInsurance\Controllers;
 
-use Carbon\Carbon;
-use Cego\RequestInsurance\Models\RequestInsuranceEdit;
 use Exception;
-use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\View\Factory;
@@ -57,7 +54,7 @@ class RequestInsuranceController extends Controller
 
         return view('request-insurance::show')->with([
             'requestInsurance' => $requestInsurance,
-            'user' => resolve(Config::get('request-insurance.identityProvider'))->getUser($request),
+            'user'             => resolve(Config::get('request-insurance.identityProvider'))->getUser($request),
         ]);
     }
 
@@ -75,7 +72,7 @@ class RequestInsuranceController extends Controller
 
         return view('request-insurance::edit-history')->with([
             'requestInsurance' => $requestInsurance,
-            'user' => resolve(Config::get('request-insurance.identityProvider'))->getUser($request),
+            'user'             => resolve(Config::get('request-insurance.identityProvider'))->getUser($request),
         ]);
     }
 

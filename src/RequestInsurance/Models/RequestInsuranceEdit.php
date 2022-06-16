@@ -3,9 +3,9 @@
 namespace Cego\RequestInsurance\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -63,7 +63,6 @@ class RequestInsuranceEdit extends SaveRetryingModel
      */
     protected static function booted()
     {
-
     }
 
     /**

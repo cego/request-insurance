@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Cego\RequestInsurance\Factories\RequestInsuranceLogFactory;
 
 /**
  * Class RequestInsuranceEditApproval
@@ -49,7 +48,6 @@ class RequestInsuranceEditApproval extends SaveRetryingModel
      */
     protected static function booted()
     {
-
     }
 
     /**
