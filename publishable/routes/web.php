@@ -56,7 +56,7 @@ Route::namespace('Cego\RequestInsurance\Controllers')
             'as'   => 'request-insurance-edits.update',
         ])->withoutMiddleware(VerifyCsrfToken::class);
 
-        Route::post('request-insurances/{request_insurance_edit}/delete_edit', [
+        Route::delete('request-insurances/{request_insurance_edit}/delete_edit', [
             'uses' => 'RequestInsuranceEditController@destroy',
             'as'   => 'request-insurance-edits.destroy',
         ])->withoutMiddleware(VerifyCsrfToken::class);
@@ -66,7 +66,7 @@ Route::namespace('Cego\RequestInsurance\Controllers')
             'as'   => 'request-insurance-edit-approvals.create',
         ])->withoutMiddleware(VerifyCsrfToken::class);
 
-        Route::post('request-insurances/{request_insurance_edit_approval}/remove_edit_approval', [
+        Route::delete('request-insurances/{request_insurance_edit_approval}/remove_edit_approval', [
             'uses' => 'RequestInsuranceEditApprovalController@destroy',
             'as'   => 'request-insurance-edit-approvals.destroy',
         ])->withoutMiddleware(VerifyCsrfToken::class);
