@@ -64,6 +64,10 @@
                                     <td>{{ $requestInsurance->id }}</td>
                                 </tr>
                                 <tr>
+                                    <td>Priority:</td>
+                                    <td>{{ $requestInsurance->priority }}</td>
+                                </tr>
+                                <tr>
                                     <td>Method:</td>
                                     <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
                                 </tr>
@@ -185,12 +189,20 @@
                                                 <table class="table-hover w-100 table-vertical table-striped">
                                                     <tbody>
                                                     <tr>
+                                                        <td>Editor:</td>
+                                                        <td>{{ $edit->admin_user }}</td>
+                                                    </tr>
+                                                    <tr>
                                                         <td>RequestInsurance Id:</td>
                                                         <td>{{ $edit->request_insurance_id }}</td>
                                                     </tr>
                                                     <tr>
-                                                        <td>Editor:</td>
-                                                        <td>{{ $edit->admin_user }}</td>
+                                                        <td>Priority:</td>
+                                                        <td><input name="new_priority" class="w-100" type="number" min="0" max="9999"
+                                                                   onchange="(() => {this.value=this.value < 0 ? 0 : this.value > 9999 ? 9999 : this.value;})()"
+                                                                   onkeyup="(() => {this.value=this.value < 0 ? 0 : this.value > 9999 ? 9999 : this.value;})()"
+                                                                   @disabled( ! $canModifyEdit)
+                                                                   value="{{ $edit->new_priority }}"/></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Method:</td>

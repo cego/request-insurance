@@ -29,6 +29,10 @@
                                     <td>{{ $requestInsurance->id }}</td>
                                 </tr>
                                 <tr>
+                                    <td>Priority:</td>
+                                    <td>{{ $requestInsurance->priority }}</td>
+                                </tr>
+                                <tr>
                                     <td>Method:</td>
                                     <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
                                 </tr>
@@ -69,6 +73,10 @@
                                     <tr>
                                         <td>RequestInsurance Id:</td>
                                         <td>{{ $requestInsurance->id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Priority:</td>
+                                        <td>{{ $edit->old_priority }}</td>
                                     </tr>
                                     <tr>
                                         <td>Method:</td>
