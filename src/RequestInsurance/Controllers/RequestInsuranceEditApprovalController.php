@@ -30,7 +30,7 @@ class RequestInsuranceEditApprovalController extends Controller
         $user = resolve(Config::get('request-insurance.identityProvider'))->getUser($request);
         // Only allow approvals from users that did not create the edit
         if ($requestInsuranceEdit->admin_user == $user){
-            return redirect()->back();//TODO more error handling?
+            return redirect()->back();
         }
 
         RequestInsuranceEditApproval::create([
@@ -51,7 +51,7 @@ class RequestInsuranceEditApprovalController extends Controller
         $user = resolve(Config::get('request-insurance.identityProvider'))->getUser($request);
         // Only allow if not already applied and request is from the approver
         if ($requestInsuranceEditApproval->edit->applied_at != null || $user != $requestInsuranceEditApproval->approver_admin_user){
-            return redirect()->back();//TODO more error handling
+            return redirect()->back();
         }
         $requestInsuranceEditApproval->delete();
 

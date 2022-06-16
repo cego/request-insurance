@@ -21,12 +21,9 @@ class RequestInsuranceEditApprovalFactory extends Factory
      */
     public function definition(): array
     {
-        // TODO implement!
         return [
-            'response_headers'     => '{"Content-Type": "application/json"}',
-            'response_body'        => '{}',
-            'response_code'        => $this->faker->randomElement([200, 401, 404, 405, 422, 500]),
-            'request_insurance_id' => RequestInsurance::factory(),
+            'request_insurance_edit_id' => RequestInsuranceEdit::factory(),
+            'approver_admin_user' => '',
         ];
     }
 }

@@ -29,7 +29,8 @@ class RequestInsuranceEditController extends Controller
     {
         // Only allow updates for requests that have not completed or been abandoned
         if ($requestInsurance->inOneOfStates(State::COMPLETED, State::ABANDONED)){
-            return redirect()->back();//TODO more error handling?
+            // This should not be possible from the view, so we don't send any error messages
+            return redirect()->back();
         }
 
         RequestInsuranceEdit::create([
@@ -62,7 +63,8 @@ class RequestInsuranceEditController extends Controller
     {
         // Only allow delete if not already applied and request is from the edit author
         if ($requestInsuranceEdit->applied_at != null || resolve(Config::get('request-insurance.identityProvider'))->getUser($request) != $requestInsuranceEdit->admin_user){
-            return redirect()->back();//TODO more error handling
+            // Both these cases should not be possible from the view, so we don't send any error message
+            return redirect()->back();
         }
         $requestInsuranceEdit->delete();
 
@@ -76,9 +78,10 @@ class RequestInsuranceEditController extends Controller
      */
     public function update(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
     {
-        // Only allow updates if it has not been applied
+        // Only allow updates if it has not been applied and the updating user is the edit author
         if ($requestInsuranceEdit->applied_at != null || resolve(Config::get('request-insurance.identityProvider'))->getUser($request) != $requestInsuranceEdit->admin_user){
-            return redirect()->back();//TODO more error handling?
+            // Both these cases should not be possible from the view, so we don't send any error message
+            return redirect()->back();
         }
 
         // Remove all approvals
@@ -104,9 +107,24 @@ class RequestInsuranceEditController extends Controller
      */
     public function apply(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
     {
-        // Only allow updates if it has not been applied
-        if ($requestInsuranceEdit->applied_at != null || $requestInsuranceEdit->approvals()->count() < $requestInsuranceEdit->required_number_of_approvals){
-            return redirect()->back();//TODO more error handling?
+        // If already applied, do nothing
+        if ($requestInsuranceEdit->applied_at != null){
+            return redirect()->back();
+        }
+
+        $errors = [];
+        if ($requestInsuranceEdit->approvals()->count() < $requestInsuranceEdit->required_number_of_approvals) {
+            $errors['requestInsuranceEdit'] = $requestInsuranceEdit;
+            $errors['requestErrors'] = ['approval' => 'Not enough approvals to apply'];
+        }
+        if ( ! $this->is_valid_header_format($requestInsuranceEdit->new_headers)){
+            $errors['requestInsuranceEdit'] = $requestInsuranceEdit;
+            $errors['requestErrors'] = ['header' => 'Invalid header format'];
+        }
+
+        // If any errors redirect back with all errors
+        if ( ! empty($errors)){
+            return redirect()->back()->with($errors);
         }
 
         $requestInsuranceEdit->update(['applied_at' => Carbon::now()]);
@@ -121,5 +139,24 @@ class RequestInsuranceEditController extends Controller
             'encrypted_fields' => $requestInsuranceEdit->new_encrypted_fields,
         ]);
         return redirect()->back();
+    }
+
+    /**
+     * Returns whether the data is empty, an array or json
+     *
+     * @param $data
+     * @return bool
+     */
+    private function is_valid_header_format($data){
+        if (empty($data) || is_array($data)){
+            return true;
+        }
+        try {
+            json_decode($data);
+            return true;
+        }
+        finally{
+            return false;
+        }
     }
 }

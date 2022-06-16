@@ -8,6 +8,22 @@
     <script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/languages/json.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
 
+    @php
+        function getEditErrorMessage($editId, $field) {
+            $requestInsuranceEdit = Session::get('requestInsuranceEdit');
+            $requestErrors = Session::get('requestErrors');
+            if ( empty($requestInsuranceEdit)){
+                return "";
+            }
+            if ($requestInsuranceEdit->id != $editId){
+                return "";
+            }
+            if ( empty($requestErrors[$field])){
+                return "";
+            }
+            return $requestErrors[$field];
+        }
+    @endphp
     <div class="container-flex mt-5 col-12">
         <div class="row">
             <div class="col-12">
@@ -212,6 +228,9 @@
                                                             @else
                                                                 <x-request-insurance-pretty-print :content="$edit->new_headers"/>
                                                             @endif
+                                                            @if( ! empty($errorMsg = getEditErrorMessage($edit->id, 'header')))
+                                                                <span class="text-danger">{{$errorMsg}}</span>
+                                                            @endif
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -289,8 +308,8 @@
                                                             <input type="hidden" name="_method" value="post">
                                                             <button class="btn btn-primary" type="submit"
                                                                     @disabled( ! $canApplyEdit)>Apply</button>
-                                                            @if($edit->applied_at != null)
-                                                                <span class="ml-2">Applied at {{$edit->applied_at}}</span>
+                                                            @if( ! empty($errorMsg = getEditErrorMessage($edit->id, 'approval')))
+                                                                <span class="text-danger">{{$errorMsg}}</span>
                                                             @endif
                                                         </form>
                                                     </td>
