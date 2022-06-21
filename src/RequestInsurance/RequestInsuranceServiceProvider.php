@@ -114,6 +114,8 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             return Config::get('request-insurance.httpRequestClass');
         });
 
-        $this->app->bind(IdentityProvider::class, new CegoIdentityProvider());
+        $this->app->bind(IdentityProvider::class, function () {
+            return new CegoIdentityProvider();
+        });
     }
 }
