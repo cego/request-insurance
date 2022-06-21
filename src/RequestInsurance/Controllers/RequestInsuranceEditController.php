@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Cego\RequestInsurance\Enums\State;
-use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\RequestInsurance\Providers\IdentityProvider;
 use Cego\RequestInsurance\Models\RequestInsuranceEdit;
 
 class RequestInsuranceEditController extends Controller
@@ -17,10 +17,11 @@ class RequestInsuranceEditController extends Controller
     /**
      * @param Request $request
      * @param RequestInsurance $requestInsurance
+     * @param IdentityProvider $identityProvider
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function create(Request $request, RequestInsurance $requestInsurance)
+    public function create(Request $request, RequestInsurance $requestInsurance, IdentityProvider $identityProvider)
     {
         // Only allow updates for requests that have not completed or been abandoned
         if ($requestInsurance->inOneOfStates(State::COMPLETED, State::ABANDONED)) {
@@ -42,7 +43,7 @@ class RequestInsuranceEditController extends Controller
             'new_payload'          => $requestInsurance->getOriginal('payload'),
             'old_encrypted_fields' => $requestInsurance->encrypted_fields,
             'new_encrypted_fields' => $requestInsurance->encrypted_fields,
-            'admin_user'           => resolve(Config::get('request-insurance.identityProvider'))->getUser($request),
+            'admin_user'           => $identityProvider->getUser($request),
         ]);
 
         return redirect()->back();
@@ -51,13 +52,14 @@ class RequestInsuranceEditController extends Controller
     /**
      * @param Request $request
      * @param RequestInsuranceEdit $requestInsuranceEdit
+     * @param IdentityProvider $identityProvider
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
+    public function destroy(Request $request, RequestInsuranceEdit $requestInsuranceEdit, IdentityProvider $identityProvider)
     {
         // Only allow delete if not already applied and request is from the edit author
-        if ($requestInsuranceEdit->applied_at != null || resolve(Config::get('request-insurance.identityProvider'))->getUser($request) != $requestInsuranceEdit->admin_user) {
+        if ($requestInsuranceEdit->applied_at != null || $identityProvider->getUser($request) != $requestInsuranceEdit->admin_user) {
             // Both these cases should not be possible from the view, so we don't send any error message
             return redirect()->back();
         }
@@ -69,13 +71,14 @@ class RequestInsuranceEditController extends Controller
     /**
      * @param Request $request
      * @param RequestInsuranceEdit $requestInsuranceEdit
+     * @param IdentityProvider $identityProvider
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
+    public function update(Request $request, RequestInsuranceEdit $requestInsuranceEdit, IdentityProvider $identityProvider)
     {
         // Only allow updates if it has not been applied and the updating user is the edit author
-        if ($requestInsuranceEdit->applied_at != null || resolve(Config::get('request-insurance.identityProvider'))->getUser($request) != $requestInsuranceEdit->admin_user) {
+        if ($requestInsuranceEdit->applied_at != null || $identityProvider->getUser($request) != $requestInsuranceEdit->admin_user) {
             // Both these cases should not be possible from the view, so we don't send any error message
             return redirect()->back();
         }

@@ -9,6 +9,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\ViewComponents\Status;
 use Cego\RequestInsurance\ViewComponents\HttpCode;
+use Cego\RequestInsurance\Providers\IdentityProvider;
 use Cego\RequestInsurance\ViewComponents\InlinePrint;
 use Cego\RequestInsurance\ViewComponents\PrettyPrint;
 use Cego\RequestInsurance\ViewComponents\EditApprovalsStatus;
@@ -111,5 +112,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
         $this->app->bind(HttpRequest::class, function () {
             return Config::get('request-insurance.httpRequestClass');
         });
+
+        $this->app->bind(IdentityProvider::class, new CegoIdentityProvider());
     }
 }
