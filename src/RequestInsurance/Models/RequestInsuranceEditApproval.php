@@ -4,7 +4,6 @@ namespace Cego\RequestInsurance\Models;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -58,15 +57,5 @@ class RequestInsuranceEditApproval extends SaveRetryingModel
     public function edit()
     {
         return $this->belongsTo(get_class(resolve(RequestInsuranceEdit::class)), 'request_insurance_edit_id');
-    }
-
-    /**
-     * Create a new factory instance for the model.
-     *
-     * @return Factory
-     */
-    protected static function newFactory()
-    {
-        return new RequestInsuranceEditFactory();
     }
 }

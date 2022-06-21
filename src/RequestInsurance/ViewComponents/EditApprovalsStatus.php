@@ -35,7 +35,7 @@ class EditApprovalsStatus extends Component
      */
     public function statusColor()
     {
-        return $this->requestInsuranceEdit->approvals()->count() >= $this->requestInsuranceEdit->required_number_of_approvals ? 'success' : 'warning';
+        return $this->requestInsuranceEdit->approvals->count() >= $this->requestInsuranceEdit->required_number_of_approvals ? 'success' : 'warning';
     }
 
     /**
@@ -45,7 +45,7 @@ class EditApprovalsStatus extends Component
      */
     public function statusText()
     {
-        return sprintf('%d/%d', $this->requestInsuranceEdit->approvals()->count(), $this->requestInsuranceEdit->required_number_of_approvals);
+        return sprintf('%d/%d', $this->requestInsuranceEdit->approvals->count(), $this->requestInsuranceEdit->required_number_of_approvals);
     }
 
     /**

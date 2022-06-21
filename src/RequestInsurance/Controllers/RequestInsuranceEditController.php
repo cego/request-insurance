@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -79,29 +80,30 @@ class RequestInsuranceEditController extends Controller
             return redirect()->back();
         }
 
-        // Remove all approvals
-        $requestInsuranceEdit->approvals()->delete();
+        DB::transaction(function () use ($request, $requestInsuranceEdit) {
+            // Remove all approvals
+            $requestInsuranceEdit->approvals()->delete();
 
-        // Update the edit
-        $requestInsuranceEdit->update([
-            'new_priority'         => $request->post('new_priority', $requestInsuranceEdit->new_priority),
-            'new_url'              => $request->post('new_url', $requestInsuranceEdit->new_url),
-            'new_method'           => $request->post('new_method', $requestInsuranceEdit->new_method),
-            'new_headers'          => $request->post('new_headers', $requestInsuranceEdit->new_headers),
-            'new_payload'          => $request->post('new_payload', $requestInsuranceEdit->new_payload),
-            'new_encrypted_fields' => $request->post('new_encrypted_fields', $requestInsuranceEdit->new_encrypted_fields),
-        ]);
+            // Update the edit
+            $requestInsuranceEdit->update([
+                'new_priority'         => $request->post('new_priority', $requestInsuranceEdit->new_priority),
+                'new_url'              => $request->post('new_url', $requestInsuranceEdit->new_url),
+                'new_method'           => $request->post('new_method', $requestInsuranceEdit->new_method),
+                'new_headers'          => $request->post('new_headers', $requestInsuranceEdit->new_headers),
+                'new_payload'          => $request->post('new_payload', $requestInsuranceEdit->new_payload),
+                'new_encrypted_fields' => $request->post('new_encrypted_fields', $requestInsuranceEdit->new_encrypted_fields),
+            ]);
+        });
 
         return redirect()->back();
     }
 
     /**
-     * @param Request $request
      * @param RequestInsuranceEdit $requestInsuranceEdit
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function apply(Request $request, RequestInsuranceEdit $requestInsuranceEdit)
+    public function apply(RequestInsuranceEdit $requestInsuranceEdit)
     {
         // If already applied, do nothing
         if ($requestInsuranceEdit->applied_at != null) {
@@ -125,17 +127,19 @@ class RequestInsuranceEditController extends Controller
             return redirect()->back()->with($errors);
         }
 
-        $requestInsuranceEdit->update(['applied_at' => Carbon::now()]);
+        DB::transaction(function () use ($requestInsuranceEdit) {
+            $requestInsuranceEdit->update(['applied_at' => Carbon::now()]);
 
-        // Update the request insurance
-        $requestInsuranceEdit->parent()->update([
-            'priority'         => $requestInsuranceEdit->new_priority,
-            'url'              => $requestInsuranceEdit->new_url,
-            'method'           => $requestInsuranceEdit->new_method,
-            'headers'          => $requestInsuranceEdit->new_headers,
-            'payload'          => $requestInsuranceEdit->new_payload,
-            'encrypted_fields' => $requestInsuranceEdit->new_encrypted_fields,
-        ]);
+            // Update the request insurance
+            $requestInsuranceEdit->parent()->update([
+                'priority'         => $requestInsuranceEdit->new_priority,
+                'url'              => $requestInsuranceEdit->new_url,
+                'method'           => $requestInsuranceEdit->new_method,
+                'headers'          => $requestInsuranceEdit->new_headers,
+                'payload'          => $requestInsuranceEdit->new_payload,
+                'encrypted_fields' => $requestInsuranceEdit->new_encrypted_fields,
+            ]);
+        });
 
         return redirect()->back();
     }
