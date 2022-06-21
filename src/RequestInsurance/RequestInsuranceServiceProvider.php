@@ -12,6 +12,7 @@ use Cego\RequestInsurance\ViewComponents\HttpCode;
 use Cego\RequestInsurance\Providers\IdentityProvider;
 use Cego\RequestInsurance\ViewComponents\InlinePrint;
 use Cego\RequestInsurance\ViewComponents\PrettyPrint;
+use Cego\RequestInsurance\Providers\CegoIdentityProvider;
 use Cego\RequestInsurance\ViewComponents\EditApprovalsStatus;
 use Cego\RequestInsurance\ViewComponents\PrettyPrintTextArea;
 
