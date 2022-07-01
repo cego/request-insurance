@@ -28,26 +28,12 @@ class RequestInsuranceWorker
     protected ?string $runningHash = null;
 
     /**
-     * Once set, holds the number of microseconds to wait between each cycle
-     *
-     * @var int $microSecondsToWait
-     */
-    protected int $microSecondsToWait;
-
-    /**
      * Boolean flag, used to indicate if the service has received an outside signal to shutdown processing of records.
      * This allows for graceful shutdown, instead of shutting down the service hard - Causing unwanted states in Request Insurance rows.
      *
      * @var bool
      */
     protected bool $shutdownSignalReceived = false;
-
-    /**
-     * The number of request insurances each worker processes pr. epoch
-     *
-     * @var int
-     */
-    protected int $batchSize;
 
     /**
      * Timestamp used for running stuff at most once every second
@@ -61,10 +47,8 @@ class RequestInsuranceWorker
     /**
      * RequestInsuranceService constructor.
      */
-    public function __construct(int $batchSize = 100, int $microSecondsToWait = 200000)
+    public function __construct()
     {
-        $this->microSecondsToWait = $microSecondsToWait;
-        $this->batchSize = $batchSize;
         $this->runningHash = Str::random(8);
         $this->secondIntervalTimestamp = hrtime();
         $this->client = resolve(RequestInsuranceClient::class);
@@ -86,7 +70,7 @@ class RequestInsuranceWorker
 
         do {
             try {
-                if (env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)) {
+                if (Config::get('request-insurance.useDbReconnect')) {
                     DB::reconnect();
                 }
 
@@ -95,7 +79,7 @@ class RequestInsuranceWorker
                     $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
                 });
 
-                $waitTime = (int) max($this->microSecondsToWait - $executionTime->microseconds(), 0);
+                $waitTime = (int) max(Config::get('request-insurance.microSecondsToWait') - $executionTime->microseconds(), 0);
 
                 usleep($waitTime);
             } catch (Throwable $throwable) {
@@ -329,7 +313,7 @@ class RequestInsuranceWorker
         return resolve(RequestInsurance::class)::query()
             ->select('id')
             ->readyToBeProcessed()
-            ->take($this->batchSize)
+            ->take(Config::get('request-insurance.batchSize'))
             ->lockForUpdate()
             ->pluck('id');
     }
