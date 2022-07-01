@@ -39,10 +39,7 @@ class RequestInsuranceService extends Command
         }
 
         // Run the service
-        (new RequestInsuranceWorker(
-            env('REQUEST_INSURANCE_WORKER_BATCH_SIZE', 100),
-            env('REQUEST_INSURANCE_WORKER_MICRO_SECONDS_INTERVAL', 200000)
-        ))->run();
+        (new RequestInsuranceWorker())->run();
 
         return 1;
     }

@@ -30,7 +30,7 @@ return [
     | Set the amount of microseconds to wait between each run cycle
     */
 
-    'microSecondsToWait' => 2000000,
+    'microSecondsToWait' => env('REQUEST_INSURANCE_WORKER_MICRO_SECONDS_INTERVAL', 200000),
 
     /*
     | Set the maximum number of retires before backing off completely
@@ -95,4 +95,7 @@ return [
      */
     'table'      => null,
     'table_logs' => null,
+
+
+    'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)
 ];
