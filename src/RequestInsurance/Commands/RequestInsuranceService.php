@@ -17,6 +17,12 @@ class RequestInsuranceService extends Command
      */
     protected $signature = 'process:request-insurances';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Processes request insurances that are ready to be sent';
 
     /**
      * Execute the console command.
