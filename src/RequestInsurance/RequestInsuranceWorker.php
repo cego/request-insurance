@@ -79,7 +79,7 @@ class RequestInsuranceWorker
                     $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
                 });
 
-                $waitTime = (int) max(Config::get('request-insurance.microSecondsToWait' - $executionTime->microseconds(), 0);
+                $waitTime = (int) max(Config::get('request-insurance.microSecondsToWait') - $executionTime->microseconds(), 0);
 
                 usleep($waitTime);
             } catch (Throwable $throwable) {
