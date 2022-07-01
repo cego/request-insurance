@@ -96,6 +96,5 @@ return [
     'table'      => null,
     'table_logs' => null,
 
-
     'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)
 ];
