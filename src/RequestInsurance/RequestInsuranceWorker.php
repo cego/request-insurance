@@ -61,7 +61,7 @@ class RequestInsuranceWorker
     /**
      * RequestInsuranceService constructor.
      */
-    public function __construct(int $batchSize = 100, int $microSecondsToWait = 200000)
+    public function __construct(int $batchSize, int $microSecondsToWait)
     {
         $this->microSecondsToWait = $microSecondsToWait;
         $this->batchSize = $batchSize;
