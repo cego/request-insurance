@@ -30,7 +30,7 @@ return [
     | Set the amount of microseconds to wait between each run cycle
     */
 
-    'microSecondsToWait' => 2000000,
+    'microSecondsToWait' => env('REQUEST_INSURANCE_WORKER_MICRO_SECONDS_INTERVAL', 200000),
 
     /*
     | Set the maximum number of retires before backing off completely
@@ -93,13 +93,8 @@ return [
     /*
      | Sets the table name to look for request insurances
      */
-    'table'        => null,
-    'table_logs'   => null,
+    'table'      => null,
+    'table_logs' => null,
 
-    /*
-     | Sets which endpoint to send edit requests to the endpoint to view
-     | after edit
-     */
-    'edit_endpoint' => null,
-    'view_endpoint' => null,
+    'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)
 ];
