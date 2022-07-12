@@ -113,8 +113,11 @@ class RequestInsurance extends SaveRetryingModel
 
         // Set correct created and updated at fields
         static::creating(function (RequestInsurance $request) {
-            $request->created_at = Carbon::now('UTC');
-            $request->updated_at = Carbon::now('UTC');
+            $request->created_at ??= Carbon::now('UTC');
+            $request->updated_at ??= Carbon::now('UTC');
+
+            $request->created_at = $request->created_at->setTimezone('UTC');
+            $request->updated_at = $request->updated_at->setTimezone('UTC');
         });
 
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database

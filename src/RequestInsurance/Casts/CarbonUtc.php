@@ -45,7 +45,11 @@ class CarbonUtc implements CastsAttributes
         }
 
         if ( ! $value instanceof Carbon) {
-            throw new InvalidArgumentException('Invalid value. Value must be of type Carbon!');
+            if (in_array($key, ['created_at', 'updated_at'])) {
+                $value = Carbon::parse($value);
+            } else {
+                throw new InvalidArgumentException('The given value must be a Carbon instance!');
+            }
         }
 
         return $value->setTimezone('UTC')->toIso8601ZuluString();

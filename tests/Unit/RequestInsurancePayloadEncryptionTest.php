@@ -311,6 +311,6 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $headers = json_decode($requestInsurance->headers, true);
 
         // Assert
-        $this->assertEquals(array_merge(['Key1', 'Key2'], Config::get('request-insurance.fieldsToAutoEncrypt.payload', [])), $headers['X-Sensitive-Request-Body-JSON']);
+        $this->assertEquals(array_merge(['Key1', 'Key2'], Config::get('request-insurance.fieldsToAutoEncrypt.payload', [])), json_decode($headers['X-Sensitive-Request-Body-JSON']));
     }
 }

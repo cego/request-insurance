@@ -168,8 +168,10 @@ class RequestInsuranceWorkerTest extends TestCase
 
         $this->assertCount(2, RequestInsurance::query()->where('state', '!=', State::COMPLETED)->get());
 
+        Config::set('request-insurance.batchSize', 1);
+
         // Act
-        $worker = new RequestInsuranceWorker(1);
+        $worker = new RequestInsuranceWorker();
         $worker->run(true);
 
         // Assert

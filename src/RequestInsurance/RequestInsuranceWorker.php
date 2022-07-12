@@ -214,7 +214,7 @@ class RequestInsuranceWorker
      */
     protected function setStateToProcessingAndIncrementAttempts(EloquentCollection $requests): void
     {
-        $now = Carbon::now('UTC')->toDateTimeString();
+        $now = Carbon::now('UTC');
 
         $updatedRows = RequestInsurance::query()
             ->whereIn('id', $requests->pluck('id'))
