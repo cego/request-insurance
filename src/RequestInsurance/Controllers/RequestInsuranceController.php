@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\View\Factory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Cego\RequestInsurance\Enums\State;
@@ -139,14 +140,14 @@ class RequestInsuranceController extends Controller
     /**
      * Gets json representation of failed and active requests
      *
-     * @return array
+     * @return JsonResponse
      */
-    public function monitor()
+    public function monitor(): JsonResponse
     {
-        return [
-            'activeCount' => RequestInsurance::query()->where('state', State::READY)->count(),
-            'failCount'   => RequestInsurance::query()->where('state', State::FAILED)->count(),
-        ];
+        return response()->json([
+            'activeCount' => (int) RequestInsurance::query()->where('state', State::READY)->count(),
+            'failCount'   => (int) RequestInsurance::query()->where('state', State::FAILED)->count(),
+        ]);
     }
 
     /**

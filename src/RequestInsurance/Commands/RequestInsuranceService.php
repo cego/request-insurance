@@ -5,7 +5,6 @@ namespace Cego\RequestInsurance\Commands;
 use Throwable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 
 class RequestInsuranceService extends Command
