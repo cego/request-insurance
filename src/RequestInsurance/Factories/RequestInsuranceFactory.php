@@ -40,7 +40,7 @@ class RequestInsuranceFactory extends Factory
             'retry_cap'        => 3600,
             'retry_at'         => null,
             'state'            => State::READY,
-            'state_changed_at' => Carbon::now(),
+            'state_changed_at' => Carbon::now('UTC'),
         ];
     }
 }

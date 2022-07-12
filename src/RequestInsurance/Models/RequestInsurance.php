@@ -17,6 +17,7 @@ use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Illuminate\Database\Eloquent\Builder;
+use Cego\RequestInsurance\Casts\CarbonUtc;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\RequestInsuranceBuilder;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -72,14 +73,11 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected bool $isEncrypted = false;
 
-    /**
-     * The attributes that should be mutated to dates.
-     *
-     * @var array
-     */
-    protected $dates = [
-        'retry_at',
-        'state_changed_at',
+    protected $casts = [
+        'retry_at'         => CarbonUtc::class,
+        'state_changed_at' => CarbonUtc::class,
+        'created_at'       => CarbonUtc::class,
+        'updated_at'       => CarbonUtc::class,
     ];
 
     /**
@@ -113,6 +111,12 @@ class RequestInsurance extends SaveRetryingModel
             }
         });
 
+        // Set correct created and updated at fields
+        static::creating(function (RequestInsurance $request) {
+            $request->created_at = Carbon::now('UTC');
+            $request->updated_at = Carbon::now('UTC');
+        });
+
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {
             // Throw exception if method is not set
@@ -126,12 +130,12 @@ class RequestInsurance extends SaveRetryingModel
             }
 
             if ($request->state_changed_at === null) {
-                $request->state_changed_at = Carbon::now();
+                $request->state_changed_at = Carbon::now('UTC');
             }
 
             // In case someone forgets to update the state_changed_at field when updating the state
             if ($request->isDirty('state') && ! $request->isDirty('state_changed_at')) {
-                $request->state_changed_at = Carbon::now();
+                $request->state_changed_at = Carbon::now('UTC');
             }
 
             /** @var Request $httpRequest */
@@ -547,12 +551,12 @@ class RequestInsurance extends SaveRetryingModel
 
         try {
             if ($request->has('from') && $request->get('from') != null) {
-                $from = Carbon::parse($request->get('from'))->setHours(0)->setMinutes(0)->setSeconds(0);
+                $from = Carbon::parse($request->get('from'))->startOfDay();
                 $query = $query->whereDate('created_at', '>=', $from);
             }
 
             if ($request->has('to') && $request->get('to') != null) {
-                $to = Carbon::parse($request->get('to'))->setHours(23)->setMinutes(59)->setSeconds(59);
+                $to = Carbon::parse($request->get('to'))->endOfDay();
                 $query = $query->whereDate('created_at', '<=', $to);
             }
         } catch (Exception $exception) {
@@ -681,7 +685,7 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         $this->state = $state;
-        $this->state_changed_at = Carbon::now();
+        $this->state_changed_at = Carbon::now('UTC');
 
         if ($state != State::WAITING) {
             $this->retry_at = null;
@@ -891,7 +895,7 @@ class RequestInsurance extends SaveRetryingModel
             $seconds = $this->retry_cap;
         }
 
-        $this->retry_at = Carbon::now()->addSeconds($seconds);
+        $this->retry_at = Carbon::now('UTC')->addSeconds($seconds);
 
         return $this;
     }
