@@ -165,11 +165,13 @@ class RequestInsuranceController extends Controller
             ->get()
             ->mapWithKeys(fn (object $row) => [$row->state => $row->count]);
 
-        // Add default value of 0
         return response()->json(
             collect(State::getAll())
+                // Add default value of 0 for all states
                 ->map(fn () => 0)
+                // Merge actual state counts into the collection (not all states are present within the state counts)
                 ->merge($stateCounts)
+                // Force integer type, since the query returns strings
                 ->map(fn ($value) => (int) $value)
                 ->toArray()
         );
