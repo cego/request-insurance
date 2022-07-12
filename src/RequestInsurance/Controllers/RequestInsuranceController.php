@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\Factory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
@@ -153,9 +154,9 @@ class RequestInsuranceController extends Controller
     /**
      * Gets a collection of segmented number of requests
      *
-     * @return \Illuminate\Support\Collection
+     * @return JsonResponse
      */
-    public function monitor_segmented()
+    public function monitor_segmented(): JsonResponse
     {
         $stateCounts = DB::query()
             ->from(RequestInsurance::make()->getTable())
@@ -165,6 +166,12 @@ class RequestInsuranceController extends Controller
             ->mapWithKeys(fn (object $row) => [$row->state => $row->count]);
 
         // Add default value of 0
-        return collect(State::getAll())->map(fn () => 0)->merge($stateCounts);
+        return response()->json(
+            collect(State::getAll())
+                ->map(fn () => 0)
+                ->merge($stateCounts)
+                ->map(fn ($value) => (int) $value)
+                ->toArray()
+        );
     }
 }
