@@ -45,8 +45,8 @@ class CarbonUtc implements CastsAttributes
         }
 
         if ( ! $value instanceof Carbon) {
-            if (in_array($key, ['created_at', 'updated_at'])) {
-                $value = Carbon::parse($value);
+            if (in_array($key, [$model->getCreatedAtColumn(), $model->getUpdatedAtColumn()], true)) {
+                $value = Carbon::parse($value, 'UTC');
             } else {
                 throw new InvalidArgumentException('The given value must be a Carbon instance!');
             }
