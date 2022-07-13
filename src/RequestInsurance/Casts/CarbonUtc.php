@@ -52,6 +52,6 @@ class CarbonUtc implements CastsAttributes
             }
         }
 
-        return $value->setTimezone('UTC')->toIso8601String();
+        return $value->setTimezone('UTC')->toDateTimeString();
     }
 }
