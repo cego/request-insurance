@@ -30,6 +30,12 @@ class AddNewStateColumnsToRequestInsurance extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('request_insurances');
+        Schema::table('request_insurances', function (Blueprint $table) {
+            $table->dropColumn('state');
+        });
+
+        Schema::table('request_insurances', function (Blueprint $table) {
+            $table->dropColumn('state_changed_at');
+        });
     }
 }
