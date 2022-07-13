@@ -58,7 +58,7 @@ class RedoIndicesInRequestInsurance extends Migration
     public function down(): void
     {
         Schema::table('request_insurances', function (Blueprint $table) {
-            $table->dropIndex(['paused_at', 'abandoned_at', 'completed_at', 'locked_at', 'retry_at', 'priority']);
+            $table->dropIndex('covering_index');
             $table->dropIndex(['url', 'created_at']);
             $table->dropIndex(['response_code', 'created_at']);
             $table->dropIndex(['completed_at', 'created_at']);
