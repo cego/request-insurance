@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Cego\RequestInsurance\RequestInsuranceServiceProvider;
@@ -48,6 +49,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function getWorker(int $batchSize = 100): RequestInsuranceWorker
     {
         putenv('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT=false');
+        Config::set('request-insurance.useDbReconnect', false);
 
         return new RequestInsuranceWorker($batchSize);
     }

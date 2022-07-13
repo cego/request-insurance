@@ -17,7 +17,7 @@ class RequestInsuranceCleaner
      */
     public static function cleanUp(): void
     {
-        $deletionCutoff = Carbon::now()->subDays(Config::get('request-insurance.cleanUpKeepDays', 14));
+        $deletionCutoff = Carbon::now('UTC')->subDays(Config::get('request-insurance.cleanUpKeepDays', 14));
         $chunkSize = Config::get('request-insurance.cleanChunkSize', 1000);
 
         // Get RI ids to delete

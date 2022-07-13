@@ -18,10 +18,10 @@ class RequestInsuranceCleanerTest extends TestCase
         Config::set('request-insurance.cleanChunkSize', 10); // Reduce chunk size, so many chunks are made
 
         // Create 555 requests that are a month old
-        RequestInsurance::factory(555, ['state' => State::COMPLETED, 'created_at' => Carbon::now()->subMonthNoOverflow()->toDateTimeString()])->create();
+        RequestInsurance::factory(555, ['state' => State::COMPLETED, 'created_at' => Carbon::now('UTC')->subMonthNoOverflow()->toDateTimeString()])->create();
 
         // Create 111 requests that are from today
-        RequestInsurance::factory(111, ['state' => State::COMPLETED, 'created_at' => Carbon::now()->toDateTimeString()])->create();
+        RequestInsurance::factory(111, ['state' => State::COMPLETED, 'created_at' => Carbon::now('UTC')->toDateTimeString()])->create();
 
         // Assert that they were all created
         $this->assertDatabaseCount(RequestInsurance::class, 666);

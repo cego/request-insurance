@@ -152,8 +152,8 @@ class RequestInsuranceWorker
     {
         RequestInsurance::query()
             ->where('state', State::WAITING)
-            ->where('retry_at', '<=', Carbon::now())
-            ->update(['state' => State::READY, 'state_changed_at' => Carbon::now(), 'retry_at' => null]);
+            ->where('retry_at', '<=', Carbon::now('UTC'))
+            ->update(['state' => State::READY, 'state_changed_at' => Carbon::now('UTC'), 'retry_at' => null]);
     }
 
     /**
@@ -214,7 +214,7 @@ class RequestInsuranceWorker
      */
     protected function setStateToProcessingAndIncrementAttempts(EloquentCollection $requests): void
     {
-        $now = Carbon::now()->toDateTimeString();
+        $now = Carbon::now('UTC');
 
         $updatedRows = RequestInsurance::query()
             ->whereIn('id', $requests->pluck('id'))

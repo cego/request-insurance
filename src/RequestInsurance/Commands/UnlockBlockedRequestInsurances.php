@@ -32,8 +32,8 @@ class UnlockBlockedRequestInsurances extends Command
     {
         RequestInsurance::query()
             ->where('state', State::PENDING)
-            ->where('state_changed_at', '<', Carbon::now()->subMinutes(5))
-            ->update(['state' => State::READY, 'state_changed_at' => Carbon::now()]);
+            ->where('state_changed_at', '<', Carbon::now('UTC')->subMinutes(5))
+            ->update(['state' => State::READY, 'state_changed_at' => Carbon::now('UTC')]);
 
         return 0;
     }

@@ -21,14 +21,14 @@ class RequestInsuranceStateTest extends TestCase
     public function it_defaults_to_ready_state(): void
     {
         // Arrange
-        Carbon::setTestNow(Carbon::now());
+        Carbon::setTestNow(Carbon::now('UTC'));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
 
         // Assert
         $this->assertEquals(State::READY, $requestInsurance->state);
-        $this->assertEquals(Carbon::now()->toDateTimeString(), $requestInsurance->state_changed_at->toDateTimeString());
+        $this->assertEquals(Carbon::now('UTC')->toDateTimeString(), $requestInsurance->state_changed_at->toDateTimeString());
     }
 
     /** @test */
