@@ -11,7 +11,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Cego\RequestInsurance\Events;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Crypt;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
@@ -89,6 +89,16 @@ class RequestInsurance extends SaveRetryingModel
     {
         // Use the one defined in the config, or the whatever is default
         return Config::get('request-insurance.table') ?? parent::getTable();
+    }
+
+    /**
+     * Get a fresh timestamp for the model.
+     *
+     * @return \Illuminate\Support\Carbon
+     */
+    public function freshTimestamp(): \Illuminate\Support\Carbon
+    {
+        return Date::now('UTC');
     }
 
     /**
