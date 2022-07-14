@@ -41,21 +41,12 @@ class RequestInsuranceEditApproval extends SaveRetryingModel
     }
 
     /**
-     * Perform any actions required after the model boots.
-     *
-     * @return void
-     */
-    protected static function booted()
-    {
-    }
-
-    /**
      * Relationship with RequestInsuranceEdit
      *
      * @return BelongsTo
      */
     public function edit()
     {
-        return $this->belongsTo(get_class(resolve(RequestInsuranceEdit::class)), 'request_insurance_edit_id');
+        return $this->belongsTo(RequestInsuranceEdit::class);
     }
 }

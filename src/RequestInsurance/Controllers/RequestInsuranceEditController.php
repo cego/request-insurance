@@ -89,12 +89,11 @@ class RequestInsuranceEditController extends Controller
 
             // Update the edit
             $requestInsuranceEdit->update([
-                'new_priority'         => $request->post('new_priority', $requestInsuranceEdit->new_priority),
-                'new_url'              => $request->post('new_url', $requestInsuranceEdit->new_url),
-                'new_method'           => $request->post('new_method', $requestInsuranceEdit->new_method),
-                'new_headers'          => $request->post('new_headers', ''),
-                'new_payload'          => $request->post('new_payload', ''),
-                'new_encrypted_fields' => $request->post('new_encrypted_fields', ''),
+                'new_priority' => $request->post('new_priority', $requestInsuranceEdit->new_priority),
+                'new_url'      => $request->post('new_url', $requestInsuranceEdit->new_url),
+                'new_method'   => $request->post('new_method', $requestInsuranceEdit->new_method),
+                'new_headers'  => $request->post('new_headers', ''),
+                'new_payload'  => $request->post('new_payload', ''),
             ]);
         });
 
@@ -102,14 +101,17 @@ class RequestInsuranceEditController extends Controller
     }
 
     /**
+     * @param Request $request
      * @param RequestInsuranceEdit $requestInsuranceEdit
+     * @param IdentityProvider $identityProvider
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function apply(RequestInsuranceEdit $requestInsuranceEdit)
+    public function apply(Request $request, RequestInsuranceEdit $requestInsuranceEdit, IdentityProvider $identityProvider)
     {
-        // If already applied, do nothing
-        if ($requestInsuranceEdit->applied_at != null) {
+        // If already applied or if the applier is not the edit author, do nothing
+        if ($requestInsuranceEdit->applied_at != null || $identityProvider->getUser($request) != $requestInsuranceEdit->admin_user) {
+            // Both these cases should not be possible from the view, so we don't send any error message
             return redirect()->back();
         }
 
@@ -120,7 +122,7 @@ class RequestInsuranceEditController extends Controller
             $errors['requestErrors'] = ['approval' => 'Not enough approvals to apply'];
         }
 
-        if ( ! $this->is_valid_header_format($requestInsuranceEdit->new_headers)) {
+        if ( ! $this->isValidHeaderFormat($requestInsuranceEdit->new_headers)) {
             $errors['requestInsuranceEdit'] = $requestInsuranceEdit;
             $errors['requestErrors'] = ['header' => 'Invalid header format'];
         }
@@ -131,16 +133,15 @@ class RequestInsuranceEditController extends Controller
         }
 
         DB::transaction(function () use ($requestInsuranceEdit) {
-            $requestInsuranceEdit->update(['applied_at' => Carbon::now()]);
+            $requestInsuranceEdit->update(['applied_at' => Carbon::now('UTC')]);
 
             // Update the request insurance
-            $requestInsuranceEdit->parent()->update([
-                'priority'         => $requestInsuranceEdit->new_priority,
-                'url'              => $requestInsuranceEdit->new_url,
-                'method'           => $requestInsuranceEdit->new_method,
-                'headers'          => $requestInsuranceEdit->new_headers,
-                'payload'          => $requestInsuranceEdit->new_payload,
-                'encrypted_fields' => $requestInsuranceEdit->new_encrypted_fields,
+            $requestInsuranceEdit->requestInsurance()->update([
+                'priority' => $requestInsuranceEdit->new_priority,
+                'url'      => $requestInsuranceEdit->new_url,
+                'method'   => $requestInsuranceEdit->new_method,
+                'headers'  => $requestInsuranceEdit->new_headers,
+                'payload'  => $requestInsuranceEdit->new_payload,
             ]);
         });
 
@@ -154,7 +155,7 @@ class RequestInsuranceEditController extends Controller
      *
      * @return bool
      */
-    private function is_valid_header_format($data)
+    private function isValidHeaderFormat($data)
     {
         if (empty($data) || is_array($data)) {
             return true;

@@ -48,7 +48,7 @@
                             @endphp
                             @if($appliedEdits->count() > 0)
                                 <div class="mt-2">
-                                    <form method="GET" action="{{ route('request-insurances.edit_history', $requestInsurance) }}">
+                                    <form method="GET" action="{{ route('request-insurances.edit-history', $requestInsurance) }}">
                                         <input type="hidden" name="_method" value="get">
                                         <button class="btn btn-warning" type="submit">History</button>
                                     </form>
@@ -242,16 +242,6 @@
                                                             @endif
                                                             @if( ! empty($errorMsg = getEditErrorMessage($edit->id, 'header')))
                                                                 <span class="text-danger">{{$errorMsg}}</span>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Encrypted fields:</td>
-                                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                                            @if($canModifyEdit)
-                                                                <x-request-insurance-pretty-print-text-area :name='"new_encrypted_fields"' :content="$edit->new_encrypted_fields" :disabled=" ! $canModifyEdit"/>
-                                                            @else
-                                                                <x-request-insurance-pretty-print :content="$edit->new_encrypted_fields"/>
                                                             @endif
                                                         </td>
                                                     </tr>

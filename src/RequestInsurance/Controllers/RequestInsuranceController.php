@@ -69,7 +69,7 @@ class RequestInsuranceController extends Controller
      *
      * @return View|Factory
      */
-    public function edit_history(Request $request, RequestInsurance $requestInsurance, IdentityProvider $identityProvider)
+    public function editHistory(Request $request, RequestInsurance $requestInsurance, IdentityProvider $identityProvider)
     {
         $requestInsurance->load('edits');
 

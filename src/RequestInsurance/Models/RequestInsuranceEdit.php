@@ -56,22 +56,13 @@ class RequestInsuranceEdit extends SaveRetryingModel
     }
 
     /**
-     * Perform any actions required after the model boots.
-     *
-     * @return void
-     */
-    protected static function booted()
-    {
-    }
-
-    /**
      * Relationship with RequestInsurance
      *
      * @return BelongsTo
      */
-    public function parent()
+    public function requestInsurance()
     {
-        return $this->belongsTo(get_class(resolve(RequestInsurance::class)), 'request_insurance_id');
+        return $this->belongsTo(RequestInsurance::class);
     }
 
     /**
