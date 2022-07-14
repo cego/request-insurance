@@ -14,6 +14,7 @@ use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\RequestInsurance\Providers\IdentityProvider;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
 class RequestInsuranceController extends Controller
@@ -45,15 +46,39 @@ class RequestInsuranceController extends Controller
     /**
      * Shows a specific request insurance
      *
+     * @param Request $request
      * @param RequestInsurance $requestInsurance
+     * @param IdentityProvider $identityProvider
      *
      * @return View|Factory
      */
-    public function show(RequestInsurance $requestInsurance)
+    public function show(Request $request, RequestInsurance $requestInsurance, IdentityProvider $identityProvider)
     {
         $requestInsurance->load('logs');
 
-        return view('request-insurance::show')->with(['requestInsurance' => $requestInsurance]);
+        return view('request-insurance::show')->with([
+            'requestInsurance' => $requestInsurance,
+            'user'             => $identityProvider->getUser($request),
+        ]);
+    }
+
+    /**
+     * Shows edit history for a specific request insurance
+     *
+     * @param Request $request
+     * @param RequestInsurance $requestInsurance
+     * @param IdentityProvider $identityProvider
+     *
+     * @return View|Factory
+     */
+    public function editHistory(Request $request, RequestInsurance $requestInsurance, IdentityProvider $identityProvider)
+    {
+        $requestInsurance->load('edits');
+
+        return view('request-insurance::edit-history')->with([
+            'requestInsurance' => $requestInsurance,
+            'user'             => $identityProvider->getUser($request),
+        ]);
     }
 
     /**

@@ -934,6 +934,16 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Relationship with RequestInsuranceEdit
+     *
+     * @return HasMany
+     */
+    public function edits()
+    {
+        return $this->hasMany(RequestInsuranceEdit::class);
+    }
+
+    /**
      * Create a new factory instance for the model.
      *
      * @return Factory
