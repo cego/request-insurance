@@ -45,7 +45,7 @@ class RequestInsuranceEditApproval extends SaveRetryingModel
      *
      * @return BelongsTo
      */
-    public function edit()
+    public function requestInsuranceEdit()
     {
         return $this->belongsTo(RequestInsuranceEdit::class);
     }

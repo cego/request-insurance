@@ -168,7 +168,7 @@
                             @php
                                 $canModifyEdit = $edit->applied_at == null && $edit->admin_user == $user;
                                 $canApproveEdit = $edit->applied_at == null && ! $canModifyEdit;
-                                $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals;
+                                $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals && $canModifyEdit;
                             @endphp
                             <div class="col-6 mt-2">
                                 <div class="card {{$edit->created_at->diffInSeconds(\Carbon\Carbon::now()) < 5 ? 'backgroundAnimated' : ''}}">
@@ -306,14 +306,16 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        <form class="ml-2" method="POST" action="{{ route('request-insurances-edits.apply', $edit) }}">
-                                                            <input type="hidden" name="_method" value="post">
-                                                            <button class="btn btn-primary" type="submit"
-                                                                    @disabled( ! $canApplyEdit)>Apply</button>
-                                                            @if( ! empty($errorMsg = getEditErrorMessage($edit->id, 'approval')))
-                                                                <span class="text-danger">{{$errorMsg}}</span>
-                                                            @endif
-                                                        </form>
+                                                        @if($canModifyEdit)
+                                                            <form class="ml-2" method="POST" action="{{ route('request-insurances-edits.apply', $edit) }}">
+                                                                <input type="hidden" name="_method" value="post">
+                                                                <button class="btn btn-primary" type="submit"
+                                                                        @disabled( ! $canApplyEdit)>Apply</button>
+                                                                @if( ! empty($errorMsg = getEditErrorMessage($edit->id, 'approval')))
+                                                                    <span class="text-danger">{{$errorMsg}}</span>
+                                                                @endif
+                                                            </form>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             </table>
