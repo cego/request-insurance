@@ -93,8 +93,10 @@ return [
     /*
      | Sets the table name to look for request insurances
      */
-    'table'      => null,
-    'table_logs' => null,
+    'table'                => null,
+    'table_logs'           => null,
+    'table_edits'          => null,
+    'table_edit_approvals' => null,
 
     'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)
 ];
