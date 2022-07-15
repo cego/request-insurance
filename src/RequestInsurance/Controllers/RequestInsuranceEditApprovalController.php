@@ -18,7 +18,7 @@ class RequestInsuranceEditApprovalController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function create(Request $request, RequestInsurance $requestInsuranceEdit, IdentityProvider $identityProvider)
+    public function create(Request $request, RequestInsuranceEdit $requestInsuranceEdit, IdentityProvider $identityProvider)
     {
         $user = $identityProvider->getUser($request);
         // Only allow approvals from users that did not create the edit
