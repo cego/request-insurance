@@ -157,16 +157,10 @@ class RequestInsuranceEditController extends Controller
      */
     private function isValidHeaderFormat($data)
     {
-        if (empty($data) || is_array($data)) {
+        if (empty($data) || is_array($data) || json_decode($data) != null) {
             return true;
         }
 
-        try {
-            json_decode($data);
-
-            return true;
-        } finally {
-            return false;
-        }
+        return false;
     }
 }
