@@ -195,9 +195,6 @@ class RequestInsuranceWorker
         // Increment the number of attempts and set state to PROCESSING as the very first action
         $this->setStateToProcessingAndIncrementAttempts($requests);
 
-        // Removes requests that are set to failed state due to too many retries
-        $this->removeFailedRequests($requests);
-
         // Send the requests concurrently
         $responses = $this->client->pool($requests);
 
@@ -209,22 +206,21 @@ class RequestInsuranceWorker
     }
 
     /**
-     * Sets the state to processing if retry_count doesn't exceed maxTries, else it is set to failed. Also, it increments the amount of attempts for the given requests
+     * Sets the state to processing and increments the amount of attempts for the given requests
      *
      * @param EloquentCollection $requests
      *
-     * @param int $maxTries
      *
      * @return void
      */
-    protected function setStateToProcessingAndIncrementAttempts(EloquentCollection $requests, int $maxTries = 20): void
+    protected function setStateToProcessingAndIncrementAttempts(EloquentCollection $requests): void
     {
         $now = Carbon::now('UTC');
 
         $updatedRows = RequestInsurance::query()
             ->whereIn('id', $requests->pluck('id'))
             ->update([
-                'state'            => DB::raw(strtr("IF (retry_count > {maxTries}, {state1}, {state2})", ["{maxTries}" => $maxTries, "{state1}" => State::FAILED, "{state2}" => State::PROCESSING])),
+                'state'            => State::PROCESSING,
                 'state_changed_at' => $now,
                 'retry_count'      => DB::raw('retry_count + 1'),
             ]);
@@ -235,15 +231,10 @@ class RequestInsuranceWorker
 
         // Reflect the same change in-memory
         $requests->each(fn (RequestInsurance $requestInsurance) => $requestInsurance->forceFill([
-            'state'            => $requestInsurance->retry_count > $maxTries ? State::FAILED : State::PROCESSING,
+            'state'            => State::PROCESSING,
             'state_changed_at' => $now,
             'retry_count'      => $requestInsurance->retry_count + 1,
         ]));
-    }
-
-    protected function removeFailedRequests (EloquentCollection $requests): EloquentCollection
-    {
-        return $requests->filter(fn (RequestInsurance $requestInsurance) => $requestInsurance->hasState(State::PROCESSING));
     }
 
     /**

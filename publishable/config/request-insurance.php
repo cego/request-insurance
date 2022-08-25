@@ -33,7 +33,7 @@ return [
     'microSecondsToWait' => env('REQUEST_INSURANCE_WORKER_MICRO_SECONDS_INTERVAL', 200000),
 
     /*
-    | Set the maximum number of retires before backing off completely
+    | Set the maximum number of retries before backing off completely
     */
 
     'maximumNumberOfRetries' => 10,
