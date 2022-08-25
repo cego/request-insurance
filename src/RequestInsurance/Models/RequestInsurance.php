@@ -3,7 +3,6 @@
 namespace Cego\RequestInsurance\Models;
 
 use Exception;
-use Illuminate\Auth\Events\Failed;
 use Throwable;
 use Carbon\Carbon;
 use JsonException;
