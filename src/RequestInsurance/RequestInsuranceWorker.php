@@ -194,7 +194,6 @@ class RequestInsuranceWorker
 
         // Increment the number of attempts and set state to PROCESSING as the very first action
         $this->setStateToProcessingAndIncrementAttempts($requests);
-
         // Send the requests concurrently
         $responses = $this->client->pool($requests);
 
@@ -209,6 +208,7 @@ class RequestInsuranceWorker
      * Sets the state to processing and increments the amount of attempts for the given requests
      *
      * @param EloquentCollection $requests
+     *
      *
      * @return void
      */

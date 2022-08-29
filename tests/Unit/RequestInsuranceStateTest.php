@@ -200,6 +200,40 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::PENDING, $requestInsurance->state);
     }
 
+    /** @test */
+    public function it_sets_state_to_waiting_when_retry_count_is_equal_to_maximumNumberOfRetries(): void
+    {
+        // Arrange
+        RequestInsuranceClient::fake(fn () => Http::response([], 500));
+
+        // Act
+        $requestInsurance = $this->createDummyRequestInsurance();
+        $requestInsurance->retry_count = Config::get("request-insurance.maximumNumberOfRetries")-1;
+        $requestInsurance->save();
+        $this->runWorkerOnce();
+
+        // Assert
+        $requestInsurance->refresh();
+        $this->assertEquals(State::WAITING, $requestInsurance->state);
+    }
+
+    /** @test */
+    public function it_sets_state_to_failed_when_retried_more_than_maximumNumberOfRetries(): void
+    {
+        // Arrange
+        RequestInsuranceClient::fake(fn () => Http::response([],500));
+
+        // Act
+        $requestInsurance = $this->createDummyRequestInsurance();
+        $requestInsurance->retry_count = Config::get("request-insurance.maximumNumberOfRetries")+1;
+        $requestInsurance->save();
+        $this->runWorkerOnce();
+
+        // Assert
+        $requestInsurance->refresh();
+        $this->assertEquals(State::FAILED, $requestInsurance->state);
+    }
+
     protected function createDummyRequestInsurance(): RequestInsurance
     {
         $requestInsurance = RequestInsurance::getBuilder()

@@ -10,7 +10,7 @@ use Cego\RequestInsurance\Models\RequestInsurance;
 class RequestInsuranceBuilder
 {
     /**
-     * The builder data used to created the request insurance instance once ->create() is called.
+     * The builder data used to create the request insurance instance once ->create() is called.
      *
      * @var array
      */

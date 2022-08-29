@@ -727,7 +727,7 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Retries the request insurance at a later time
+     * Retries the request insurance at a later time, unless it has exceeded maxRetries in which case the RI enters Failed state
      *
      * @param bool $save
      *
@@ -737,8 +737,13 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function retryLater(bool $save = true): RequestInsurance
     {
-        $this->setState(State::WAITING);
-        $this->setNextRetryAt();
+        // If retry_count exceeds maxRetries, the request enters the failed state to avoid an absurd amount of retries
+        if ($this->retry_count > Config::get("request-insurance.maximumNumberOfRetries")) {
+            $this->setState(State::FAILED);
+        } else {
+            $this->setState(State::WAITING);
+            $this->setNextRetryAt();
+        }
 
         if ($save) {
             $this->save();
