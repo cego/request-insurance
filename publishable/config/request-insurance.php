@@ -36,7 +36,7 @@ return [
     | Set the maximum number of retries before backing off completely
     */
 
-    'maximumNumberOfRetries' => 10,
+    'maximumNumberOfRetries' => 20,
 
     /*
     | The number of days to keep completed rows, before deletion

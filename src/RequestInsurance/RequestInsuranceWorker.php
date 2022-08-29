@@ -194,7 +194,6 @@ class RequestInsuranceWorker
 
         // Increment the number of attempts and set state to PROCESSING as the very first action
         $this->setStateToProcessingAndIncrementAttempts($requests);
-
         // Send the requests concurrently
         $responses = $this->client->pool($requests);
 
