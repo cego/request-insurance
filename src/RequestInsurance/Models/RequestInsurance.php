@@ -564,12 +564,12 @@ class RequestInsurance extends SaveRetryingModel
 
         try {
             if ($request->has('from') && $request->get('from') != null) {
-                $from = Carbon::parse($request->get('from'))->startOfDay();
+                $from = Carbon::parse($request->get('from'));
                 $query = $query->whereDate('created_at', '>=', $from);
             }
 
             if ($request->has('to') && $request->get('to') != null) {
-                $to = Carbon::parse($request->get('to'))->endOfDay();
+                $to = Carbon::parse($request->get('to'));
                 $query = $query->whereDate('created_at', '<=', $to);
             }
         } catch (Exception $exception) {
