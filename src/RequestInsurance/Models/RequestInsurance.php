@@ -244,7 +244,6 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         try {
-
             // Headers are always an array
             $this->headers = json_encode($this->encryptArray($this->getHeadersCastToArray(), $this->getEncryptedHeaders()), JSON_THROW_ON_ERROR);
 
@@ -738,7 +737,7 @@ class RequestInsurance extends SaveRetryingModel
     public function retryLater(bool $save = true): RequestInsurance
     {
         // If retry_count exceeds maxRetries, the request enters the failed state to avoid an absurd amount of retries
-        if ($this->retry_count > Config::get("request-insurance.maximumNumberOfRetries")) {
+        if ($this->retry_count > Config::get('request-insurance.maximumNumberOfRetries')) {
             $this->setState(State::FAILED);
         } else {
             $this->setState(State::WAITING);

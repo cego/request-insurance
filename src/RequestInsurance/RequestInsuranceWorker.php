@@ -184,7 +184,7 @@ class RequestInsuranceWorker
         // An event is dispatched before processing begins
         // allowing the application to abandon/complete/fail the requests before processing.
         $requests = $requests
-            ->each(fn (RequestInsurance $requestInsurance)   => Events\RequestBeforeProcess::dispatch($requestInsurance))
+            ->each(fn (RequestInsurance $requestInsurance) => Events\RequestBeforeProcess::dispatch($requestInsurance))
             ->filter(fn (RequestInsurance $requestInsurance) => $requestInsurance->hasState(State::PENDING));
 
         // If all requests were cancelled by the listeners, then bail out.
@@ -209,7 +209,6 @@ class RequestInsuranceWorker
      *
      * @param EloquentCollection $requests
      *
-     *
      * @return void
      */
     protected function setStateToProcessingAndIncrementAttempts(EloquentCollection $requests): void
@@ -230,9 +229,9 @@ class RequestInsuranceWorker
 
         // Reflect the same change in-memory
         $requests->each(fn (RequestInsurance $requestInsurance) => $requestInsurance->forceFill([
-            'state'            => State::PROCESSING,
+            'state' => State::PROCESSING,
             'state_changed_at' => $now,
-            'retry_count'      => $requestInsurance->retry_count + 1,
+            'retry_count' => $requestInsurance->retry_count + 1,
         ]));
     }
 

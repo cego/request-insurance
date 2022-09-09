@@ -208,7 +208,7 @@ class RequestInsuranceStateTest extends TestCase
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
-        $requestInsurance->retry_count = Config::get("request-insurance.maximumNumberOfRetries")-1;
+        $requestInsurance->retry_count = Config::get('request-insurance.maximumNumberOfRetries') - 1;
         $requestInsurance->save();
         $this->runWorkerOnce();
 
@@ -221,11 +221,11 @@ class RequestInsuranceStateTest extends TestCase
     public function it_sets_state_to_failed_when_retried_more_than_maximumNumberOfRetries(): void
     {
         // Arrange
-        RequestInsuranceClient::fake(fn () => Http::response([],500));
+        RequestInsuranceClient::fake(fn () => Http::response([], 500));
 
         // Act
         $requestInsurance = $this->createDummyRequestInsurance();
-        $requestInsurance->retry_count = Config::get("request-insurance.maximumNumberOfRetries")+1;
+        $requestInsurance->retry_count = Config::get('request-insurance.maximumNumberOfRetries') + 1;
         $requestInsurance->save();
         $this->runWorkerOnce();
 
