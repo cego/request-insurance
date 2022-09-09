@@ -544,7 +544,6 @@ class RequestInsurance extends SaveRetryingModel
     {
         $searchedStates = [];
 
-        dd('test!');
         foreach (State::getAll() as $state) {
             if ($request->get($state) == 'on') {
                 $searchedStates[] = $state;
