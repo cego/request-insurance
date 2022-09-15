@@ -54,7 +54,7 @@
                                         Url: <input class="form-control ml-2" type="text" name="url" style="width: 250px" placeholder="% (SQL LIKE)" value="{{ old("url") }}">
                                     </label>
                                     <label class="form-check-label mr-3">
-                                        From: <input class="form-control ml-2" type="datetime-local" name="from" style="width: 200px" placeholder="dd-mm-yyyy-H:i:s" value="{{ old("from") }}">
+                                        From: <input class="form-control ml-2" type="datetime-local" name="from" style="width: 200px" placeholder="dd-mm-yyyy-T" value="{{ old("from") }}">
                                     </label>
                                     <label class="form-check-label">
                                         To: <input class="form-control ml-2" type="datetime-local" name="to" style="width: 200px" placeholder="dd-mm-yyyy-T" value="{{ old("to") }}">
