@@ -561,7 +561,7 @@ class RequestInsurance extends SaveRetryingModel
         if ($request->has('trace_id') && trim($request->get('trace_id'))) {
             $query = $query->where('trace_id', $request->get('trace_id'));
         }
-        // Had startOfDay and endOfDay!!!
+
         try {
             if ($request->has('from') && $request->get('from') != null) {
                 $from = Carbon::parse($request->get('from'));
