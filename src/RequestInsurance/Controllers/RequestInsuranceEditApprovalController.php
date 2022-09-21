@@ -4,7 +4,6 @@ namespace Cego\RequestInsurance\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Providers\IdentityProvider;
 use Cego\RequestInsurance\Models\RequestInsuranceEdit;
 use Cego\RequestInsurance\Models\RequestInsuranceEditApproval;
