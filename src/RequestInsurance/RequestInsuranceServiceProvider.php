@@ -15,7 +15,6 @@ use Cego\RequestInsurance\ViewComponents\PrettyPrint;
 use Cego\RequestInsurance\Providers\CegoIdentityProvider;
 use Cego\RequestInsurance\ViewComponents\EditApprovalsStatus;
 use Cego\RequestInsurance\ViewComponents\PrettyPrintTextArea;
-use MongoDB\Driver\Command;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
 {

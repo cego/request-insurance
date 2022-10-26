@@ -119,6 +119,7 @@ class RequestInsuranceStateTest extends TestCase
         // Assert
         $requestInsurance1->refresh();
         $requestInsurance2->refresh();
+
         $this->assertEquals(State::FAILED, $requestInsurance1->state);
         $this->assertEquals(State::COMPLETED, $requestInsurance2->state);
     }
@@ -235,26 +236,67 @@ class RequestInsuranceStateTest extends TestCase
     }
 
     /** @test */
-    public function it_updates_requests_to_ready_if_they_process_for_10_minutes() : void
+    public function it_updates_requests_to_ready_if_process_for_10_minutes_and_retry_inconsistent_is_true() : void
     {
         // Arrange
         $req1 = $this->createDummyRequestInsurance();
         $req2 = $this->createDummyRequestInsurance();
 
-        $req1->update(["state" => State::PROCESSING, "updated_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => true]);
-        $req2->update(["state" => State::PROCESSING, "updated_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => true]);
-
-        $req1->save();
-        $req2->save();
+        $req1->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => true]);
+        $req2->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => true]);
 
         // Act
         $this->artisan("fail-or-ready:request-insurances");
 
         // Assert
-        $states = RequestInsurance::query()->get("state");
-        $this->assertEquals(State::READY , $states[0]);
-        $this->assertEquals(State::READY , $states[1]);
+        $req1->refresh();
+        $req2->refresh();
 
+        $this->assertEquals(State::READY , $req1->state);
+        $this->assertEquals(State::READY , $req2->state);
+
+    }
+
+    /** @test */
+    public function it_updates_requests_to_ready_if_process_for_10_minutes_and_retry_inconsistent_is_false()
+    {
+        // Arrange
+        $req1 = $this->createDummyRequestInsurance();
+        $req2 = $this->createDummyRequestInsurance();
+
+        $req1->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => false]);
+        $req2->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => false]);
+
+        // Act
+        $this->artisan("fail-or-ready:request-insurances");
+
+        // Assert
+        $req1->refresh();
+        $req2->refresh();
+
+        $this->assertEquals(State::FAILED , $req1->state);
+        $this->assertEquals(State::FAILED , $req2->state);
+    }
+
+    /** @test */
+    public function it_does_not_update_state_if_processing_has_run_less_than_10_minutes()
+    {
+        // Arrange
+        $req1 = $this->createDummyRequestInsurance();
+        $req2 = $this->createDummyRequestInsurance();
+
+        $req1->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(9), "retry_inconsistent" => false]);
+        $req2->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(9), "retry_inconsistent" => false]);
+
+        // Act
+        $this->artisan("fail-or-ready:request-insurances");
+
+        // Assert
+        $req1->refresh();
+        $req2->refresh();
+
+        $this->assertEquals(State::PROCESSING , $req1->state);
+        $this->assertEquals(State::PROCESSING , $req2->state);
     }
 
     protected function createDummyRequestInsurance(): RequestInsurance

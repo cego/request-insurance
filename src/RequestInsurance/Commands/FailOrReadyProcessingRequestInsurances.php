@@ -48,18 +48,17 @@ class FailOrReadyProcessingRequestInsurances extends Command
      */
     protected function updateProcessingRequestInsurances(bool $retries_inconsistent) : void
     {
-        $stateChange = $retries_inconsistent ? State::READY : State::FAILED;
-
-        $reqs = RequestInsurance::query()
-            ->where("state", State::PROCESSING)
+        $reqs = RequestInsurance::query()->where('state', State::PROCESSING)
             ->where("state_changed_at", "<", Carbon::now('UTC')->subMinutes(10))
-            ->where("retry_inconsistent", '=', $retries_inconsistent);
+            ->where("retry_inconsistent", $retries_inconsistent);
 
+        // Get ids of request insurances that have been updated, so they can be included in the log.
+        $ids = $reqs->get("id");
+
+        // Update state depending on retries_inconsistent
+        $stateChange = $retries_inconsistent ? State::READY : State::FAILED;
         $reqs->update(["state" => $stateChange]);
 
-        // Get ids of request insurances that have been updated so they can be included in the log.
-        $ids = $reqs->get("id");
         Log::info(print("Request insurances with ids $ids , with retry_inconsistent = $retries_inconsistent, were set to state $stateChange, due to processing for too long."));
-
     }
 }
