@@ -25,16 +25,31 @@ class FailOrReadyProcessingRequestInsurances extends Command
      */
     protected $description = 'Sets requests that have been processing for at least 10 minutes into either failed or ready state';
 
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
     public function handle() : int
     {
-       $this->queryDatabase(true, State::READY);
-       $this->queryDatabase(false, State::FAILED);
+       $this->updateProcessingRequestInsurances(true);
+       $this->updateProcessingRequestInsurances(false);
 
        return 0;
     }
 
-    protected function queryDatabase(bool $retries_inconsistent, string $stateChange) : void
+    /**
+     * Updates request insurances that have been processing for more than 10 minutes and logs it.
+     * Which state they are updated to is based whether it retries inconsistent states.
+     *
+     * @param bool $retries_inconsistent
+     *
+     * @return void
+     */
+    protected function updateProcessingRequestInsurances(bool $retries_inconsistent) : void
     {
+        $stateChange = $retries_inconsistent ? State::READY : State::FAILED;
+
         $reqs = RequestInsurance::query()
             ->where("state", State::PROCESSING)
             ->where("state_changed_at", "<", Carbon::now('UTC')->subMinutes(10))
@@ -42,8 +57,9 @@ class FailOrReadyProcessingRequestInsurances extends Command
 
         $reqs->update(["state" => $stateChange]);
 
-        // Get ids of request insurances that have been updated.
+        // Get ids of request insurances that have been updated so they can be included in the log.
         $ids = $reqs->get("id");
-        Log::info(print("Request insurances with ids $ids that have been processing for 10 minutes since shutdown, with retry_inconsistent = $retries_inconsistent, were set to state $stateChange"));
+        Log::info(print("Request insurances with ids $ids , with retry_inconsistent = $retries_inconsistent, were set to state $stateChange, due to processing for too long."));
+
     }
 }

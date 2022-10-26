@@ -234,6 +234,29 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::FAILED, $requestInsurance->state);
     }
 
+    /** @test */
+    public function it_updates_requests_to_ready_if_they_process_for_10_minutes() : void
+    {
+        // Arrange
+        $req1 = $this->createDummyRequestInsurance();
+        $req2 = $this->createDummyRequestInsurance();
+
+        $req1->update(["state" => State::PROCESSING, "updated_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => true]);
+        $req2->update(["state" => State::PROCESSING, "updated_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => true]);
+
+        $req1->save();
+        $req2->save();
+
+        // Act
+        $this->artisan("fail-or-ready:request-insurances");
+
+        // Assert
+        $states = RequestInsurance::query()->get("state");
+        $this->assertEquals(State::READY , $states[0]);
+        $this->assertEquals(State::READY , $states[1]);
+
+    }
+
     protected function createDummyRequestInsurance(): RequestInsurance
     {
         $requestInsurance = RequestInsurance::getBuilder()
