@@ -15,6 +15,7 @@ use Cego\RequestInsurance\ViewComponents\PrettyPrint;
 use Cego\RequestInsurance\Providers\CegoIdentityProvider;
 use Cego\RequestInsurance\ViewComponents\EditApprovalsStatus;
 use Cego\RequestInsurance\ViewComponents\PrettyPrintTextArea;
+use MongoDB\Driver\Command;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
 {
@@ -82,12 +83,14 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             Commands\RequestInsuranceService::class,
             Commands\UnlockBlockedRequestInsurances::class,
             Commands\CleanUpRequestInsurances::class,
+            Commands\FailOrReadyProcessingRequestInsurances::class
         ]);
 
         // Add specific commands to the schedule
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('unlock:request-insurances')->everyFiveMinutes();
             $schedule->command('clean:request-insurances')->everyTenMinutes();
+            $schedule->command('fail-or-ready:request-insurances')->everyTenMinutes();
         });
     }
 
