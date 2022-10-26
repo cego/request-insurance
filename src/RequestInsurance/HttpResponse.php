@@ -6,7 +6,6 @@ use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Exception\ConnectException;
-use PHPUnit\Util\Annotation\DocBlock;
 
 class HttpResponse
 {
@@ -58,7 +57,6 @@ class HttpResponse
         }
 
         if ($this->isTimedOut()) {
-            $this->
             Log::error($this->connectException);
         } else {
             Log::error('No response object nor connect exception received for request');

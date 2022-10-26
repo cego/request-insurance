@@ -59,6 +59,7 @@ class FailOrReadyProcessingRequestInsurances extends Command
         $stateChange = $retries_inconsistent ? State::READY : State::FAILED;
         $reqs->update(["state" => $stateChange]);
 
-        Log::info(print("Request insurances with ids $ids , with retry_inconsistent = $retries_inconsistent, were set to state $stateChange, due to processing for too long."));
+        $boolString = $retries_inconsistent ? "true" : "false";
+        Log::info(print("Request insurances with ids $ids, with retry_inconsistent = $boolString, were set to state $stateChange, due to processing for too long."));
     }
 }
