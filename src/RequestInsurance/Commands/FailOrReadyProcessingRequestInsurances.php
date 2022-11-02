@@ -16,7 +16,7 @@ class FailOrReadyProcessingRequestInsurances extends Command
      *
      * @var string
      */
-    protected $signature = 'fail-or-ready:request-insurances';
+    protected $signature = 'unstuck-processing:request-insurances';
 
     /**
      * The console command description.
@@ -32,36 +32,28 @@ class FailOrReadyProcessingRequestInsurances extends Command
      */
     public function handle() : int
     {
-       $this->updateProcessingRequestInsurances(true);
-       $this->updateProcessingRequestInsurances(false);
+       $this->unstuckProcessingRequestInsurances();
 
        return 0;
     }
 
     /**
-     * Updates request insurances that have been processing for more than 10 minutes and logs it.
+     * Updates state of request insurances that have been processing for more than 10 minutes and logs for each RI.
      * Which state they are updated to is based whether it retries inconsistent states.
-     *
-     * @param bool $retries_inconsistent
      *
      * @return void
      */
-    protected function updateProcessingRequestInsurances(bool $retries_inconsistent) : void
+    protected function unstuckProcessingRequestInsurances() : void
     {
-        $reqs = RequestInsurance::query()->where('state', State::PROCESSING)
-            ->where("state_changed_at", "<", Carbon::now('UTC')->subMinutes(10))
-            ->where("retry_inconsistent", $retries_inconsistent);
+        RequestInsurance::query()->where('state', State::PROCESSING)
+            ->where("state_changed_at", "<", Carbon::now()->subMinutes(10))
+            ->get()
+            ->each(function(RequestInsurance $requestInsurance) {
+                // State is updated based on retry_inconsistent
+                $stateChange = $requestInsurance->retry_inconsistent ? State::READY : State::FAILED;
+                $requestInsurance->update(["state" => $stateChange]);
 
-        // Get ids of request insurances that have been updated, so they can be included in the log.
-        $ids = $reqs->get("id");
-
-        if ( ! $ids->isEmpty()) {
-            // Update state depending on retries_inconsistent
-            $stateChange = $retries_inconsistent ? State::READY : State::FAILED;
-            $reqs->update(["state" => $stateChange]);
-
-            $boolString = $retries_inconsistent ? "true" : "false";
-            Log::info(print("Request insurances with ids $ids, with retry_inconsistent = $boolString, were set to state $stateChange, due to processing for too long."));
-        }
+                Log::info("Request insurance with id $requestInsurance->id was updated to $stateChange due to processing for too long.");
+            });
     }
 }
