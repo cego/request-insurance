@@ -5,10 +5,9 @@ namespace Cego\RequestInsurance\Commands;
 use Carbon\Carbon;
 use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
-use Illuminate\Console\Command;
-use Cego\RequestInsurance\RequestInsuranceCleaner;
+use PHPUnit\TextUI\Command;
 
-class RequestInsuranceDurationUpdater
+class RequestInsuranceDurationUpdater extends Command
 {
     /**
      * The name and signature of the console command.
@@ -37,9 +36,8 @@ class RequestInsuranceDurationUpdater
 
         foreach ($requests as $request) {
             $request->duration = Carbon::now('UTC')->diffInMinutes($request->createdAt);
-            dd($request);
-
             $request->save();
+            dd($request);
         }
 
         return 0;
