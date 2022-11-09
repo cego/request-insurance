@@ -197,6 +197,7 @@ class RequestInsuranceWorker
         // Send the requests concurrently
         $responses = $this->client->pool($requests);
 
+
         // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
         /** @var RequestInsurance $request */
         foreach ($requests as $request) {
