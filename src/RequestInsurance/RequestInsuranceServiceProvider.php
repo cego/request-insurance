@@ -88,6 +88,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('unlock:request-insurances')->everyFiveMinutes();
             $schedule->command('clean:request-insurances')->everyTenMinutes();
+            $schedule->command('update:duration-not-completed-request-insurance')->everyMinute();
         });
     }
 

@@ -51,6 +51,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property Carbon $state_changed_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property int $duration
  *
  * @method static RequestInsurance create($attributes = [])
  * @method static RequestInsurance|null first(array|string $columns = [])
@@ -128,6 +129,7 @@ class RequestInsurance extends SaveRetryingModel
 
             $request->created_at = $request->created_at->setTimezone('UTC');
             $request->updated_at = $request->updated_at->setTimezone('UTC');
+            $request->duration = 0;
         });
 
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
@@ -814,10 +816,13 @@ class RequestInsurance extends SaveRetryingModel
             }
         } elseif ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
+            $this->updateDuration();
+
         } elseif ($response->isRetryable()) {
             $this->retryLater(false);
         } else {
             $this->setState(State::FAILED);
+            $this->updateDuration();
         }
 
         $this->save();
@@ -831,8 +836,14 @@ class RequestInsurance extends SaveRetryingModel
             // then mark the request as FAILED - To force human eyes to look at the request.
             if ($this->hasAnyOfStates([State::WAITING, State::READY]) && $response->wasNotSuccessful()) {
                 $this->setState(State::FAILED);
+                $this->updateDuration();
             }
         }
+    }
+
+    protected function updateDuration() : void
+    {
+        $this->duration = Carbon::now()->diffInMinutes($this->created_at);
     }
 
     /**
