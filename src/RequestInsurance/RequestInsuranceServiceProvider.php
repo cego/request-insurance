@@ -82,12 +82,14 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             Commands\RequestInsuranceService::class,
             Commands\UnlockBlockedRequestInsurances::class,
             Commands\CleanUpRequestInsurances::class,
+            Commands\FailOrReadyProcessingRequestInsurances::class
         ]);
 
         // Add specific commands to the schedule
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('unlock:request-insurances')->everyFiveMinutes();
             $schedule->command('clean:request-insurances')->everyTenMinutes();
+            $schedule->command('request-insurance:unstuck-processing')->everyTenMinutes();
         });
     }
 
