@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\AsyncRequests;
 
+use Cego\RequestInsurance\Models\RequestInsuranceLog;
 use Generator;
 use GuzzleHttp\TransferStats;
 use Illuminate\Support\Facades\Log;
@@ -81,8 +82,8 @@ class RequestPool
             'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => 'RequestInsurance']),
             'body'        => $requestInsurance->payload,
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
-            'on_stats'    => function (TransferStats $stats) {
-                
+            'on_stats'    => function (TransferStats $stats) use($requestInsurance) {
+                $requestInsurance->timings = json_encode($stats->getHandlerStats());
             },
             'http_errors' => false,
         ]);

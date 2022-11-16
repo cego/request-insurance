@@ -4,6 +4,7 @@ namespace Cego\RequestInsurance\Models;
 
 use Exception;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\TransferStats;
 use Throwable;
 use Carbon\Carbon;
 use JsonException;
@@ -823,9 +824,6 @@ class RequestInsurance extends SaveRetryingModel
             $this->setState(State::FAILED);
         }
 
-        // get timing stats from response before saving in the db.
-        $timings = $response->getTimings();
-        $this->timings = json_encode($timings) ?: null;
         $this->save();
 
         try {
