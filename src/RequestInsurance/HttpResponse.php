@@ -170,7 +170,7 @@ class HttpResponse
     }
 
     public function getTimings() {
-        dd($this->response->getHandlerContext());
+        dd($this->response->getHandlerContext() ?? "nothing");
         return $this->response->getHandlerContext();
     }
 
