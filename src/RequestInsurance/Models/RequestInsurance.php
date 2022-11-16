@@ -802,7 +802,7 @@ class RequestInsurance extends SaveRetryingModel
         $this->response_body = $response->getBody();
         $this->response_code = $response->getCode();
         $this->response_headers = $response->getHeaders();
-
+        $response->getTimings();
         // Create a log for the request to track all attempts
         try {
             $this->logs()->create([
@@ -847,10 +847,10 @@ class RequestInsurance extends SaveRetryingModel
         }
     }
 
-    protected function getTimings(HttpResponse $response) : array
+    protected function getTimings() : array
     {
-        // need to get handlerStats from response
-        return [];
+        $stats = $response->handlerStats();
+        return $stats;
     }
 
     /**
