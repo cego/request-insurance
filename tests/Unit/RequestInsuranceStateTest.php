@@ -246,7 +246,7 @@ class RequestInsuranceStateTest extends TestCase
         $requestInsurance2->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => true]);
 
         // Act
-        $this->artisan("unstuck-processing:request-insurances");
+        $this->artisan(" request-insurance:unstuck-processing");
 
         // Assert
         $this->assertEquals(State::READY , $requestInsurance1->refresh()->state);
@@ -264,7 +264,7 @@ class RequestInsuranceStateTest extends TestCase
         $requestInsurance2->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => false]);
 
         // Act
-        $this->artisan("unstuck-processing:request-insurances");
+        $this->artisan("request-insurance:unstuck-processing");
 
         // Assert
         $this->assertEquals(State::FAILED , $requestInsurance1->refresh()->state);
@@ -282,7 +282,7 @@ class RequestInsuranceStateTest extends TestCase
         $requestInsurance2->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(9), "retry_inconsistent" => false]);
 
         // Act
-        $this->artisan("unstuck-processing:request-insurances");
+        $this->artisan("request-insurance:unstuck-processing");
 
         // Assert
         $this->assertEquals(State::PROCESSING , $requestInsurance1->state);

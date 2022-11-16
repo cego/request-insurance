@@ -16,7 +16,7 @@ class FailOrReadyProcessingRequestInsurances extends Command
      *
      * @var string
      */
-    protected $signature = 'unstuck-processing:request-insurances';
+    protected $signature = 'request-insurance:unstuck-processing';
 
     /**
      * The console command description.
@@ -46,12 +46,12 @@ class FailOrReadyProcessingRequestInsurances extends Command
     protected function unstuckProcessingRequestInsurances() : void
     {
         RequestInsurance::query()->where('state', State::PROCESSING)
-            ->where("state_changed_at", "<", Carbon::now()->subMinutes(10))
+            ->where("state_changed_at", "<", Carbon::now('UTC')->subMinutes(10))
             ->get()
             ->each(function(RequestInsurance $requestInsurance) {
                 // State is updated based on retry_inconsistent
                 $stateChange = $requestInsurance->retry_inconsistent ? State::READY : State::FAILED;
-                $requestInsurance->update(["state" => $stateChange]);
+                $requestInsurance->update(["state" => $stateChange, "state_changed_at" => Carbon::now('UTC')]);
 
                 Log::info("Request insurance with id $requestInsurance->id was updated to $stateChange due to processing for too long.");
             });

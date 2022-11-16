@@ -15,7 +15,7 @@ class ScheduleTest extends TestCase
         // Assert
         $this->assertScheduleHasCommand('unlock:request-insurances');
         $this->assertScheduleHasCommand('clean:request-insurances');
-        $this->assertScheduleHasCommand('unstuck-processing:request-insurances');
+        $this->assertScheduleHasCommand('request-insurance:unstuck-processing');
     }
 
     /**
