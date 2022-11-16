@@ -52,7 +52,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property Carbon $state_changed_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property array $timings
+ * @property string | null $timings
  *
  * @method static RequestInsurance create($attributes = [])
  * @method static RequestInsurance|null first(array|string $columns = [])
@@ -60,13 +60,6 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 class RequestInsurance extends SaveRetryingModel
 {
     use HasFactory;
-
-    /**
-     * Duration time for a given request insurance
-     *
-     * @int
-     */
-    protected int $duration = 0;
 
     /**
      * Indicates if all mass assignment is enabled.
@@ -137,7 +130,6 @@ class RequestInsurance extends SaveRetryingModel
 
             $request->created_at = $request->created_at->setTimezone('UTC');
             $request->updated_at = $request->updated_at->setTimezone('UTC');
-            //$request->duration = 0;
         });
 
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
@@ -803,7 +795,6 @@ class RequestInsurance extends SaveRetryingModel
         $this->response_code = $response->getCode();
         $this->response_headers = $response->getHeaders();
 
-        $response->getTimings();
         // Create a log for the request to track all attempts
         try {
             $this->logs()->create([
@@ -832,7 +823,9 @@ class RequestInsurance extends SaveRetryingModel
             $this->setState(State::FAILED);
         }
 
-        //$this->getTimings($response);
+        // get timing stats from response before saving in the db.
+        $timings = $response->getTimings();
+        $this->timings = json_encode($timings) ?: null;
         $this->save();
 
         try {
@@ -865,7 +858,8 @@ class RequestInsurance extends SaveRetryingModel
             ->setUrl($this->url)
             ->setMethod($this->method)
             ->setHeaders($this->headers)
-            ->setPayload($this->payload);
+            ->setPayload($this->payload)
+            ->setTransferStats($this);
 
         // If a custom timeout is set for this specific request
         // then override the default timeout with the chosen timeout

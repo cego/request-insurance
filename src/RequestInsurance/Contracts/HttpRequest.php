@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\Contracts;
 
+use GuzzleHttp\TransferStats;
 use JsonException;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
@@ -124,6 +125,13 @@ abstract class HttpRequest
     public function setPayload($payload)
     {
         $this->payload = $payload;
+
+        return $this;
+    }
+
+    public function setTransferStats($requestInsurance)
+    {
+        $this->transferStats = new TransferStats($requestInsurance);
 
         return $this;
     }

@@ -187,6 +187,7 @@ class RequestInsuranceWorker
             ->each(fn (RequestInsurance $requestInsurance) => Events\RequestBeforeProcess::dispatch($requestInsurance))
             ->filter(fn (RequestInsurance $requestInsurance) => $requestInsurance->hasState(State::PENDING));
 
+
         // If all requests were cancelled by the listeners, then bail out.
         if ($requests->isEmpty()) {
             return;
@@ -200,7 +201,7 @@ class RequestInsuranceWorker
         // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
         /** @var RequestInsurance $request */
         foreach ($requests as $request) {
-            dd($responses->get($request)->getTimings());
+            dd($request);
             rescue(fn () => $request->handleResponse($responses->get($request)));
         }
     }

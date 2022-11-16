@@ -3,12 +3,15 @@
 namespace Cego\RequestInsurance\AsyncRequests;
 
 use Generator;
+use GuzzleHttp\TransferStats;
+use Illuminate\Support\Facades\Log;
 use JsonException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Symfony\Component\HttpKernel\Controller\TraceableArgumentResolver;
 
 class RequestPool
 {
@@ -78,6 +81,9 @@ class RequestPool
             'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => 'RequestInsurance']),
             'body'        => $requestInsurance->payload,
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
+            'on_stats'    => function (TransferStats $stats) {
+                
+            },
             'http_errors' => false,
         ]);
     }
