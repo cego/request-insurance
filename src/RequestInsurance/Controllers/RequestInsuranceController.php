@@ -57,7 +57,7 @@ class RequestInsuranceController extends Controller
     public function show(Request $request, RequestInsurance $requestInsurance, IdentityProvider $identityProvider)
     {
         $requestInsurance->load('logs');
-        $requestInsurance->retryNow();
+        dd($requestInsurance->timings);
 
         return view('request-insurance::show')->with([
             'requestInsurance' => $requestInsurance,
