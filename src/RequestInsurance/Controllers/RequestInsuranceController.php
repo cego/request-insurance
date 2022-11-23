@@ -38,8 +38,6 @@ class RequestInsuranceController extends Controller
             ->filteredByRequest($request)
             ->paginate(25);
 
-
-
         return view('request-insurance::index')->with([
             'requestInsurances' => $paginator,
         ]);
@@ -57,7 +55,6 @@ class RequestInsuranceController extends Controller
     public function show(Request $request, RequestInsurance $requestInsurance, IdentityProvider $identityProvider)
     {
         $requestInsurance->load('logs');
-        dd($requestInsurance->timings);
 
         return view('request-insurance::show')->with([
             'requestInsurance' => $requestInsurance,
