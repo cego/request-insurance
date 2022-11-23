@@ -31,7 +31,7 @@ class CreateRequestInsurancesTable extends Migration
             $table->timestamp('abandoned_at')->nullable()->default(null)->index();
             $table->timestamp('locked_at')->nullable()->default(null)->index();
             $table->timestamp('paused_at')->nullable()->default(null)->index();
-            $table->text('timings')->nullable()->default(null);
+            //$table->text('timings')->nullable()->default(null)->index();
             $table->timestamps();
         });
     }

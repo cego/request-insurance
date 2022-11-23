@@ -3,8 +3,6 @@
 namespace Cego\RequestInsurance\Models;
 
 use Exception;
-use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\TransferStats;
 use Throwable;
 use Carbon\Carbon;
 use JsonException;

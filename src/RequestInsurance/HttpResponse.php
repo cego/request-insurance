@@ -3,7 +3,6 @@
 namespace Cego\RequestInsurance;
 
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\RequestOptions;
 use GuzzleHttp\TransferStats;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -169,19 +168,6 @@ class HttpResponse
         }
 
         return $this->response->getHandlerContext()['total_time'] ?? 0;
-    }
-
-    public function getTimings(): array
-    {
-        // Included to avoid error during testing, as it will give an error if no requests are actually sent.
-       if ($this->isInconsistent() || env('IGNORE_HANDLER_STATS', false)) {
-           return [];
-       }
-
-
-       $transferStats = new TransferStats($this->response->getRequest(), $this->response);
-
-       return $transferStats->getHandlerStats();
     }
 
     /**

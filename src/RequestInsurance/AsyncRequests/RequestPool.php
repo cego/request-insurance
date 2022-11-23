@@ -84,6 +84,7 @@ class RequestPool
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
             'on_stats'    => function (TransferStats $stats) use($requestInsurance) {
                 $requestInsurance->timings = json_encode($stats->getHandlerStats());
+                dd($requestInsurance->timings);
             },
             'http_errors' => false,
         ]);
