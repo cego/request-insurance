@@ -129,6 +129,7 @@ class RequestInsurance extends SaveRetryingModel
 
             $request->created_at = $request->created_at->setTimezone('UTC');
             $request->updated_at = $request->updated_at->setTimezone('UTC');
+            $request->timings = "test";
         });
 
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
