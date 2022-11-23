@@ -83,7 +83,7 @@ class RequestPool
             'body'        => $requestInsurance->payload,
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
             'on_stats'    => function (TransferStats $stats) use($requestInsurance) {
-                $requestInsurance->timings = json_encode($stats->getHandlerStats()) ?? "nostats";
+                $requestInsurance->timings = json_encode($stats->getHandlerStats());
                 if ($requestInsurance->timings == "" || $requestInsurance->timings == null) {
                     $requestInsurance->timings = "failed";
                 }
