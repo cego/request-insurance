@@ -18,6 +18,8 @@ use Cego\RequestInsurance\Factories\RequestInsuranceLogFactory;
  * @property int $response_code
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property string | null $timings
+ *
  */
 class RequestInsuranceLog extends SaveRetryingModel
 {

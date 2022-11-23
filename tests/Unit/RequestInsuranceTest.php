@@ -238,4 +238,20 @@ class RequestInsuranceTest extends TestCase
         // Assert
         $this->assertTrue($requestInsurance->isRetryable());
     }
+
+    /** @test */
+    public function it_has_timings_field_in_db() : void
+    {
+        RequestInsuranceClient::fake(fn () => Http::response([], 200));
+
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $this->runWorkerOnce();
+
+        $requestInsurance->refresh();
+        echo ($requestInsurance->timings);
+    }
 }

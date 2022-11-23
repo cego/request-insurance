@@ -17,6 +17,5 @@
         <server name="APP_ENV" value="testing"/>
         <server name="APP_KEY" value="base64:yaKBTCl5P/Oi6YdKTsYayZNpx82VmlGUW7JXAQsOm8A="/>
         <env name="DB_CONNECTION" value="testing"/>
-        <env name="IGNORE_HANDLER_STATS" value="true" />
     </php>
 </phpunit>
