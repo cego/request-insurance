@@ -201,6 +201,7 @@ class RequestInsuranceWorker
         // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
         /** @var RequestInsurance $request */
         foreach ($requests as $request) {
+            dd($request->timings, "Hello! this is the part where I kill you");
             rescue(fn () => $request->handleResponse($responses->get($request)));
         }
     }
