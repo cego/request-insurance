@@ -106,7 +106,7 @@
                                     <td>{{ $requestInsurance->retry_count }}</td>
                                     <td>{{ $requestInsurance->retry_at }}</td>
                                     <td>{{ $requestInsurance->created_at }}</td>
-                                    <td> {{ $requestInsurance->totalTime }}</td>
+                                    <td> {{ $requestInsurance->getTotalTime()}}</td>
                                     <td>
                                         <a href="{{ route('request-insurances.show', $requestInsurance) }}" class="btn btn-sm btn-outline-primary">Inspect</a>
 

@@ -498,6 +498,7 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         $arrayTimings = json_decode($this->timings, true);
+
         return $arrayTimings["total_time_us"] ?? -1;
     }
 
