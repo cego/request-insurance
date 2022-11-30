@@ -1,4 +1,6 @@
-<?php use \Cego\RequestInsurance\Enums\State; ?>
+<?php use Cego\RequestInsurance\Enums\State;
+
+?>
 @extends("request-insurance::layouts.master")
 
 @section("content")
@@ -348,7 +350,7 @@
                                     <th>Response headers</th>
                                     <th>Response body</th>
                                     <th style="width: 185px">Created at</th>
-                                    <th style="width: 100px">Total time (µs) </th>
+                                    <th style="width: 100px">Total time (ms) </th>
                                 </tr>
                                 </thead>
                                 <tbody>

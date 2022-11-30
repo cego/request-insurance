@@ -86,7 +86,12 @@ class RequestInsuranceLog extends SaveRetryingModel
      */
     public function getTotalTime()
     {
+        if (! isset($this->timings)) {
+            return -1;
+        }
+
         $timingsInArray = json_decode($this->timings, true);
-        return $timingsInArray["total_time_us"] ?? -1;
+
+        return floor($timingsInArray["total_time_us"] / 1000);
     }
 }

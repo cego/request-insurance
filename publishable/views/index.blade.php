@@ -1,4 +1,6 @@
-<?php use \Cego\RequestInsurance\Enums\State; ?>
+<?php use Cego\RequestInsurance\Enums\State;
+
+?>
 @extends('request-insurance::layouts.master')
 
 @section('content')
@@ -88,7 +90,7 @@
                                 <th>Attempts</th>
                                 <th style="width: 185px">Next attempt at</th>
                                 <th style="width: 185px">Created at</th>
-                                <th style="width: 185px">Total time (µs) </th>
+                                <th style="width: 200px">Total time (ms) </th>
                                 <th>Inspect</th>
                             </tr>
                             </thead>

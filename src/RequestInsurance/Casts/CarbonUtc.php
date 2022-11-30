@@ -44,7 +44,7 @@ class CarbonUtc implements CastsAttributes
             return null;
         }
 
-        if ( ! $value instanceof Carbon) {
+        if (! $value instanceof Carbon) {
             if (in_array($key, [$model->getCreatedAtColumn(), $model->getUpdatedAtColumn()], true)) {
                 $value = Carbon::parse($value, 'UTC');
             } else {

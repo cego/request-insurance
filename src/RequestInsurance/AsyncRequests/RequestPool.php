@@ -79,7 +79,7 @@ class RequestPool
             'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => 'RequestInsurance']),
             'body'        => $requestInsurance->payload,
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
-            'on_stats'    => function (TransferStats $stats) use($requestInsurance) {
+            'on_stats'    => function (TransferStats $stats) use ($requestInsurance) {
                 $requestInsurance->setTimings($stats);
             },
             'http_errors' => false,

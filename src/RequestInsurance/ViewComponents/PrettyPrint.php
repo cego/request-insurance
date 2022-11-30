@@ -65,7 +65,7 @@ class PrettyPrint extends Component
      */
     private function prettyPrintJson($content)
     {
-        if ( ! is_string($content) && ! is_array($content) && ! is_object($content)) {
+        if (! is_string($content) && ! is_array($content) && ! is_object($content)) {
             return '{}';
         }
 

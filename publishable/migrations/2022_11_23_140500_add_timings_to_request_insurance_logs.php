@@ -14,7 +14,7 @@ class AddTimingsToRequestInsuranceLogs extends Migration
     public function up(): void
     {
         Schema::table('request_insurance_logs', function (Blueprint $table) {
-            $table->text('timings')->after("response_code")->nullable()->default(null)->index();
+            $table->text('timings')->after("response_code")->nullable()->default(null);
         });
     }
 

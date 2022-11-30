@@ -93,7 +93,7 @@ class RequestInsuranceWorker
             }
 
             pcntl_signal_dispatch();
-        } while ( ! $runOnlyOnce && ! $this->shutdownSignalReceived);
+        } while (! $runOnlyOnce && ! $this->shutdownSignalReceived);
 
         Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
     }
@@ -223,7 +223,7 @@ class RequestInsuranceWorker
                 'retry_count'      => DB::raw('retry_count + 1'),
             ]);
 
-        if ( ! $updatedRows) {
+        if (! $updatedRows) {
             throw new \RuntimeException('Could not update jobs before processing begins');
         }
 
@@ -294,7 +294,7 @@ class RequestInsuranceWorker
                     'state_changed_at' => $now,
                 ]);
 
-            if ( ! $locksWereObtained) {
+            if (! $locksWereObtained) {
                 throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));
             }
 

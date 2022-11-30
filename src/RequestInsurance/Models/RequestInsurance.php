@@ -135,12 +135,12 @@ class RequestInsurance extends SaveRetryingModel
         // We need to hook into the saving event to manipulate and verify data before it is stored in the database
         static::saving(function (RequestInsurance $request) {
             // Throw exception if method is not set
-            if ( ! $request->method) {
+            if (! $request->method) {
                 throw new EmptyPropertyException('method', $request);
             }
 
             // Throw exception if url is not set
-            if ( ! $request->url) {
+            if (! $request->url) {
                 throw new EmptyPropertyException('url', $request);
             }
 
@@ -156,7 +156,7 @@ class RequestInsurance extends SaveRetryingModel
             /** @var Request $httpRequest */
             $httpRequest = request();
 
-            if ( ! $request->trace_id) {
+            if (! $request->trace_id) {
                 if ($httpRequest->hasHeader('X-Request-Trace-Id')) {
                     $request->trace_id = $httpRequest->header('X-Request-Trace-Id');
                 } else {
@@ -169,7 +169,7 @@ class RequestInsurance extends SaveRetryingModel
             // Make sure the headers contains the X-Request-Trace-Id header
             $request->headers ??= [];
 
-            if ( ! is_array($request->headers)) {
+            if (! is_array($request->headers)) {
                 $request->headers = json_decode($request->headers, true, 512, JSON_THROW_ON_ERROR);
             }
 
@@ -177,7 +177,7 @@ class RequestInsurance extends SaveRetryingModel
 
             $request->encrypted_fields ??= [];
 
-            if ( ! is_array($request->encrypted_fields)) {
+            if (! is_array($request->encrypted_fields)) {
                 $request->encrypted_fields = json_decode($request->encrypted_fields, true, 512, JSON_THROW_ON_ERROR);
             }
 
@@ -241,7 +241,7 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function encrypt(): self
     {
-        if ( ! $this->usesEncryption() || $this->isEncrypted()) {
+        if (! $this->usesEncryption() || $this->isEncrypted()) {
             return $this;
         }
 
@@ -290,7 +290,7 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function decrypt(): self
     {
-        if ( ! $this->usesEncryption() || $this->isUnencrypted()) {
+        if (! $this->usesEncryption() || $this->isUnencrypted()) {
             return $this;
         }
 
@@ -466,18 +466,18 @@ class RequestInsurance extends SaveRetryingModel
      *
      * @return void
      */
-    public function setTimings(TransferStats $transferStats) : void
+    public function setTimings(TransferStats $transferStats): void
     {
         $handlerStats = $transferStats->getHandlerStats();
 
         $relevantStats = [
-            'appconnect_time_us'    => $handlerStats['appconnect_time_us']      ?? '-1',
-            'connect_time_us'       => $handlerStats['connect_time_us']         ?? '-1',
-            'namelookup_time_us'    => $handlerStats['namelookup_time_us']      ?? '-1',
-            'pretransfer_time_us'   => $handlerStats['pretransfer_time_us']     ?? '-1',
-            'redirect_time_us'      => $handlerStats['redirect_time_us']        ?? '-1',
-            'starttransfer_time_us' => $handlerStats['starttransfer_time_us']   ?? '-1',
-            'total_time_us'         => $handlerStats['total_time_us']           ?? '-1',
+            'appconnect_time_us'    => $handlerStats['appconnect_time_us']      ?? -1,
+            'connect_time_us'       => $handlerStats['connect_time_us']         ?? -1,
+            'namelookup_time_us'    => $handlerStats['namelookup_time_us']      ?? -1,
+            'pretransfer_time_us'   => $handlerStats['pretransfer_time_us']     ?? -1,
+            'redirect_time_us'      => $handlerStats['redirect_time_us']        ?? -1,
+            'starttransfer_time_us' => $handlerStats['starttransfer_time_us']   ?? -1,
+            'total_time_us'         => $handlerStats['total_time_us']           ?? -1,
         ];
 
         $this->timings = json_encode($relevantStats);
@@ -495,8 +495,9 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         $arrayTimings = json_decode($this->timings, true);
+        $timeInMilliSeconds = floor($arrayTimings["total_time_us"] / 1000);
 
-        return $arrayTimings["total_time_us"] ?? -1;
+        return $timeInMilliSeconds;
     }
 
     /**
@@ -512,7 +513,7 @@ class RequestInsurance extends SaveRetryingModel
         $payload = $this->getJsonDecodedPayload();
 
         // Only process payload if it is an array
-        if ( ! is_array($payload)) {
+        if (! is_array($payload)) {
             return $payload;
         }
 
@@ -590,7 +591,7 @@ class RequestInsurance extends SaveRetryingModel
             }
         }
 
-        if ( ! empty($searchedStates)) {
+        if (! empty($searchedStates)) {
             $query->whereIn('state', $searchedStates);
         }
 
@@ -735,7 +736,7 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function setState(string $state): void
     {
-        if ( ! in_array($state, State::getAll(), true)) {
+        if (! in_array($state, State::getAll(), true)) {
             throw new \InvalidArgumentException('Invalid state value: ' . $state);
         }
 
@@ -756,7 +757,7 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function retryNow(): RequestInsurance
     {
-        if ( ! $this->isRetryable()) {
+        if (! $this->isRetryable()) {
             return $this;
         }
 

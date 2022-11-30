@@ -56,7 +56,7 @@ class RequestInsuranceBuilder
      */
     public function method(string $method): RequestInsuranceBuilder
     {
-        if ( ! in_array(strtolower($method), ['get', 'post', 'put', 'patch', 'delete'])) {
+        if (! in_array(strtolower($method), ['get', 'post', 'put', 'patch', 'delete'])) {
             throw new InvalidArgumentException(sprintf('Invalid request insurance method: "%s"', $method));
         }
 
@@ -233,13 +233,13 @@ class RequestInsuranceBuilder
      */
     protected function append($field, $value): RequestInsuranceBuilder
     {
-        if ( ! Arr::has($this->data, $field)) {
+        if (! Arr::has($this->data, $field)) {
             return $this->set($field, [$value]);
         }
 
         $data = Arr::get($this->data, $field);
 
-        if ( ! is_array($data)) {
+        if (! is_array($data)) {
             throw new InvalidArgumentException('Cannot append to a non-array index');
         }
 
