@@ -78,4 +78,15 @@ class RequestInsuranceLog extends SaveRetryingModel
     {
         return new RequestInsuranceLogFactory();
     }
+
+    /**
+     * Gets the total time duration for a request
+     *
+     * @return int|mixed
+     */
+    public function getTotalTime()
+    {
+        $timingsInArray = json_decode($this->timings, true);
+        return $timingsInArray["total_time_us"] ?? -1;
+    }
 }

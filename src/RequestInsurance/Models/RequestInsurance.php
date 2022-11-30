@@ -485,6 +485,21 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Gets the total time duration for an request
+     *
+     * @return int|mixed
+     */
+    public function getTotalTime()
+    {
+        if (! isset($this->timings)) {
+            return -1;
+        }
+
+        $arrayTimings = json_decode($this->timings, true);
+        return $arrayTimings["total_time_us"] ?? -1;
+    }
+
+    /**
      * Returns the payload as a json string, with encrypted headers marked as [ ENCRYPTED ].
      * We use this to avoid breaking the interface with long encrypted values.
      *
