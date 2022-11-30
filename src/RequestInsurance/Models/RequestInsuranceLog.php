@@ -90,8 +90,9 @@ class RequestInsuranceLog extends SaveRetryingModel
             return -1;
         }
 
-        $timingsInArray = json_decode($this->timings, true);
+        $arrayTimings = json_decode($this->timings, true);
+        $timeInMicroSeconds = $arrayTimings['total_time_us'] ?? -1;
 
-        return floor($timingsInArray['total_time_us'] / 1000);
+        return $timeInMicroSeconds != -1 ? (int)(floor($timeInMicroSeconds / 1000)) : -1;
     }
 }
