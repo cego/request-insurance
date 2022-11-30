@@ -497,9 +497,8 @@ class RequestInsurance extends SaveRetryingModel
         $arrayTimings = json_decode($this->timings, true);
 
         if (key_exists('total_time_us', $arrayTimings)) {
-            $timeInMilliSeconds = floor($arrayTimings['total_time_us'] / 1000);
+            $timeInMilliSeconds = (int)(floor($arrayTimings['total_time_us'] / 1000));
             return $timeInMilliSeconds;
-
         }
 
         return -1;
