@@ -359,7 +359,7 @@
                                         <td><x-request-insurance-inline-print :content="$log->response_headers"/></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_body"/></td>
                                         <td>{{ $log->created_at }}</td>
-                                        <td><x-request-insurance-inline-print :content="$log->timings"/></td>
+                                        <td><x-request-insurance-pretty-print :content="$log->timings"/></td>
                                     </tr>
                                 @endforeach
                                 </tbody>
