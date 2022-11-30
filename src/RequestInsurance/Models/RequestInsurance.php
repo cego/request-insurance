@@ -82,8 +82,6 @@ class RequestInsurance extends SaveRetryingModel
         'updated_at'       => CarbonUtc::class,
     ];
 
-    public int $totalTime = -1;
-
     /**
      * Get the table associated with the model.
      *
@@ -483,7 +481,6 @@ class RequestInsurance extends SaveRetryingModel
         ];
 
         $this->timings = json_encode($relevantStats);
-        $this->totalTime = $this->timings["total_time_us"];
     }
 
     /**

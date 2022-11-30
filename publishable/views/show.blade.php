@@ -348,7 +348,7 @@
                                     <th>Response headers</th>
                                     <th>Response body</th>
                                     <th style="width: 185px">Created at</th>
-                                    <th>Total time</th>
+                                    <th style="width: 185px">Total time</th>
                                 </tr>
                                 </thead>
                                 <tbody>
