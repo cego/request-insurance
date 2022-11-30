@@ -88,7 +88,7 @@
                                 <th>Attempts</th>
                                 <th style="width: 185px">Next attempt at</th>
                                 <th style="width: 185px">Created at</th>
-                                <th style="width: 185px">Total time</th>
+                                <th style="width: 185px">Total time (µs) </th>
                                 <th>Inspect</th>
                             </tr>
                             </thead>
@@ -106,7 +106,7 @@
                                     <td>{{ $requestInsurance->retry_count }}</td>
                                     <td>{{ $requestInsurance->retry_at }}</td>
                                     <td>{{ $requestInsurance->created_at }}</td>
-                                    <td>{{ $requestInsurance->getTotalTime()}} µs</td>
+                                    <td>{{ $requestInsurance->getTotalTime()}}</td>
                                     <td>
                                         <a href="{{ route('request-insurances.show', $requestInsurance) }}" class="btn btn-sm btn-outline-primary">Inspect</a>
 

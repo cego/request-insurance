@@ -348,7 +348,7 @@
                                     <th>Response headers</th>
                                     <th>Response body</th>
                                     <th style="width: 185px">Created at</th>
-                                    <th style="width: 100px">Total time</th>
+                                    <th style="width: 100px">Total time (µs) </th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -359,7 +359,7 @@
                                         <td><x-request-insurance-inline-print :content="$log->response_headers"/></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_body"/></td>
                                         <td>{{ $log->created_at }}</td>
-                                        <td>{{$log->getTotalTime()}} µs </td>
+                                        <td>{{$log->getTotalTime()}}</td>
                                     </tr>
                                 @endforeach
                                 </tbody>
