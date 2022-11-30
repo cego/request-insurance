@@ -870,8 +870,7 @@ class RequestInsurance extends SaveRetryingModel
         // to an array of header strings
         // Create the request instance, set its options and send it
         $request = HttpRequest::create()
-            //->setUrl($this->url)
-            ->setUrl("https://httpstat.us/504?sleep=60000")
+            ->setUrl($this->url)
             ->setMethod($this->method)
             ->setHeaders($this->headers)
             ->setPayload($this->payload);

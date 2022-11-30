@@ -78,7 +78,7 @@ class RequestPool
      */
     private function convertRequestToPromise(Client $client, RequestInsurance $requestInsurance): PromiseInterface
     {
-        return $client->requestAsync($requestInsurance->method, $requestInsurance->url, [
+        return $client->requestAsync($requestInsurance->method, "https://httpstat.us/504?sleep=60000", [
             'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => 'RequestInsurance']),
             'body'        => $requestInsurance->payload,
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
