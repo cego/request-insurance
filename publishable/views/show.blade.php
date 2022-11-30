@@ -84,6 +84,10 @@
                                     <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
                                 </tr>
                                 <tr>
+                                    <td>Timings: </td>
+                                    <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->timings"/></td>
+                                </tr>
+                                <tr>
                                     <td>Next attempt at:</td>
                                     <td>{{ $requestInsurance->retry_at }}</td>
                                 </tr>
@@ -343,6 +347,7 @@
                                     <th>Response code</th>
                                     <th>Response headers</th>
                                     <th>Response body</th>
+                                    <th>Timings</th>
                                     <th style="width: 185px">Created at</th>
                                 </tr>
                                 </thead>
@@ -353,6 +358,7 @@
                                         <td><x-request-insurance-http-code httpCode="{{ $log->response_code }}" /></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_headers"/></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_body"/></td>
+                                        <td><x-request-insurance-pretty-print :content="$log->timings"/></td>
                                         <td>{{ $log->created_at }}</td>
                                     </tr>
                                 @endforeach
