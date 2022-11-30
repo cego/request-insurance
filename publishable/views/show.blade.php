@@ -358,7 +358,7 @@
                                         <td><x-request-insurance-http-code httpCode="{{ $log->response_code }}" /></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_headers"/></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_body"/></td>
-                                        <td><x-request-insurance-pretty-print :content="$log->timings"/></td>
+                                        <td><x-request-insurance-inline-print :content="$log->timings"/></td>
                                         <td>{{ $log->created_at }}</td>
                                     </tr>
                                 @endforeach
