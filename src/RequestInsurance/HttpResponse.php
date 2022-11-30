@@ -3,7 +3,6 @@
 namespace Cego\RequestInsurance;
 
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\TransferStats;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Exception\ConnectException;

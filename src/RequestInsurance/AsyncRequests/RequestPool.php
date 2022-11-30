@@ -2,17 +2,14 @@
 
 namespace Cego\RequestInsurance\AsyncRequests;
 
-use Cego\RequestInsurance\Models\RequestInsuranceLog;
 use Generator;
 use GuzzleHttp\TransferStats;
-use Illuminate\Support\Facades\Log;
 use JsonException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Cego\RequestInsurance\Models\RequestInsurance;
-use Symfony\Component\HttpKernel\Controller\TraceableArgumentResolver;
 
 class RequestPool
 {

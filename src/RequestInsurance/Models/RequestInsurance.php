@@ -460,6 +460,13 @@ class RequestInsurance extends SaveRetryingModel
         return json_encode($headers, JSON_THROW_ON_ERROR);
     }
 
+    /**
+     * Sets stats regarding request processing time to the timings field as an array.
+     *
+     * @param TransferStats $transferStats
+     *
+     * @return void
+     */
     public function setTimings(TransferStats $transferStats) : void
     {
         $handlerStats = $transferStats->getHandlerStats();
@@ -834,7 +841,6 @@ class RequestInsurance extends SaveRetryingModel
             }
         } elseif ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
-
         } elseif ($response->isRetryable()) {
             $this->retryLater(false);
         } else {

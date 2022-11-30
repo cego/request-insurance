@@ -14,7 +14,7 @@ class AddTimingsToRequestInsurances extends Migration
     public function up(): void
     {
         Schema::table('request_insurances', function (Blueprint $table) {
-            $table->text('timings')->after("retry_inconsistent")->nullable()->default("TEST")->index();
+            $table->text('timings')->after("retry_inconsistent")->nullable()->default(null)->index();
         });
     }
 
