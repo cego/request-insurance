@@ -68,10 +68,6 @@
                                     <td>{{ $requestInsurance->priority }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Priority:</td>
-                                    <td>{{ $requestInsurance->timings }}</td>
-                                </tr>
-                                <tr>
                                     <td>Method:</td>
                                     <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
                                 </tr>

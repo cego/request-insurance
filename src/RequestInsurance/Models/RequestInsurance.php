@@ -460,7 +460,7 @@ class RequestInsurance extends SaveRetryingModel
         return json_encode($headers, JSON_THROW_ON_ERROR);
     }
 
-    public function setTransferStats(TransferStats $transferStats) : void
+    public function setTimings(TransferStats $transferStats) : void
     {
         $handlerStats = $transferStats->getHandlerStats();
 
