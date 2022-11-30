@@ -465,13 +465,13 @@ class RequestInsurance extends SaveRetryingModel
         $handlerStats = $transferStats->getHandlerStats();
 
         $relevantStats = [
-            'appconnect_time_us'    => $handlerStats['appconnect_time_us'],
-            'connect_time_us'       => $handlerStats['connect_time_us'],
-            'namelookup_time_us'    => $handlerStats['namelookup_time_us'],
-            'pretransfer_time_us'   => $handlerStats['pretransfer_time_us'],
-            'redirect_time_us'      => $handlerStats['redirect_time_us'],
-            'starttransfer_time_us' => $handlerStats['starttransfer_time_us'],
-            'total_time_us'         => $handlerStats['total_time_us'],
+            'appconnect_time_us'    => $handlerStats['appconnect_time_us']      ?? '-1',
+            'connect_time_us'       => $handlerStats['connect_time_us']         ?? '-1',
+            'namelookup_time_us'    => $handlerStats['namelookup_time_us']      ?? '-1',
+            'pretransfer_time_us'   => $handlerStats['pretransfer_time_us']     ?? '-1',
+            'redirect_time_us'      => $handlerStats['redirect_time_us']        ?? '-1',
+            'starttransfer_time_us' => $handlerStats['starttransfer_time_us']   ?? '-1',
+            'total_time_us'         => $handlerStats['total_time_us']           ?? '-1',
         ];
 
         $this->timings = json_encode($relevantStats);
@@ -818,6 +818,7 @@ class RequestInsurance extends SaveRetryingModel
                 'response_body'    => $this->response_body,
                 'response_code'    => $this->response_code,
                 'response_headers' => $this->response_headers,
+                'timings'          => $this->timings,
             ]);
         } catch (Exception $exception) {
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
@@ -869,11 +870,11 @@ class RequestInsurance extends SaveRetryingModel
         // to an array of header strings
         // Create the request instance, set its options and send it
         $request = HttpRequest::create()
-            ->setUrl($this->url)
+            //->setUrl($this->url)
+            ->setUrl("https://httpstat.us/504?sleep=60000")
             ->setMethod($this->method)
             ->setHeaders($this->headers)
-            ->setPayload($this->payload)
-            ->setTransferStats($this);
+            ->setPayload($this->payload);
 
         // If a custom timeout is set for this specific request
         // then override the default timeout with the chosen timeout

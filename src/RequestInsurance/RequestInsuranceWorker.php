@@ -197,7 +197,7 @@ class RequestInsuranceWorker
         $this->setStateToProcessingAndIncrementAttempts($requests);
         // Send the requests concurrently
         $responses = $this->client->pool($requests);
-        die();
+
 
         // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
         /** @var RequestInsurance $request */
