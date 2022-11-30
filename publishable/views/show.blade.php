@@ -347,8 +347,8 @@
                                     <th>Response code</th>
                                     <th>Response headers</th>
                                     <th>Response body</th>
-                                    <th>Timings</th>
                                     <th style="width: 185px">Created at</th>
+                                    <th>Timings</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -358,8 +358,8 @@
                                         <td><x-request-insurance-http-code httpCode="{{ $log->response_code }}" /></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_headers"/></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_body"/></td>
-                                        <td><x-request-insurance-inline-print :content="$log->timings"/></td>
                                         <td>{{ $log->created_at }}</td>
+                                        <td><x-request-insurance-inline-print :content="$log->timings"/></td>
                                     </tr>
                                 @endforeach
                                 </tbody>
