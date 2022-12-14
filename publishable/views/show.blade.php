@@ -201,7 +201,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                                         <td>{{ $edit->request_insurance_id }}</td>
                                                     </tr>
                                                     <tr>
-                                                        <x-request-insurance-pretty-print-difference :oldValues="[$requestInsurance->id] newValues: [$edit->id]"/>
+                                                        <x-request-insurance-pretty-print-difference :oldValues="['something']" :newValues="['something else']"/>
                                                     </tr>
                                                     <tr>
                                                         <td>Priority:</td>
