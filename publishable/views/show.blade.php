@@ -1,4 +1,9 @@
-<?php use \Cego\RequestInsurance\Enums\State; ?>
+<?php
+use \Cego\RequestInsurance\Enums\State;
+use \Jfcherng\Diff\DiffHelper;
+use Jfcherng\Diff\Factory\RendererFactory;
+use Cego\RequestInsurance\ViewComponents\prettyPrintDifference;
+?>
 @extends("request-insurance::layouts.master")
 
 @section("content")
@@ -195,8 +200,9 @@
                                                     <tr>
                                                         <td>RequestInsurance Id:</td>
                                                         <td>{{ $edit->request_insurance_id }}</td>
-                                                        <td> {{ \Jfcherng\Diff\Factory\RendererFactory::make('Inline')->renderArray(json_decode(\Jfcherng\Diff\DiffHelper::calculate(strval($requestInsurance->id), '5', 'Json')))}} </td>
-
+                                                    </tr>
+                                                    <tr>
+                                                        <x-request-insurance-pretty-print-difference :oldContent="[$requestInsurance->id] newContent: [$edit->id]"/>
                                                     </tr>
                                                     <tr>
                                                         <td>Priority:</td>

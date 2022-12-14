@@ -4,29 +4,46 @@ namespace Cego\RequestInsurance\ViewComponents;
 
 use Illuminate\View\Component;
 use \Jfcherng\Diff\DiffHelper;
-
+use Jfcherng\Diff\Factory\RendererFactory;
 
 
 class prettyPrintDifference extends Component
 {
-    public function __construct($oldContent, $newContent, $options)
+    public function __construct($oldValues, $newValues)
     {
-        $this->content = $this->prettyPrint($oldContent, $newContent, $options);
-        $this->options = $options;
+        $this->content = $this->prettyPrint($oldValues, $newValues);
     }
 
-    private function prettyPrint($oldContent, $newContent, $options) : string
+    protected array $rendererOptions = ['detailLevel' => 'line'];
+
+    protected function prettyPrint($oldContent, $newContent) : string
     {
         try
         {
-            DiffHelper::calculate($oldContent, $newContent, $options);
-        } catch (\Exception $exception) {
+            // Must always include the same amount of fields
+            if (count($oldContent) != count($newContent) || count($oldContent)) {
+                return "";
+            }
 
+            // DiffHelpoer returns a string of the html.
+            $htmlToRender = [];
+            for ($i = 0; i < count($oldContent); $i++) {
+                $htmlToRender[] = DiffHelper::calculate($oldContent[$i],$newContent[$i]);
+            }
+
+            $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
+            $content = $htmlRenderer->renderArray($htmlToRender);
+
+            return $content;
+
+        } catch (\Exception $exception) {
+            echo("error");
+            return "";
         }
     }
 
     public function render()
     {
-        // TODO: Implement render() method.
+        return view('request-insurance::components.pretty-print-difference');
     }
 }
