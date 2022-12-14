@@ -9,6 +9,7 @@ use Exception;
 
 use \Jfcherng\Diff\DiffHelper;
 use Jfcherng\Diff\Factory\RendererFactory;
+use SebastianBergmann\Diff\Diff;
 
 
 class PrettyPrintDifference extends Component
@@ -34,19 +35,15 @@ class PrettyPrintDifference extends Component
             }
 
             // DiffHelper returns a string of the html.
-            $htmlToRender = [];
-            for ($i = 0; $i < count($oldContent); $i++) {
-                $htmlToRender[] = DiffHelper::calculate($oldContent[$i],$newContent[$i]);
-            }
+            $content = DiffHelper::calculate($oldContent, $newContent, 'Inline');
 
             $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
-            $content = $htmlRenderer->renderArray($htmlToRender);
+            $renderedContent = $htmlRenderer->renderArray(explode(" ", $content));
 
-            return $content;
+            return $renderedContent;
 
         } catch (Exception $exception) {
-            echo("error");
-            return "ERROR GENERAL $oldContent" . $exception->getMessage();
+            return "ERROR GENERAL $content" . $exception->getMessage();
         }
     }
 
