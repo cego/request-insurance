@@ -2,7 +2,6 @@
 use \Cego\RequestInsurance\Enums\State;
 use \Jfcherng\Diff\DiffHelper;
 use Jfcherng\Diff\Factory\RendererFactory;
-use Cego\RequestInsurance\ViewComponents\prettyPrintDifference;
 ?>
 @extends("request-insurance::layouts.master")
 
