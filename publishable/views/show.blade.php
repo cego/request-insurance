@@ -149,7 +149,7 @@
             @php
                 $pendingEdits = $requestInsurance->edits()->where('applied_at', null)->orderBy('updated_at', 'DESC');
             @endphp
-            @if($pendingEdits->count() > 0)
+            @if($pendingEdits->count() > 0)½
                 <div class="col-12 mt-2">
                     <div class="card">
                         <div class="card-body">
@@ -194,7 +194,7 @@
                                                     </tr>
                                                     <tr>
                                                         <td>RequestInsurance Id:</td>
-                                                        <td>{{ $edit->request_insurance_id }}</td>
+                                                        <td> {{ \Jfcherng\Diff\DiffHelper::calculate($requestInsurance->id, $edit->request_insurance_id)}} </td>
                                                     </tr>
                                                     <tr>
                                                         <td>Priority:</td>
