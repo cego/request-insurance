@@ -28,7 +28,7 @@ class PrettyPrintDifference extends Component
         {
             // Must always include the same amount of fields
             if (count($oldContent) != count($newContent) || count($oldContent)) {
-                return "";
+                return "ERROR LENGTH ";
             }
 
             // DiffHelper returns a string of the html.
@@ -44,7 +44,7 @@ class PrettyPrintDifference extends Component
 
         } catch (Exception $exception) {
             echo("error");
-            return "";
+            return "ERROR GENERAL" . $exception->getMessage();
         }
     }
 
