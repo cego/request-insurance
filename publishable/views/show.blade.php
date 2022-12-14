@@ -185,6 +185,8 @@
                                             <hr>
                                         </div>
                                         <div class="card-text">
+                                                <?php \Jfcherng\Diff\DiffHelper::calculate(strval($requestInsurance->id), '5', 'Inline') ?>
+
                                             <form method="POST" action="{{ route('request-insurance-edits.update', $edit) }}">
                                                 <table class="table-hover w-100 table-vertical table-striped">
                                                     <tbody>
@@ -194,7 +196,7 @@
                                                     </tr>
                                                     <tr>
                                                         <td>RequestInsurance Id:</td>
-                                                        <?php \Jfcherng\Diff\DiffHelper::calculate(strval($requestInsurance->id), '5', 'Inline') ?>
+                                                        <td>{{ $edit->request_insurance_id }}</td>
                                                     </tr>
                                                     <tr>
                                                         <td>Priority:</td>
