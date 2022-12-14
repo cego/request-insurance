@@ -33,14 +33,14 @@ class PrettyPrintDifference extends Component
             if (count($oldContent) != count($newContent) || count($oldContent) == 0) {
                 return "ERROR LENGTH ";
             }
-
+            $content = " wrong ";
             // DiffHelper returns a string of the html.
             $content = DiffHelper::calculate($oldContent, $newContent, 'Inline');
 
-            $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
-            $renderedContent = $htmlRenderer->renderArray(explode(" ", $content));
+            //$htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
+            //$renderedContent = $htmlRenderer->renderArray(explode(" ", $content));
 
-            return $renderedContent;
+            return $content;
 
         } catch (Exception $exception) {
             return "ERROR GENERAL $content" . $exception->getMessage();
