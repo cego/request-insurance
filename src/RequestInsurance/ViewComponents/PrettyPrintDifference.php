@@ -35,12 +35,12 @@ class PrettyPrintDifference extends Component
             }
             $content = " wrong ";
             // DiffHelper returns a string of the html.
-            $content = DiffHelper::calculate($oldContent, $newContent, 'Inline');
+            $content = DiffHelper::calculate($oldContent, $newContent, 'Json');
 
-            //$htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
-            //$renderedContent = $htmlRenderer->renderArray(explode(" ", $content));
+            $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
+            $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
 
-            return $content;
+            return $renderedContent;
 
         } catch (Exception $exception) {
             return "ERROR GENERAL $content" . $exception->getMessage();
