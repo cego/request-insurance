@@ -194,7 +194,6 @@
                                                     </tr>
                                                     <tr>
                                                         <td>RequestInsurance Id:</td>
-                                                        <td> {{ }} </td>
                                                         <?php \Jfcherng\Diff\DiffHelper::calculate(strval($requestInsurance->id), '5', 'Inline') ?>
                                                     </tr>
                                                     <tr>
