@@ -195,7 +195,7 @@
                                                     <tr>
                                                         <td>RequestInsurance Id:</td>
                                                         <td>{{ $edit->request_insurance_id }}</td>
-                                                        <td> {{ \Jfcherng\Diff\Renderer\RendererFactory::make('Inline')->renderArray(\Jfcherng\Diff\DiffHelper::calculate(strval($requestInsurance->id), '5', 'Inline'))}} </td>
+                                                        <td> {{ \Jfcherng\Diff\Factory\RendererFactory::make('Inline')->renderArray(json_decode(\Jfcherng\Diff\DiffHelper::calculate(strval($requestInsurance->id), '5', 'Json')))}} </td>
 
                                                     </tr>
                                                     <tr>

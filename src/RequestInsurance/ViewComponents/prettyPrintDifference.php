@@ -6,6 +6,7 @@ use Illuminate\View\Component;
 use \Jfcherng\Diff\DiffHelper;
 
 
+
 class prettyPrintDifference extends Component
 {
     public function __construct($oldContent, $newContent, $options)
