@@ -1,1 +1,1 @@
-<div> HERE {{$content}} </div>
+<div> HERE {!! $content !!} </div>
