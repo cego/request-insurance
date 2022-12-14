@@ -202,7 +202,7 @@ use Cego\RequestInsurance\ViewComponents\prettyPrintDifference;
                                                         <td>{{ $edit->request_insurance_id }}</td>
                                                     </tr>
                                                     <tr>
-                                                        <x-request-insurance-pretty-print-difference :oldContent="[$requestInsurance->id] newContent: [$edit->id]"/>
+                                                        <x-request-insurance-pretty-print-difference :oldValues="[$requestInsurance->id] newValues: [$edit->id]"/>
                                                     </tr>
                                                     <tr>
                                                         <td>Priority:</td>

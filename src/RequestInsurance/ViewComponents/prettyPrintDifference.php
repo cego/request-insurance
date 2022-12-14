@@ -9,6 +9,8 @@ use Jfcherng\Diff\Factory\RendererFactory;
 
 class prettyPrintDifference extends Component
 {
+    public $content;
+
     public function __construct($oldValues, $newValues)
     {
         $this->content = $this->prettyPrint($oldValues, $newValues);
@@ -25,9 +27,9 @@ class prettyPrintDifference extends Component
                 return "";
             }
 
-            // DiffHelpoer returns a string of the html.
+            // DiffHelper returns a string of the html.
             $htmlToRender = [];
-            for ($i = 0; i < count($oldContent); $i++) {
+            for ($i = 0; $i < count($oldContent); $i++) {
                 $htmlToRender[] = DiffHelper::calculate($oldContent[$i],$newContent[$i]);
             }
 
