@@ -46,7 +46,7 @@ class PrettyPrintDifference extends Component
 
         } catch (Exception $exception) {
             echo("error");
-            return "ERROR GENERAL $htmlToRender" . $exception->getMessage();
+            return "ERROR GENERAL $oldContent" . $exception->getMessage();
         }
     }
 
