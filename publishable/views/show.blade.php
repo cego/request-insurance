@@ -194,7 +194,7 @@
                                                     </tr>
                                                     <tr>
                                                         <td>RequestInsurance Id:</td>
-                                                        <td> {{ \Jfcherng\Diff\DiffHelper::calculate(strval($requestInsurance->id), strval($edit->request_insurance_id))}} </td>
+                                                        <td> {{ \Jfcherng\Diff\DiffHelper::calculate(strval($requestInsurance->id), strval($edit->request_insurance_id), 'Inline')}} </td>
                                                     </tr>
                                                     <tr>
                                                         <td>Priority:</td>
