@@ -3,11 +3,15 @@
 namespace Cego\RequestInsurance\ViewComponents;
 
 use Illuminate\View\Component;
+use Illuminate\View\View;
+use Illuminate\View\Factory;
+use Exception;
+
 use \Jfcherng\Diff\DiffHelper;
 use Jfcherng\Diff\Factory\RendererFactory;
 
 
-class prettyPrintDifference extends Component
+class PrettyPrintDifference extends Component
 {
     public $content;
 
@@ -38,7 +42,7 @@ class prettyPrintDifference extends Component
 
             return $content;
 
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             echo("error");
             return "";
         }
