@@ -9,6 +9,7 @@ use Exception;
 
 use \Jfcherng\Diff\DiffHelper;
 use Jfcherng\Diff\Factory\RendererFactory;
+use Jfcherng\Diff\Renderer\RendererConstant;
 use SebastianBergmann\Diff\Diff;
 
 
@@ -21,20 +22,24 @@ class PrettyPrintDifference extends Component
         $this->content = $this->prettyPrint($oldValues, $newValues);
     }
 
-    protected array $rendererOptions = ['detailLevel' => 'line'];
+    protected array $rendererOptions = [
+        'detailLevel'           => 'word',
+        'cliColorization'       => RendererConstant::CLI_COLOR_AUTO,
+        'showHeader'            => true,
+        'separateBlock'         => true,
+        ];
 
     protected function prettyPrint($oldContent, $newContent) : string
     {
         try
         {
             // Must always include the same amount of fields
-
-
             if (count($oldContent) != count($newContent) || count($oldContent) == 0) {
                 return "ERROR LENGTH ";
             }
+
             $content = " wrong ";
-            // DiffHelper returns a string of the html.
+            // DiffHelper returns a string in html format.
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json');
 
             $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
