@@ -848,7 +848,7 @@ class RequestInsurance extends SaveRetryingModel
                 'response_body'    => $this->response_body,
                 'response_code'    => $this->response_code,
                 'response_headers' => $this->response_headers,
-                'timings'          => $this->timings,
+                'timings'          => $response->getHandlerStats(),
             ]);
         } catch (Exception $exception) {
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));

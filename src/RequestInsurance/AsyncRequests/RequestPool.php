@@ -75,8 +75,6 @@ class RequestPool
      */
     private function convertRequestToPromise(Client $client, RequestInsurance $requestInsurance): PromiseInterface
     {
-        $requestInsurance->timings = "CALLED; YA ODER NA?";
-
         return $client->requestAsync($requestInsurance->method, $requestInsurance->url, [
             'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => 'RequestInsurance']),
             'body'        => $requestInsurance->payload,
