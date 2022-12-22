@@ -3,7 +3,6 @@
 namespace Cego\RequestInsurance\Commands;
 
 use Carbon\Carbon;
-use Cego\RequestInsurance\ViewComponents\HttpCode;
 use Illuminate\Console\Command;
 use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
