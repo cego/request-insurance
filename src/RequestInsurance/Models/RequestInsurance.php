@@ -814,6 +814,9 @@ class RequestInsurance extends SaveRetryingModel
             }
         } elseif ($response->wasSuccessful()) {
             $this->setState(State::COMPLETED);
+        // If response code is 408, we take it as a timeout and set the request to retry again later
+        } elseif ($response->getCode() == 408 && $this->retry_inconsistent) {
+            $this->retryLater();
         } elseif ($response->isRetryable()) {
             $this->retryLater(false);
         } else {

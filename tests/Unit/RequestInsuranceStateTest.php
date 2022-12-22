@@ -289,6 +289,22 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::PROCESSING , $requestInsurance1->state);
     }
 
+    /** @test */
+    public function it_sets_state_to_waiting_when_response_is_408(): void
+    {
+        // Arrange
+        RequestInsuranceClient::fake(fn () => Http::response([], 408));
+
+        // Act
+        $requestInsurance = $this->createDummyRequestInsurance();
+        $requestInsurance->save();
+        $this->runWorkerOnce();
+
+        // Assert
+        $requestInsurance->refresh();
+        $this->assertEquals(State::WAITING, $requestInsurance->state);
+    }
+
     protected function createDummyRequestInsurance(): RequestInsurance
     {
         $requestInsurance = RequestInsurance::getBuilder()
