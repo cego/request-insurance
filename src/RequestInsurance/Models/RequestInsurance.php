@@ -75,6 +75,8 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected bool $isEncrypted = false;
 
+    protected int $totalTime = -1;
+
     protected $casts = [
         'retry_at'         => CarbonUtc::class,
         'state_changed_at' => CarbonUtc::class,
@@ -490,6 +492,8 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function getTotalTime()
     {
+        return $this->totalTime;
+
         if (! isset($this->timings)) {
             return -1;
         }
@@ -834,6 +838,9 @@ class RequestInsurance extends SaveRetryingModel
         $this->response_body = $response->getBody();
         $this->response_code = $response->getCode();
         $this->response_headers = $response->getHeaders();
+
+        // Set duration of request
+        $this->totalTime = Carbon::now('UTC')->diffInMilliseconds($this->created_at);
 
         // Create a log for the request to track all attempts
         try {
