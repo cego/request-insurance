@@ -222,7 +222,7 @@ class RequestInsurance extends SaveRetryingModel
                 $request->response_headers = json_encode($request->response_headers, JSON_THROW_ON_ERROR);
             }
         });
-        $request->timings = "Booting";
+
         static::saved(function (RequestInsurance $request) {
             // After the model have been saved, then decrypt it again locally.
             // It is NOT decrypted in the DB, it is only decrypted so that
@@ -902,7 +902,6 @@ class RequestInsurance extends SaveRetryingModel
         if ($this->timeout_ms !== null) {
             $request->setTimeout(ceil($this->timeout_ms / 1000));
         }
-        $request->timings = "sendRequest";
 
         return $request->send();
     }
