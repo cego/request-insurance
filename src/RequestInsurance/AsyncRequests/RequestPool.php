@@ -75,8 +75,6 @@ class RequestPool
      */
     private function convertRequestToPromise(Client $client, RequestInsurance $requestInsurance): PromiseInterface
     {
-        echo("is This ever callded?");
-        die();
         return $client->requestAsync($requestInsurance->method, $requestInsurance->url, [
             'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => 'RequestInsurance']),
             'body'        => $requestInsurance->payload,
