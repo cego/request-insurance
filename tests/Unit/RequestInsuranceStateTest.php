@@ -290,14 +290,15 @@ class RequestInsuranceStateTest extends TestCase
     }
 
     /** @test */
-    public function it_sets_state_to_waiting_when_response_is_408(): void
+    public function it_sets_state_to_waiting_when_response_is_408_and_retry_inconsistent_is_true(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 408));
+        $requestInsurance = $this->createDummyRequestInsurance();
+        $requestInsurance->retry_inconsistent = true;
+        $requestInsurance->save();
 
         // Act
-        $requestInsurance = $this->createDummyRequestInsurance();
-        $requestInsurance->save();
         $this->runWorkerOnce();
 
         // Assert
