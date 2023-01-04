@@ -23,10 +23,13 @@ class PrettyPrintDifference extends Component
     }
 
     protected array $rendererOptions = [
-        'detailLevel'           => 'word',
+        'detailLevel'           => 'char',
         'cliColorization'       => RendererConstant::CLI_COLOR_AUTO,
         'showHeader'            => true,
         'separateBlock'         => true,
+        'resultForIdenticals'   => null,
+        'lineNumbers'           => false,
+        'seperateBlock'         => true,
         ];
 
     protected array $differOptions = [
@@ -44,9 +47,9 @@ class PrettyPrintDifference extends Component
 
             $content = " wrong ";
             // DiffHelper returns a string in html format.
-            $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
+            $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions, $this->rendererOptions);
 
-            $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
+            $htmlRenderer = RendererFactory::make('Unified', $this->rendererOptions);
             $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
 
             return $renderedContent;
