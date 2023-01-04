@@ -10,7 +10,7 @@ use Exception;
 use \Jfcherng\Diff\DiffHelper;
 use Jfcherng\Diff\Factory\RendererFactory;
 use Jfcherng\Diff\Renderer\RendererConstant;
-use SebastianBergmann\Diff\Diff;
+use Jfcherng\Diff\Differ;
 
 
 class PrettyPrintDifference extends Component
