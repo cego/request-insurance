@@ -33,7 +33,7 @@ class PrettyPrintDifference extends Component
         ];
 
     protected array $differOptions = [
-        //'ignoreWhitespace' => true,
+        'ignoreWhitespace' => true,
     ];
 
     protected function prettyPrint($oldContent, $newContent) : string
@@ -50,7 +50,7 @@ class PrettyPrintDifference extends Component
             // DiffHelper returns a string in html format.
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions, $this->rendererOptions);
 
-            $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
+            $htmlRenderer = RendererFactory::make('Unified', $this->rendererOptions);
             $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
 
             return $renderedContent;
