@@ -33,7 +33,7 @@ class PrettyPrintDifference extends Component
         ];
 
     protected array $differOptions = [
-        'ignoreWhitespace' => true,
+        //'ignoreWhitespace' => true,
     ];
 
     protected function prettyPrint($oldContent, $newContent) : string
