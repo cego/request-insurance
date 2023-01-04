@@ -33,7 +33,6 @@ class PrettyPrintDifference extends Component
     {
         try
         {
-            dd($oldContent);
             // Must always include the same amount of fields
             if (count($oldContent) != count($newContent) || count($oldContent) == 0) {
                 return "ERROR LENGTH ";
