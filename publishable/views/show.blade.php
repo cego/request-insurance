@@ -202,9 +202,6 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                                         <td>{{ $edit->request_insurance_id }}</td>
                                                     </tr>
                                                     <tr>
-                                                        <x-request-insurance-pretty-print-difference :oldValues="['something']" :newValues="['something else']"/>
-                                                    </tr>
-                                                    <tr>
                                                         <td>Priority:</td>
                                                         <td><input name="new_priority" class="w-100" type="number" min="0" max="9999"
                                                                    onchange="(() => {this.value=this.value < 0 ? 0 : this.value > 9999 ? 9999 : this.value;})()"
@@ -351,7 +348,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                             <td>{{ $edit->request_insurance_id }}</td>
                                         </tr>
                                         <tr>
-                                            <x-request-insurance-pretty-print-difference :oldValues="['something', $edit->new_method]" :newValues="['something else', 'POST']"/>
+                                            <x-request-insurance-pretty-print-difference :oldValues="['something', $edit->old_method]" :newValues="['something else', $edit->new_method]"/>
                                         </tr>
                                         <tr>
                                             <td>Priority: </td>
