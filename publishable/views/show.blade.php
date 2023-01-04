@@ -272,7 +272,8 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                                 </div>
                                             </form>
                                         </div>
-                                        <div class="card-text">
+                                        <div class="card">
+                                            <div class="card-text">
                                             <table class="table-hover w-100 table-vertical table-striped">
                                                 <tbody>
                                                 <tr>
@@ -316,6 +317,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                                 </tr>
                                                 </tbody>
                                             </table>
+                                        </div>
                                         </div>
                                         </div>
                                         <div class="card-text">
