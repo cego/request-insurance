@@ -10,7 +10,6 @@ use Exception;
 use \Jfcherng\Diff\DiffHelper;
 use Jfcherng\Diff\Factory\RendererFactory;
 use Jfcherng\Diff\Renderer\RendererConstant;
-use Jfcherng\Diff\Differ;
 
 
 class PrettyPrintDifference extends Component
@@ -20,6 +19,7 @@ class PrettyPrintDifference extends Component
     public function __construct($oldValues, $newValues)
     {
         $this->content = $this->prettyPrint($oldValues, $newValues);
+        DiffHelper::getStyleSheet();
     }
 
     protected array $rendererOptions = [
@@ -29,7 +29,6 @@ class PrettyPrintDifference extends Component
         'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
-        'separateBlock'         => true,
         ];
 
     protected array $differOptions = [
@@ -48,11 +47,11 @@ class PrettyPrintDifference extends Component
             $content = " wrong ";
 
             // DiffHelper returns a string in html format.
-            //$content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions, $this->rendererOptions);
-            $content = new Differ($oldContent, $newContent, $this->differOptions);
-            $htmlRenderer = RendererFactory::make('Unified', $this->rendererOptions);
-            //$renderedContent = $htmlRenderer->renderArray($content);
-            $renderedContent = $htmlRenderer->render($content);
+            $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions, $this->rendererOptions);
+
+            $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
+            $renderedContent = $htmlRenderer->renderArray($content);
+
             return $renderedContent;
 
         } catch (Exception $exception) {
