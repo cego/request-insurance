@@ -169,10 +169,6 @@ class HttpResponse
         return $this->response->getHandlerContext()['total_time'] ?? 0;
     }
 
-    public function getHandlerStats() {
-        return $this->response->getHandlerContext();
-    }
-
     /**
      * Returns true if the response was a client error
      *

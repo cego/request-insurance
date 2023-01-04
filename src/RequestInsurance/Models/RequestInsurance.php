@@ -486,9 +486,10 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Gets the total time duration for a request
+     * Gets the total time duration for a request.
+     * Returns -1 if request was not sent / stats not received for some reason.
      *
-     * @return int|mixed
+     * @return int
      */
     public function getTotalTime()
     {
@@ -836,9 +837,6 @@ class RequestInsurance extends SaveRetryingModel
         $this->response_body = $response->getBody();
         $this->response_code = $response->getCode();
         $this->response_headers = $response->getHeaders();
-
-        // Set duration of request
-        $this->totalTime = Carbon::now('UTC')->diffInMilliseconds($this->created_at);
 
         // Create a log for the request to track all attempts
         try {

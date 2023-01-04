@@ -80,9 +80,9 @@ class RequestInsuranceLog extends SaveRetryingModel
     }
 
     /**
-     * Gets the total time duration for a request
+     * Gets the total time duration for a request. Returns -1 if request was never sent.
      *
-     * @return int|mixed
+     * @return int
      */
     public function getTotalTime()
     {
