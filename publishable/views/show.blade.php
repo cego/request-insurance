@@ -167,51 +167,6 @@ use Jfcherng\Diff\Factory\RendererFactory;
                             </div>
                         </div>
                     </div>
-                    <div class="card-text">
-                        <table class="table-hover w-100 table-vertical table-striped">
-                            <tbody>
-                            <tr>
-                                <td>Editor:</td>
-                                <td>{{ $edit->admin_user }}</td>
-                            </tr>
-                            <tr>
-                                <td>RequestInsurance Id:</td>
-                                <td>{{ $edit->request_insurance_id }}</td>
-                            </tr>
-                            <tr>
-                                <x-request-insurance-pretty-print-difference :oldValues="['something', $edit->new_method]" :newValues="['something else', 'GET']"/>
-                            </tr>
-                            <tr>
-                                <td>Priority: </td>
-                                <td>
-                                    <x-request-insurance-difference :oldValues = "[strval($edit->old_priority)]" :newValues = "[strval($edit->new_priority)]"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Method:</td>
-                                <td>
-                                    <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_method]" :newValues = "[$edit->new_method]" />
-                                </td>
-                            </tr>
-                            <tr class="w-100">
-                                <td>Url:</td>
-                                <td> <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_url]" :newValues = "[$edit->new_url]"/> </td>
-                            </tr>
-                            <tr>
-                                <td>Payload:</td>
-                                <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                    <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_payload]" :newValues = "[$edit->new_payload]" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Headers:</td>
-                                <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                    <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_headers]" :newValues = "[$edit->new_headers]" />
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
                     <div class="collapse show" id="collapseEdits">
                         @foreach($pendingEdits->get() as $edit)
                             @php
@@ -219,6 +174,51 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                 $canApproveEdit = $edit->applied_at == null && ! $canModifyEdit;
                                 $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals && $canModifyEdit;
                             @endphp
+                            <div class="card-text">
+                                <table class="table-hover w-100 table-vertical table-striped">
+                                    <tbody>
+                                    <tr>
+                                        <td>Editor:</td>
+                                        <td>{{ $edit->admin_user }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>RequestInsurance Id:</td>
+                                        <td>{{ $edit->request_insurance_id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <x-request-insurance-pretty-print-difference :oldValues="['something', $edit->new_method]" :newValues="['something else', 'GET']"/>
+                                    </tr>
+                                    <tr>
+                                        <td>Priority: </td>
+                                        <td>
+                                            <x-request-insurance-difference :oldValues = "[strval($edit->old_priority)]" :newValues = "[strval($edit->new_priority)]"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Method:</td>
+                                        <td>
+                                            <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_method]" :newValues = "[$edit->new_method]" />
+                                        </td>
+                                    </tr>
+                                    <tr class="w-100">
+                                        <td>Url:</td>
+                                        <td> <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_url]" :newValues = "[$edit->new_url]"/> </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Payload:</td>
+                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
+                                            <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_payload]" :newValues = "[$edit->new_payload]" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Headers:</td>
+                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
+                                            <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_headers]" :newValues = "[$edit->new_headers]" />
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                             <div class="col-6 mt-2">
                                 <div class="card {{$edit->created_at->diffInSeconds(\Carbon\Carbon::now()) < 5 ? 'backgroundAnimated' : ''}}">
                                     <div class="card-body">
