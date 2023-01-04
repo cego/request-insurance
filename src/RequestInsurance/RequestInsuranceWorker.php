@@ -163,13 +163,6 @@ class RequestInsuranceWorker
      */
     protected function processRequestInsurances(): void
     {
-        $requests = $this->getRequestsToProcess();
-        $request = $requests->first();
-
-        if (isset($request)) {
-            $request->timings = '{"total_time_us": 1}';
-        }
-
         $this->getRequestsToProcess()
             ->chunk($this->getRequestChunkSize())
             ->each(fn (EloquentCollection $requestChunk) => rescue(function () use ($requestChunk) {
