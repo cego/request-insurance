@@ -27,7 +27,7 @@ class PrettyPrintDifference extends Component
         'cliColorization'       => RendererConstant::CLI_COLOR_AUTO,
         'showHeader'            => true,
         'separateBlock'         => true,
-        'resultForIdenticals'   => 'No difference',
+        'resultForIdenticals'   => null,
         'lineNumbers'           => false,
         'separateBlock'         => true,
         ];
