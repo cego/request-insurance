@@ -271,6 +271,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                                 </div>
                                             </form>
                                         </div>
+                                        <div class="col-6">
                                         <div class="card">
                                             <div class="card-title text-center">
                                                 <h3>
@@ -322,6 +323,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                                 </tr>
                                                 </tbody>
                                             </table>
+                                        </div>
                                         </div>
                                         </div>
                                         </div>
