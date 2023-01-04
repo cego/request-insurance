@@ -352,19 +352,16 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                         </tr>
                                         <tr>
                                             <td>Priority: </td>
-                                            <td>
-                                                <x-request-insurance-pretty-print-difference :oldValues = "[strval($edit->old_priority)]" :newValues = "[strval($edit->new_priority)]"/>
-                                            </td>
+                                            <x-request-insurance-pretty-print-difference :oldValues="[strval($edit->old_priority)]" :newValues="[strval($edit->new_priority)]"/>
+
                                         </tr>
                                         <tr>
                                             <td>Method: </td>
-                                            <td>
-                                                <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_method]" :newValues = "[$edit->new_method]" />
-                                            </td>
+                                            <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_method]" :newValues = "[$edit->new_method]" />
                                         </tr>
                                         <tr class="w-100">
                                             <td>Url:</td>
-                                            <td> <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_url]" :newValues = "[$edit->new_url]"/> </td>
+                                            <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_url]" :newValues = "[$edit->new_url]"/>
                                         </tr>
                                         <tr>
                                             <td>Payload:</td>
