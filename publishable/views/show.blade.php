@@ -357,22 +357,22 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                         </tr>
                                         <tr>
                                             <td>Method: </td>
-                                            <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_method]" :newValues = "[$edit->new_method]" />
+                                            <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_method]" :newValues="[$edit->new_method]" />
                                         </tr>
                                         <tr class="w-100">
                                             <td>Url:</td>
-                                            <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_url]" :newValues = "[$edit->new_url]"/>
+                                            <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_url]" :newValues="[$edit->new_url]"/>
                                         </tr>
                                         <tr>
                                             <td>Payload:</td>
                                             <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                                <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_payload]" :newValues = "[$edit->new_payload]" />
+                                                <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_payload]" :newValues="[$edit->new_payload]" />
                                             </td>
                                         </tr>
                                         <tr>
                                             <td>Headers:</td>
                                             <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                                <x-request-insurance-pretty-print-difference :oldValues = "[$edit->old_headers]" :newValues = "[$edit->new_headers]" />
+                                                <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_headers]" :newValues="[$edit->new_headers]" />
                                             </td>
                                         </tr>
                                         </tbody>
