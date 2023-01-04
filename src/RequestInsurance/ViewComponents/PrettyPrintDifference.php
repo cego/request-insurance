@@ -51,8 +51,8 @@ class PrettyPrintDifference extends Component
             //$content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions, $this->rendererOptions);
             $content = new Differ($oldContent, $newContent, $this->differOptions);
             $htmlRenderer = RendererFactory::make('Unified', $this->rendererOptions);
-            $renderedContent = $htmlRenderer->renderArray($content);
-
+            //$renderedContent = $htmlRenderer->renderArray($content);
+            $renderedContent = $htmlRenderer->render($content);
             return $renderedContent;
 
         } catch (Exception $exception) {
