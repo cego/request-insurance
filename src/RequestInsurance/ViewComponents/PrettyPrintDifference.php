@@ -48,10 +48,10 @@ class PrettyPrintDifference extends Component
             $content = " wrong ";
 
             // DiffHelper returns a string in html format.
-            $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions, $this->rendererOptions);
-
+            //$content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions, $this->rendererOptions);
+            $content = new Differ($oldContent, $newContent, $this->differOptions);
             $htmlRenderer = RendererFactory::make('Unified', $this->rendererOptions);
-            $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
+            $renderedContent = $htmlRenderer->renderArray($content);
 
             return $renderedContent;
 
