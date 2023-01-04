@@ -492,8 +492,6 @@ class RequestInsurance extends SaveRetryingModel
      */
     public function getTotalTime()
     {
-        return $this->totalTime;
-
         if (! isset($this->timings)) {
             return -1;
         }

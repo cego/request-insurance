@@ -164,8 +164,11 @@ class RequestInsuranceWorker
     protected function processRequestInsurances(): void
     {
         $requests = $this->getRequestsToProcess();
-        $request = $requests->firstOrFail();
-        $request->timings = "1";
+        $request = $requests->first();
+
+        if (isset($request)) {
+            $request->timings = "{total_time_us: 1}";
+        }
 
         $this->getRequestsToProcess()
             ->chunk($this->getRequestChunkSize())
