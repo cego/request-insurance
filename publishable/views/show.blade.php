@@ -273,6 +273,12 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                             </form>
                                         </div>
                                         <div class="card">
+                                            <div class="card-title text-center">
+                                                <h3>
+                                                    Edit differences
+                                                </h3>
+                                                <hr>
+                                            </div>
                                             <div class="card-text">
                                             <table class="table-hover w-100 table-vertical table-striped">
                                                 <tbody>
