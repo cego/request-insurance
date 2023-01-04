@@ -340,27 +340,23 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                     <table class="table-hover w-100 table-vertical table-striped">
                                         <tbody>
                                         <tr>
-                                            <td>Editor:</td>
+                                            <td>Editor: </td>
                                             <td>{{ $edit->admin_user }}</td>
                                         </tr>
                                         <tr>
-                                            <td>RequestInsurance Id:</td>
+                                            <td>RequestInsurance Id: </td>
                                             <td>{{ $edit->request_insurance_id }}</td>
-                                        </tr>
-                                        <tr>
-                                            <x-request-insurance-pretty-print-difference :oldValues="['Method: ' . $edit->old_method, strval($edit->old_priority), $edit->old_url, $edit->old_payload, $edit->old_headers]" :newValues="[$edit->new_method, strval($edit->new_priority), $edit->new_url, $edit->new_payload, $edit->new_headers]"/>
                                         </tr>
                                         <tr>
                                             <td>Priority: </td>
                                             <x-request-insurance-pretty-print-difference :oldValues="[strval($edit->old_priority)]" :newValues="[strval($edit->new_priority)]"/>
-
                                         </tr>
                                         <tr>
                                             <td>Method: </td>
                                             <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_method]" :newValues="[$edit->new_method]" />
                                         </tr>
                                         <tr class="w-100">
-                                            <td>Url:</td>
+                                            <td>Url: </td>
                                             <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_url]" :newValues="[$edit->new_url]"/>
                                         </tr>
                                         <tr>

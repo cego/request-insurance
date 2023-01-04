@@ -1,1 +1,1 @@
-<div> HERE {!! $content !!} </div>
+<div> {!! $content !!} </div>
