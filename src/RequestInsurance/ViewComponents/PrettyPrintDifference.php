@@ -19,11 +19,10 @@ class PrettyPrintDifference extends Component
     public function __construct($oldValues, $newValues)
     {
         $this->content = $this->prettyPrint($oldValues, $newValues);
-        DiffHelper::getStyleSheet();
     }
 
     protected array $rendererOptions = [
-        'detailLevel'           => 'char',
+        'detailLevel'           => 'word',
         'cliColorization'       => RendererConstant::CLI_COLOR_AUTO,
         'showHeader'            => true,
         'separateBlock'         => true,
@@ -47,7 +46,7 @@ class PrettyPrintDifference extends Component
             $content = " wrong ";
 
             // DiffHelper returns a string in html format.
-            $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions, $this->rendererOptions);
+            $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
 
             $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
             $renderedContent = $htmlRenderer->renderArray($content);
