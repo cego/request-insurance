@@ -27,9 +27,9 @@ class PrettyPrintDifference extends Component
         'cliColorization'       => RendererConstant::CLI_COLOR_AUTO,
         'showHeader'            => true,
         'separateBlock'         => true,
-        'resultForIdenticals'   => null,
+        'resultForIdenticals'   => 'No difference',
         'lineNumbers'           => false,
-        'seperateBlock'         => true,
+        'separateBlock'         => true,
         ];
 
     protected array $differOptions = [
@@ -42,20 +42,21 @@ class PrettyPrintDifference extends Component
         {
             // Must always include the same amount of fields
             if (count($oldContent) != count($newContent) || count($oldContent) == 0) {
-                return "ERROR LENGTH ";
+                return "ERROR IN LENGTH OF ARRAY";
             }
 
             $content = " wrong ";
+
             // DiffHelper returns a string in html format.
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions, $this->rendererOptions);
 
-            $htmlRenderer = RendererFactory::make('Unified', $this->rendererOptions);
+            $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
             $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
 
             return $renderedContent;
 
         } catch (Exception $exception) {
-            return "ERROR GENERAL $content" . $exception->getMessage();
+            return "ERROR IN GENERAL $content" . $exception->getMessage();
         }
     }
 
