@@ -174,7 +174,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                 $canApproveEdit = $edit->applied_at == null && ! $canModifyEdit;
                                 $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals && $canModifyEdit;
                             @endphp
-
+                            <div class="container-flex mt-5 col-12">
                             <div class="col-6 mt-2">
                                 <div class="card {{$edit->created_at->diffInSeconds(\Carbon\Carbon::now()) < 5 ? 'backgroundAnimated' : ''}}">
                                     <div class="card-body">
@@ -189,7 +189,6 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                             </h3>
                                             <hr>
                                         </div>
-                                        <div class="container-flex mt-5 col-12">
                                         <div class="card-text">
                                             <form method="POST" action="{{ route('request-insurance-edits.update', $edit) }}">
                                                 <table class="table-hover w-100 table-vertical table-striped">
