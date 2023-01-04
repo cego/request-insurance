@@ -27,9 +27,11 @@ class PrettyPrintDifference extends Component
         'cliColorization'       => RendererConstant::CLI_COLOR_AUTO,
         'showHeader'            => true,
         'separateBlock'         => true,
-        'ignoreWhiteSpace'      => true,
-
         ];
+
+    protected array $differOptions = [
+        'ignoreWhitespace' => true,
+    ];
 
     protected function prettyPrint($oldContent, $newContent) : string
     {
