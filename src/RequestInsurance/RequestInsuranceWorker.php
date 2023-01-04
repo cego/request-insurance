@@ -167,7 +167,7 @@ class RequestInsuranceWorker
         $request = $requests->first();
 
         if (isset($request)) {
-            $request->timings = '["total_time_us": 1]';
+            $request->timings = '{"total_time_us": 1}';
         }
 
         $this->getRequestsToProcess()
