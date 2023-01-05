@@ -75,6 +75,12 @@ class RequestInsurance extends SaveRetryingModel
      */
     protected bool $isEncrypted = false;
 
+    /**
+     * Total time duration for a request insurance before it receives a response.
+     * Default is -1 to indicate that the field was never set.
+     *
+     * @var int
+     */
     protected int $totalTime = -1;
 
     protected $casts = [
