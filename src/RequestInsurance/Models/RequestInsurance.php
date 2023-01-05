@@ -504,9 +504,13 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         $arrayTimings = json_decode($this->timings, true);
-        $timeInMicroSeconds = $arrayTimings['total_time_us'] ?? -1;
-
-        return $timeInMicroSeconds != -1 ? (int)(floor($timeInMicroSeconds / 1000)) : -1;
+        $timeInMicroSeconds = $arrayTimings['total_time_us'] ?? null;
+        
+        if (timeInMicroSeconds === null) {
+            return -1;
+        }
+        
+        return (int) floor($timeInMicroSeconds / 1000);
     }
 
     /**
