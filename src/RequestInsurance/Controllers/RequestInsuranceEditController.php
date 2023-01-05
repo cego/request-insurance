@@ -122,13 +122,13 @@ class RequestInsuranceEditController extends Controller
             $errors['requestErrors'] = ['approval' => 'Not enough approvals to apply'];
         }
 
-        if (! $this->isValidHeaderFormat($requestInsuranceEdit->new_headers)) {
+        if ( ! $this->isValidHeaderFormat($requestInsuranceEdit->new_headers)) {
             $errors['requestInsuranceEdit'] = $requestInsuranceEdit;
             $errors['requestErrors'] = ['header' => 'Invalid header format'];
         }
 
         // If any errors redirect back with all errors
-        if (! empty($errors)) {
+        if ( ! empty($errors)) {
             return redirect()->back()->with($errors);
         }
 

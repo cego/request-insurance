@@ -3,10 +3,10 @@
 namespace Cego\RequestInsurance\AsyncRequests;
 
 use Generator;
-use GuzzleHttp\TransferStats;
 use JsonException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
+use GuzzleHttp\TransferStats;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Cego\RequestInsurance\Models\RequestInsurance;

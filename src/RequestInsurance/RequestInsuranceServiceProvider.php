@@ -73,7 +73,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
     protected function registerAndScheduleCommands(): void
     {
         // Only register and schedule commands if we are running in CLI mode
-        if (! $this->app->runningInConsole()) {
+        if ( ! $this->app->runningInConsole()) {
             return;
         }
 

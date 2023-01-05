@@ -85,7 +85,7 @@ abstract class HttpRequest
             'GET', 'HEAD', 'POST', 'DELETE', 'PUT', 'PATCH',
         ];
 
-        if (! in_array($method, $allowedMethods, false)) {
+        if ( ! in_array($method, $allowedMethods, false)) {
             throw new MethodNotAllowedForRequestInsurance($method);
         }
 
@@ -105,7 +105,7 @@ abstract class HttpRequest
      */
     public function setHeaders($headers)
     {
-        if (! is_array($headers)) {
+        if ( ! is_array($headers)) {
             $headers = json_decode($headers, true, 512, JSON_THROW_ON_ERROR);
         }
 

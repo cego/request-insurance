@@ -52,7 +52,7 @@ class HttpResponse
      */
     public function logInconsistentReason(): void
     {
-        if (! $this->isInconsistent()) {
+        if ( ! $this->isInconsistent()) {
             return;
         }
 
