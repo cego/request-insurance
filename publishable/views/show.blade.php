@@ -353,7 +353,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                         </tr>
                                         <tr>
                                             <td>Method: </td>
-                                            <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_method]" :newValues="[$edit->new_method]" />
+                                            <x-request-insurance-pretty-print-difference :oldValues="[strtoupper($edit->old_method)]" :newValues="[$edit->new_method]" />
                                         </tr>
                                         <tr class="w-100">
                                             <td>Url: </td>
