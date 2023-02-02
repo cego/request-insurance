@@ -34,6 +34,8 @@ class PrettyPrintDifference extends Component
         'ignoreWhitespace' => true,
     ];
 
+    protected string $defaultMessaga = "No changes were made.";
+
     protected function prettyPrint($oldContent, $newContent) : string
     {
         try
@@ -45,6 +47,10 @@ class PrettyPrintDifference extends Component
 
             // DiffHelper returns a string in html format.
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
+
+            if (strlen($content) == 0) {
+                return $this->defaultMessaga;
+            }
 
             $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
             $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
