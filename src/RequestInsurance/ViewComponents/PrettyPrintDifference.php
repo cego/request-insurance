@@ -43,13 +43,11 @@ class PrettyPrintDifference extends Component
                 return "ERROR IN LENGTH OF ARRAY";
             }
 
-            $content = " wrong ";
-
             // DiffHelper returns a string in html format.
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
 
             $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
-            $renderedContent = $htmlRenderer->renderArray($content);
+            $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
 
             return $renderedContent;
 
