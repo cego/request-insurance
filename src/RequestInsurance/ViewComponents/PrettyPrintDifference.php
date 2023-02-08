@@ -69,10 +69,9 @@ class PrettyPrintDifference extends Component
 
         $differ = new Differ($oldContent, $newContent, $this->differOptions);
 
-        // Add to remove backslashes in the encoding
-        $this->rendererOptions['jsonEncodeFlags'] = \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE;
-
-        $htmlRenderer = RendererFactory::make('Json', $this->rendererOptions);
+       //$this->rendererOptions['jsonEncodeFlags'] = \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE;
+        $this->rendererOptions['cliColorization'] = RendererConstant::CLI_COLOR_AUTO;
+        $htmlRenderer = RendererFactory::make('Combined', $this->rendererOptions);
         $renderedContent = $htmlRenderer->render($differ);
 
         return $renderedContent;
