@@ -22,9 +22,9 @@ class PrettyPrintDifference extends Component
     }
 
     protected array $rendererOptions = [
-        'detailLevel'           => 'word',
+        'detailLevel'           => 'char',
         'showHeader'            => true,
-        'separateBlock'         => true,
+        //'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
         ];
