@@ -7,6 +7,7 @@ use Illuminate\View\View;
 use Illuminate\View\Factory;
 use Exception;
 
+use \Jfcherng\Diff\Differ;
 use \Jfcherng\Diff\DiffHelper;
 use Jfcherng\Diff\Factory\RendererFactory;
 use Jfcherng\Diff\Renderer\RendererConstant;
@@ -64,10 +65,10 @@ class PrettyPrintDifference extends Component
 
     protected function prettyPrintJson($oldContent, $newContent) : string
     {
-        $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
 
+        $differ = new Differ($oldContent, $newContent, $this->differOptions);
         $htmlRenderer = RendererFactory::make('JsonText', $this->rendererOptions);
-        $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
+        $renderedContent = $htmlRenderer->render($differ);
 
         return $renderedContent;
     }
