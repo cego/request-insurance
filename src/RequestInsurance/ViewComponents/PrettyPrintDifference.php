@@ -27,6 +27,7 @@ class PrettyPrintDifference extends Component
         //'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
+        'wordGlues'             => ['-'],
         'wrapperClasses'        => ['diff-wrapper'],
 
         ];
