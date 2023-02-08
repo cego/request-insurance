@@ -16,9 +16,9 @@ class PrettyPrintDifference extends Component
 {
     public $content;
 
-    public function __construct($oldContent, $newContent)
+    public function __construct($oldValues, $newValues)
     {
-        $this->content = $this->prettyPrint($oldContent, $newContent);
+        $this->content = $this->prettyPrint($oldValues, $newValues);
     }
 
     protected array $rendererOptions = [
