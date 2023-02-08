@@ -153,8 +153,8 @@ use Jfcherng\Diff\Factory\RendererFactory;
             @php
                 $pendingEdits = $requestInsurance->edits()->where('applied_at', null)->orderBy('updated_at', 'DESC');
             @endphp
-            @if($pendingEdits->count() > 0)½
-                <div class="col-12 mt-2">
+            @if($pendingEdits->count() > 0)
+                <div class="col-6 mt-2">
                     <div class="card">
                         <div class="card-body">
                             <div class="card-title text-center">
@@ -353,7 +353,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                         </tr>
                                         <tr>
                                             <td>Method: </td>
-                                            <x-request-insurance-pretty-print-difference :oldValues="[strtoupper($edit->old_method)]" :newValues="[$edit->new_method]" />
+                                            <x-request-insurance-pretty-print-difference :oldValues="[strtoupper($edit->old_method)]" :newValues="[strtoupper($edit->new_method)]" />
                                         </tr>
                                         <tr class="w-100">
                                             <td>Url: </td>
