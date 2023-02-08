@@ -39,7 +39,7 @@ class PrettyPrintDifference extends Component
         {
             // Must always include the same amount of fields
             if (count($oldContent) != count($newContent) || count($oldContent) == 0) {
-                return "ERROR IN LENGTH OF ARRAY";
+                return " ";
             }
 
             // DiffHelper returns a string in html format.
