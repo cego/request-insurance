@@ -33,7 +33,8 @@ class PrettyPrintDifference extends Component
         ];
 
     protected array $differOptions = [
-        'ignoreWhitespace' => true,
+        'ignoreWhitespace' => false,
+        'context'          => 3
     ];
 
     protected function prettyPrint($oldContent, $newContent) : string
@@ -43,10 +44,6 @@ class PrettyPrintDifference extends Component
             // Must always include the same amount of fields
             if (count($oldContent) != count($newContent) || count($oldContent) == 0) {
                 return " ";
-            }
-
-            if ($this->validJson($oldContent) && $this->validJson($newContent)) {
-                return $this->prettyPrintJson($oldContent, $newContent);
             }
 
             // DiffHelper returns a string in html format.
@@ -60,16 +57,6 @@ class PrettyPrintDifference extends Component
         } catch (Exception $exception) {
             return "ERROR IN GENERAL $content" . $exception->getMessage();
         }
-    }
-
-    protected function prettyPrintJson($oldContent, $newContent) : string
-    {
-        $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
-
-        $htmlRenderer = RendererFactory::make('JsonText', $this->rendererOptions);
-        $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
-        
-        return $renderedContent;
     }
 
     protected function validJson($content) {
