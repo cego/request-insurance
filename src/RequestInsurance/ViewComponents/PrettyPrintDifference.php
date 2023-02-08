@@ -72,9 +72,8 @@ class PrettyPrintDifference extends Component
        //$this->rendererOptions['jsonEncodeFlags'] = \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE;
 
         $this->rendererOptions['cliColorization'] = RendererConstant::CLI_COLOR_AUTO;
-        $this->rendererOptions['lineNumbers'] = true;
 
-        $htmlRenderer = RendererFactory::make('SideBySide', $this->rendererOptions);
+        $htmlRenderer = RendererFactory::make('Combined', $this->rendererOptions);
         $renderedContent = $htmlRenderer->render($differ);
 
         return $renderedContent;
