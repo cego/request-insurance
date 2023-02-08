@@ -358,7 +358,9 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                                 </tr>
                                                 <tr class="w-100">
                                                     <td>Url:</td>
-                                                    <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_url]" :newValues="[$edit->new_url]"/>
+                                                    <td>
+                                                        <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_url]" :newValues="[$edit->new_url]"/>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td>Payload:</td>

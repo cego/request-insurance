@@ -28,7 +28,6 @@ class PrettyPrintDifference extends Component
         'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
-        'jsonEncodeFlags'       => \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE,
         'wrapperClasses'        => ['diff-wrapper'],
 
         ];
@@ -47,7 +46,7 @@ class PrettyPrintDifference extends Component
                 return " ";
             }
 
-            // Specific methods for capturing differences in json, otherwise it is quite useless
+            // We need to use a different renderer for capturing differences in json, otherwise the result is quite useless
             if ($this->validJson($oldContent)) {
                 return $this->prettyPrintJson($oldContent, $newContent);
             }
@@ -69,6 +68,10 @@ class PrettyPrintDifference extends Component
     {
 
         $differ = new Differ($oldContent, $newContent, $this->differOptions);
+
+        // Add to remove backslashes in the encoding
+        $this->rendererOptions['jsonEncodeFlags'] = \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE;
+
         $htmlRenderer = RendererFactory::make('JsonHtml', $this->rendererOptions);
         $renderedContent = $htmlRenderer->render($differ);
 
