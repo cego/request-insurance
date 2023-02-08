@@ -6,6 +6,4 @@ use \Jfcherng\Diff\DiffHelper;
     @php DiffHelper::getStyleSheet(); @endphp
 </style>
 
-<div>
-    {!! $content !!}
-</div>
+{!! $content !!}
