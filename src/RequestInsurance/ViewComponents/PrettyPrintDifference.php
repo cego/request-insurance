@@ -81,9 +81,12 @@ class PrettyPrintDifference extends Component
     protected function validJson($content) : bool
     {
         foreach ($content as $element) {
-            if ( ! is_numeric($content)) {
-                json_decode($element);
+            // A string of a number or a number will be recognized as json
+            if (is_numeric($content)) {
+                return false;
             }
+
+            json_decode($element);
 
             // if error occurs during json decode, json_last_error will return an integer representing the error; else it returns 0
             if (json_last_error() !== JSON_ERROR_NONE) {
