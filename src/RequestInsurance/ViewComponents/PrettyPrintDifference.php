@@ -72,7 +72,7 @@ class PrettyPrintDifference extends Component
         // Add to remove backslashes in the encoding
         $this->rendererOptions['jsonEncodeFlags'] = \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE;
 
-        $htmlRenderer = RendererFactory::make('JsonHtml', $this->rendererOptions);
+        $htmlRenderer = RendererFactory::make('Json', $this->rendererOptions);
         $renderedContent = $htmlRenderer->render($differ);
 
         return $renderedContent;
@@ -81,7 +81,9 @@ class PrettyPrintDifference extends Component
     protected function validJson($content) : bool
     {
         foreach ($content as $element) {
-            json_decode($element);
+            if ( ! is_numeric($content)) {
+                json_decode($element);
+            }
 
             // if error occurs during json decode, json_last_error will return an integer representing the error; else it returns 0
             if (json_last_error() !== JSON_ERROR_NONE) {
