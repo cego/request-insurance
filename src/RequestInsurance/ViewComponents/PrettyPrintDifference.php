@@ -16,18 +16,17 @@ class PrettyPrintDifference extends Component
 {
     public $content;
 
-    public function __construct($oldValues, $newValues)
+    public function __construct($oldContent, $newContent)
     {
-        $this->content = $this->prettyPrint($oldValues, $newValues);
+        $this->content = $this->prettyPrint($oldContent, $newContent);
     }
 
     protected array $rendererOptions = [
         'detailLevel'           => 'char',
         //'showHeader'            => true,
-        //'separateBlock'         => true,
+        'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
-        'wordGlues'             => ['-'],
         'wrapperClasses'        => ['diff-wrapper'],
 
         ];
@@ -59,7 +58,7 @@ class PrettyPrintDifference extends Component
             return $renderedContent;
 
         } catch (Exception $exception) {
-            return "ERROR IN GENERAL $content" . $exception->getMessage();
+            return "ERROR IN GENERAL " . $exception->getMessage();
         }
     }
 
