@@ -23,7 +23,6 @@ class PrettyPrintDifference extends Component
 
     protected array $rendererOptions = [
         'detailLevel'           => 'word',
-        'cliColorization'       => RendererConstant::CLI_COLOR_AUTO,
         'showHeader'            => true,
         'separateBlock'         => true,
         'resultForIdenticals'   => null,
