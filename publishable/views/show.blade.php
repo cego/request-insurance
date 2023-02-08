@@ -154,7 +154,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                 $pendingEdits = $requestInsurance->edits()->where('applied_at', null)->orderBy('updated_at', 'DESC');
             @endphp
             @if($pendingEdits->count() > 0)
-                <div class="col-6 mt-2">
+                <div class="col-12 mt-2">
                     <div class="card">
                         <div class="card-body">
                             <div class="card-title text-center">
