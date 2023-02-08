@@ -49,7 +49,7 @@ Route::namespace('Cego\RequestInsurance\Controllers')
         Route::post('request-insurances/{request_insurance}/edit', [
             'uses' => 'RequestInsuranceEditController@create',
             'as'   => 'request-insurance-edits.create',
-        ], )->withoutMiddleware(VerifyCsrfToken::class);
+        ],)->withoutMiddleware(VerifyCsrfToken::class);
 
         Route::post('request-insurances/{request_insurance_edit}/update-edit', [
             'uses' => 'RequestInsuranceEditController@update',
