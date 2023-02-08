@@ -25,7 +25,7 @@ class PrettyPrintDifference extends Component
     protected array $rendererOptions = [
         'detailLevel'           => 'char',
         //'showHeader'            => true,
-        'separateBlock'         => true,
+        //'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
         'wrapperClasses'        => ['diff-wrapper'],
@@ -67,7 +67,7 @@ class PrettyPrintDifference extends Component
     {
 
         $differ = new Differ($oldContent, $newContent, $this->differOptions);
-        $htmlRenderer = RendererFactory::make('JsonText', $this->rendererOptions);
+        $htmlRenderer = RendererFactory::make('JsonHtml', $this->rendererOptions);
         $renderedContent = $htmlRenderer->render($differ);
 
         return $renderedContent;
