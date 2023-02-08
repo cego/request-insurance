@@ -19,15 +19,16 @@ class PrettyPrintDifference extends Component
 
     public function __construct($oldValues, $newValues)
     {
-        $this->content = $this->prettyPrint($oldValues, $newValues);
+        $content = $this->prettyPrint($oldValues, $newValues);
     }
 
     protected array $rendererOptions = [
         'detailLevel'           => 'char',
-        //'showHeader'            => true,
-        //'separateBlock'         => true,
+        'showHeader'            => true,
+        'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
+        'jsonEncodeFlags'       => \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE,
         'wrapperClasses'        => ['diff-wrapper'],
 
         ];
@@ -46,7 +47,8 @@ class PrettyPrintDifference extends Component
                 return " ";
             }
 
-            if ($this->validJson($oldContent) && $this->validJson($newContent)) {
+            // Specific methods for capturing differences in json, otherwise it is quite useless
+            if ($this->validJson($oldContent)) {
                 return $this->prettyPrintJson($oldContent, $newContent);
             }
 
