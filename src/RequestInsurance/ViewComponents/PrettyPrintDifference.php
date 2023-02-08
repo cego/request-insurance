@@ -46,6 +46,10 @@ class PrettyPrintDifference extends Component
                 return " ";
             }
 
+            if ($this->validJson($oldContent) && $this->validJson($newContent)) {
+                return $this->prettyPrintJson($oldContent, $newContent);
+            }
+
             // DiffHelper returns a string in html format.
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
 
@@ -59,11 +63,28 @@ class PrettyPrintDifference extends Component
         }
     }
 
-    protected function validJson($content) {
-        json_decode($content);
+    protected function prettyPrintJson($oldContent, $newContent) : string
+    {
+        $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
 
-        // if error occurs during json decode, json_last_error will return an integer representing the error; else it returns 0.
-        return json_last_error() === JSON_ERROR_NONE;
+        $htmlRenderer = RendererFactory::make('JsonText', $this->rendererOptions);
+        $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
+
+        return $renderedContent;
+    }
+
+    protected function validJson($content) : bool
+    {
+        foreach ($content as $element) {
+            json_decode($element);
+
+            // if error occurs during json decode, json_last_error will return an integer representing the error; else it returns 0
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function render()
