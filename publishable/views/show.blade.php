@@ -1,4 +1,6 @@
-<?php use \Cego\RequestInsurance\Enums\State; ?>
+<?php use Cego\RequestInsurance\Enums\State;
+
+?>
 @extends("request-insurance::layouts.master")
 
 @section("content")
@@ -82,6 +84,10 @@
                                 <tr>
                                     <td>Headers:</td>
                                     <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Timings: </td>
+                                    <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->timings"/></td>
                                 </tr>
                                 <tr>
                                     <td>Next attempt at:</td>
@@ -344,6 +350,7 @@
                                     <th>Response headers</th>
                                     <th>Response body</th>
                                     <th style="width: 185px">Created at</th>
+                                    <th style="width: 100px">Total time (ms) </th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -354,6 +361,7 @@
                                         <td><x-request-insurance-inline-print :content="$log->response_headers"/></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_body"/></td>
                                         <td>{{ $log->created_at }}</td>
+                                        <td>{{$log->getTotalTime()}}</td>
                                     </tr>
                                 @endforeach
                                 </tbody>

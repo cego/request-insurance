@@ -6,6 +6,7 @@ use Generator;
 use JsonException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
+use GuzzleHttp\TransferStats;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -78,6 +79,7 @@ class RequestPool
             'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => 'RequestInsurance']),
             'body'        => $requestInsurance->payload,
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
+            'on_stats'    => fn (TransferStats $stats) => $requestInsurance->setTimings($stats),
             'http_errors' => false,
         ]);
     }

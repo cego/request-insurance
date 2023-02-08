@@ -229,9 +229,9 @@ class RequestInsuranceWorker
 
         // Reflect the same change in-memory
         $requests->each(fn (RequestInsurance $requestInsurance) => $requestInsurance->forceFill([
-            'state' => State::PROCESSING,
+            'state'            => State::PROCESSING,
             'state_changed_at' => $now,
-            'retry_count' => $requestInsurance->retry_count + 1,
+            'retry_count'      => $requestInsurance->retry_count + 1,
         ]));
     }
 

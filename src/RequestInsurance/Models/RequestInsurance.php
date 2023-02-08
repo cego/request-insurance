@@ -9,6 +9,7 @@ use JsonException;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
+use GuzzleHttp\TransferStats;
 use Cego\RequestInsurance\Events;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Date;
@@ -51,6 +52,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property Carbon $state_changed_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property string | null $timings
  *
  * @method static RequestInsurance create($attributes = [])
  * @method static RequestInsurance|null first(array|string $columns = [])
@@ -72,6 +74,14 @@ class RequestInsurance extends SaveRetryingModel
      * @var bool
      */
     protected bool $isEncrypted = false;
+
+    /**
+     * Total time duration for a request insurance before it receives a response.
+     * Default is -1 to indicate that the field was never set.
+     *
+     * @var int
+     */
+    protected int $totalTime = -1;
 
     protected $casts = [
         'retry_at'         => CarbonUtc::class,
@@ -459,6 +469,52 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
+     * Sets stats field regarding request processing time to the timings field as an array.
+     *
+     * @param TransferStats $transferStats
+     *
+     * @return void
+     */
+    public function setTimings(TransferStats $transferStats): void
+    {
+        $handlerStats = $transferStats->getHandlerStats();
+
+        $relevantStats = [
+            'appconnect_time_us'    => $handlerStats['appconnect_time_us'] ?? -1,
+            'connect_time_us'       => $handlerStats['connect_time_us'] ?? -1,
+            'namelookup_time_us'    => $handlerStats['namelookup_time_us'] ?? -1,
+            'pretransfer_time_us'   => $handlerStats['pretransfer_time_us'] ?? -1,
+            'redirect_time_us'      => $handlerStats['redirect_time_us'] ?? -1,
+            'starttransfer_time_us' => $handlerStats['starttransfer_time_us'] ?? -1,
+            'total_time_us'         => $handlerStats['total_time_us'] ?? -1,
+        ];
+
+        $this->timings = json_encode($relevantStats);
+    }
+
+    /**
+     * Gets the total time duration for a request.
+     * Returns -1 if request was not sent / stats not received for some reason.
+     *
+     * @return int
+     */
+    public function getTotalTime()
+    {
+        if ( ! isset($this->timings)) {
+            return -1;
+        }
+
+        $arrayTimings = json_decode($this->timings, true);
+        $timeInMicroSeconds = $arrayTimings['total_time_us'] ?? null;
+
+        if ($timeInMicroSeconds === null) {
+            return -1;
+        }
+
+        return (int) floor($timeInMicroSeconds / 1000);
+    }
+
+    /**
      * Returns the payload as a json string, with encrypted headers marked as [ ENCRYPTED ].
      * We use this to avoid breaking the interface with long encrypted values.
      *
@@ -799,6 +855,7 @@ class RequestInsurance extends SaveRetryingModel
                 'response_body'    => $this->response_body,
                 'response_code'    => $this->response_code,
                 'response_headers' => $this->response_headers,
+                'timings'          => $this->timings,
             ]);
         } catch (Exception $exception) {
             Log::error(sprintf("%s\n%s", $exception->getMessage(), $exception->getTraceAsString()));
