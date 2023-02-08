@@ -8,6 +8,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
 @section("content")
 
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/zenburn.min.css">
+    <link rel="stylesheet" href="../css/differenceWrapper.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
     <script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/languages/json.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
