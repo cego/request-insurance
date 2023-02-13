@@ -124,30 +124,13 @@ class PrettyPrintDifference extends Component
         $differ = new Differ(explode("\n", $oldFormattedJson), explode("\n", $newFormattedJson), $this->differOptions);
 
         // Change rendering options to better be able to capture differences
-        $this->rendererOptions['detailLevel'] = 'char';
+        //$this->rendererOptions['detailLevel'] = 'char';
         $this->rendererOptions['lineNumbers'] = true;
 
         $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
         $renderedContent = $htmlRenderer->render($differ);
 
         return $renderedContent;
-    }
-
-    /**
-     * Formats a string of valid json to make it more readable.
-     *
-     * @param string $content
-     *
-     * @return string
-     * @throws \JsonException
-     *
-     */
-
-    protected function formatJson(string $content) : string
-    {
-        $jsonContent = json_decode($content, true, JSON_THROW_ON_ERROR);
-
-        return json_encode($jsonContent, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
     }
 
     /**
@@ -168,5 +151,22 @@ class PrettyPrintDifference extends Component
         json_decode($content);
 
         return json_last_error() === JSON_ERROR_NONE;
+    }
+
+    /**
+     * Formats a string of valid json to make it more readable.
+     *
+     * @param string $content
+     *
+     * @return string
+     * @throws \JsonException
+     *
+     */
+
+    protected function formatJson(string $content) : string
+    {
+        $jsonContent = json_decode($content, true, JSON_THROW_ON_ERROR);
+
+        return json_encode($jsonContent, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
     }
 }
