@@ -1,2 +1,9 @@
-<link rel="stylesheet" href="{{asset('../../css/diff-table.css')}}">
+<?php
+use Jfcherng\Diff\DiffHelper;
+?>
+
+<style>
+  <?= DiffHelper::getStyleSheet(); ?>
+</style>
+
 <pre>{!! $content !!}</pre>
