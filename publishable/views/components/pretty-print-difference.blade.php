@@ -1,1 +1,1 @@
-<pre><code class="json">{!! $content !!}</code></pre>
+<pre>{!! $content !!}</pre>
