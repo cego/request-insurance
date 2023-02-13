@@ -6,4 +6,4 @@ use Jfcherng\Diff\DiffHelper;
   <?= DiffHelper::getStyleSheet(); ?>
 </style>
 
-<pre>{!! $content !!}</pre>
+{!! $content !!}
