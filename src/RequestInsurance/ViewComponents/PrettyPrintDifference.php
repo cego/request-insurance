@@ -66,6 +66,7 @@ class PrettyPrintDifference extends Component
 
     protected function prettyPrintDifferenceJson($oldContent, $newContent) : string
     {
+
         $oldFormattedJson = $this->reformatJson($oldContent);
         $newFormattedJson = $this->reformatJson($newContent);
 
@@ -90,7 +91,7 @@ class PrettyPrintDifference extends Component
     {
         foreach ($content as $element) {
             // A string of a number or a number will be recognized as json
-            if (is_numeric($content)) {
+            if (is_numeric($element)) {
                 return false;
             }
 
