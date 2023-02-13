@@ -23,12 +23,12 @@ class PrettyPrintDifference extends Component
     }
 
     protected array $rendererOptions = [
-        'detailLevel'           => 'char',
+        'detailLevel'           => 'word',
         'showHeader'            => true,
         'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
-        //'wrapperClasses'        => ['diff-wrapper'],
+        'wrapperClasses'        => ['diff-wrapper'],
         ];
 
     protected array $differOptions = [
