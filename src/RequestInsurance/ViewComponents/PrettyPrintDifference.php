@@ -23,12 +23,11 @@ class PrettyPrintDifference extends Component
     }
 
     protected array $rendererOptions = [
-        'detailLevel'           => 'char',
+        'detailLevel'           => 'word',
         'showHeader'            => true,
         'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
-        //'wrapperClasses'        => ['diff-wrapper', 'diff', 'diff-html', 'change ins'],
         ];
 
     protected array $differOptions = [
@@ -46,9 +45,9 @@ class PrettyPrintDifference extends Component
             }
 
             // We need to use a different renderer for capturing differences in json, otherwise the result is quite useless
-            if ($this->validJson($oldContent)) {
+            /*if ($this->validJson($oldContent)) {
                 return $this->prettyPrintDifferenceJson($oldContent[0], $newContent[0]);
-            }
+            } */
 
             // DiffHelper returns a string in html format.
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
