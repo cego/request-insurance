@@ -330,7 +330,8 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                     </div>
                                 </div>
                                 <div class="col-6 mt-2">
-                                    <div class="card">
+                                    <div class="card">'
+                                        <div class="card-body">
                                         <div class="card-title text-center">
                                             <h3>
                                                 Edit differences
@@ -382,6 +383,7 @@ use Jfcherng\Diff\Factory\RendererFactory;
                                             </table>
                                         </div>
                                     </div>
+                                </div>
                                 </div>
                             </div>
                         @endforeach
