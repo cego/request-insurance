@@ -29,7 +29,9 @@ class RequestInsuranceEditController extends Controller
             return redirect()->back();
         }
 
-        RequestInsuranceEdit::firstOrCreate(['request_insurance_id' => $requestInsurance->id], [
+        // ['request_insurance_id' => $requestInsurance->id]
+
+        RequestInsuranceEdit::firstOrCreate([
             'request_insurance_id' => $requestInsurance->id,
             'old_priority'         => $requestInsurance->priority,
             'new_priority'         => $requestInsurance->priority,
