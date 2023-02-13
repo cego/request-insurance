@@ -48,7 +48,7 @@ class PrettyPrintDifference extends Component
 
             // We need to use a different renderer for capturing differences in json, otherwise the result is quite useless
             if ($this->validJson($oldContent)) {
-                return $this->prettyPrintJson($oldContent, $newContent);
+                return $this->prettyPrintDifferenceJson($oldContent, $newContent);
             }
 
             // DiffHelper returns a string in html format.
@@ -64,10 +64,12 @@ class PrettyPrintDifference extends Component
         }
     }
 
-    protected function prettyPrintJson($oldContent, $newContent) : string
+    protected function prettyPrintDifferenceJson($oldContent, $newContent) : string
     {
+        $oldFormattedJson = $this->reformatJson($oldContent);
+        $newFormattedJson = $this->reformatJson($newContent);
 
-        $differ = new Differ($oldContent, $newContent, $this->differOptions);
+        $differ = new Differ(explode("\n", $oldFormattedJson), explode("\n", $newFormattedJson), $this->differOptions);
 
         $this->rendererOptions['cliColorization'] = RendererConstant::CLI_COLOR_ENABLE;
 
@@ -75,6 +77,13 @@ class PrettyPrintDifference extends Component
         $renderedContent = $htmlRenderer->render($differ);
 
         return $renderedContent;
+    }
+
+    protected function reformatJson($content) : string
+    {
+        $jsonContent = json_decode($content, true, JSON_THROW_ON_ERROR);
+
+        return json_encode($jsonContent, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
     }
 
     protected function validJson($content) : bool
