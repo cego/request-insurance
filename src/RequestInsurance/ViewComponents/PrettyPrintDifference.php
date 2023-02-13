@@ -10,7 +10,6 @@ use Exception;
 use \Jfcherng\Diff\Differ;
 use \Jfcherng\Diff\DiffHelper;
 use Jfcherng\Diff\Factory\RendererFactory;
-use Jfcherng\Diff\Renderer\RendererConstant;
 
 
 class PrettyPrintDifference extends Component
@@ -82,7 +81,7 @@ class PrettyPrintDifference extends Component
     {
         try
         {
-            // We need to use a different renderer for capturing differences in json, otherwise the result is quite useless
+            // We need to use different renderering options for capturing differences in json, otherwise the result is quite useless
             if ($this->validJson($oldContent)) {
                 return $this->prettyPrintDifferenceJson($oldContent, $newContent);
             }
@@ -96,7 +95,7 @@ class PrettyPrintDifference extends Component
             return $renderedContent;
 
         } catch (Exception $exception) {
-            return "ERROR IN GENERAL " . $exception->getMessage();
+            return " ";
         }
     }
 
@@ -117,15 +116,17 @@ class PrettyPrintDifference extends Component
         $oldFormattedJson = $this->formatJson($oldContent);
         $newFormattedJson = $newContent;
 
-        // Only try this if modified string is still valid json
+        // Only try formatting if modified string is still valid json
         if ($this->validJson($newContent)) {
             $newFormattedJson = $this->formatJson($newContent);
         }
 
         $differ = new Differ(explode("\n", $oldFormattedJson), explode("\n", $newFormattedJson), $this->differOptions);
 
-        //$this->rendererOptions['cliColorization'] = RendererConstant::CLI_COLOR_ENABLE;
+        // Change rendering options to better be able to capture differences
         $this->rendererOptions['detailLevel'] = 'char';
+        $this->rendererOptions['lineNumbers'] = true;
+
         $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
         $renderedContent = $htmlRenderer->render($differ);
 
