@@ -15,39 +15,77 @@ use Jfcherng\Diff\Renderer\RendererConstant;
 
 class PrettyPrintDifference extends Component
 {
+    /**
+     * String with HTML displaying the difference between old string and new string.
+     *
+     * @var string
+     */
     public $content;
 
-    public function __construct($oldValues, $newValues)
-    {
-        $this->content = $this->prettyPrint($oldValues, $newValues);
-    }
 
+    /**
+     * Rendering options used when creating string of HTML.
+     *
+     * @var array
+     */
     protected array $rendererOptions = [
         'detailLevel'           => 'word',
         'showHeader'            => true,
         'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
-        ];
+    ];
 
+    /**
+     * Additional options used when looking for differences in the two given strings.
+     *
+     * @var array
+     */
     protected array $differOptions = [
         'ignoreWhitespace' => false,
         'context'          => 3
     ];
 
-    protected function prettyPrint($oldContent, $newContent) : string
+    /**
+     * Create a new component instance.
+     *
+     * @param object|array|string $content
+     *
+     * @throws \JsonException
+     */
+
+    public function __construct($oldValues, $newValues)
+    {
+        $this->content = $this->prettyPrint($oldValues, $newValues);
+    }
+
+    /**
+     * Get the view / contents that represent the component.
+     *
+     * @return \Illuminate\Contracts\View\Factory|View
+     */
+    public function render()
+    {
+        return view('request-insurance::components.pretty-print-difference');
+    }
+
+    /**
+     * Pretty prints the difference between an old string and a new string.
+     *
+     * @param string $oldContent
+     * @param string $newContent
+     *
+     * @return string
+     */
+
+    protected function prettyPrint(string $oldContent, string $newContent) : string
     {
         try
         {
-            // Must always include the same amount of fields
-            if (count($oldContent) != count($newContent) || count($oldContent) == 0) {
-                return " ";
-            }
-
             // We need to use a different renderer for capturing differences in json, otherwise the result is quite useless
-            /*if ($this->validJson($oldContent)) {
-                return $this->prettyPrintDifferenceJson($oldContent[0], $newContent[0]);
-            } */
+            if ($this->validJson($oldContent)) {
+                return $this->prettyPrintDifferenceJson($oldContent, $newContent);
+            }
 
             // DiffHelper returns a string in html format.
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
@@ -62,11 +100,27 @@ class PrettyPrintDifference extends Component
         }
     }
 
-    protected function prettyPrintDifferenceJson($oldContent, $newContent) : string
+    /**
+     * Pretty print differences for json strings. This is needed as it will otherwise not print the differences clearly
+     * when using the Inline renderer option.
+     *
+     * @param string $oldContent
+     * @param string $newContent
+     *
+     * @return string
+     * @throws \JsonException
+     */
+
+    protected function prettyPrintDifferenceJson(string $oldContent, string $newContent) : string
     {
 
-        $oldFormattedJson = $this->reformatJson($oldContent);
-        $newFormattedJson = $this->reformatJson($newContent);
+        $oldFormattedJson = $this->formatJson($oldContent);
+        $newFormattedJson = $newContent;
+
+        // Only try this if modified string is still valid json
+        if ($this->validJson($newContent)) {
+            $newFormattedJson = $this->formatJson($newContent);
+        }
 
         $differ = new Differ([$oldFormattedJson], [$newFormattedJson], $this->differOptions);
 
@@ -78,34 +132,40 @@ class PrettyPrintDifference extends Component
         return $renderedContent;
     }
 
-    protected function reformatJson($content) : string
+    /**
+     * Formats a string of valid json to make it more readable.
+     *
+     * @param string $content
+     *
+     * @return string
+     * @throws \JsonException
+     *
+     */
+
+    protected function formatJson(string $content) : string
     {
         $jsonContent = json_decode($content, true, JSON_THROW_ON_ERROR);
 
         return json_encode($jsonContent, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
     }
 
-    protected function validJson($content) : bool
+    /**
+     * Returns true if string is valid json else it returns false.
+     * Special case for string numbers, these are returned as false as well.
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+
+    protected function validJson(string $content) : bool
     {
-        foreach ($content as $element) {
-            // A string of a number or a number will be recognized as json
-            if (is_numeric($element)) {
-                return false;
-            }
-
-            json_decode($element);
-
-            // if error occurs during json decode, json_last_error will return an integer representing the error; else it returns 0
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                return false;
-            }
+        if (is_numeric($content)) {
+            return false;
         }
 
-        return true;
-    }
+        json_decode($content);
 
-    public function render()
-    {
-        return view('request-insurance::components.pretty-print-difference');
+        return json_last_error() === JSON_ERROR_NONE;
     }
 }

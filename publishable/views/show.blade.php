@@ -351,31 +351,31 @@ use Jfcherng\Diff\DiffHelper;
                                                 <tr>
                                                     <td>Priority:</td>
                                                     <td>
-                                                        <x-request-insurance-pretty-print-difference :oldValues="[strval($edit->old_priority)]" :newValues="[strval($edit->new_priority)]"/>
+                                                        <x-request-insurance-pretty-print-difference :oldValues="strval($edit->old_priority)" :newValues="strval($edit->new_priority)"/>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td>Method:</td>
                                                     <td>
-                                                        <x-request-insurance-pretty-print-difference :oldValues="[strtoupper($edit->old_method)]" :newValues="[strtoupper($edit->new_method)]" />
+                                                        <x-request-insurance-pretty-print-difference :oldValues="strtoupper($edit->old_method)" :newValues="strtoupper($edit->new_method)" />
                                                     </td>
                                                 </tr>
                                                 <tr class="w-100">
                                                     <td>Url:</td>
                                                     <td>
-                                                        <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_url]" :newValues="[$edit->new_url]"/>
+                                                        <x-request-insurance-pretty-print-difference :oldValues="$edit->old_url" :newValues="$edit->new_url"/>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td>Payload:</td>
                                                     <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                                        <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_payload]" :newValues="[$edit->new_payload]" />
+                                                        <x-request-insurance-pretty-print-difference :oldValues="$edit->old_payload" :newValues="$edit->new_payload" />
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td>Headers:</td>
                                                     <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                                        <x-request-insurance-pretty-print-difference :oldValues="[$edit->old_headers]" :newValues="[$edit->new_headers]" />
+                                                        <x-request-insurance-pretty-print-difference :oldValues="$edit->old_headers" :newValues="$edit->new_headers" />
                                                     </td>
                                                 </tr>
                                                 </tbody>
