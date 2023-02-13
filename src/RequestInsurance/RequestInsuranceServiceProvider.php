@@ -12,10 +12,10 @@ use Cego\RequestInsurance\ViewComponents\HttpCode;
 use Cego\RequestInsurance\Providers\IdentityProvider;
 use Cego\RequestInsurance\ViewComponents\InlinePrint;
 use Cego\RequestInsurance\ViewComponents\PrettyPrint;
-use Cego\RequestInsurance\ViewComponents\PrettyPrintDifference;
 use Cego\RequestInsurance\Providers\CegoIdentityProvider;
 use Cego\RequestInsurance\ViewComponents\EditApprovalsStatus;
 use Cego\RequestInsurance\ViewComponents\PrettyPrintTextArea;
+use Cego\RequestInsurance\ViewComponents\PrettyPrintDifference;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
 {
@@ -84,7 +84,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             Commands\RequestInsuranceService::class,
             Commands\UnlockBlockedRequestInsurances::class,
             Commands\CleanUpRequestInsurances::class,
-            Commands\FailOrReadyProcessingRequestInsurances::class
+            Commands\FailOrReadyProcessingRequestInsurances::class,
         ]);
 
         // Add specific commands to the schedule

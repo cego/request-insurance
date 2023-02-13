@@ -176,99 +176,99 @@ use Jfcherng\Diff\DiffHelper;
                             @endphp
 
                             <div class="row">
-                            <div class="col-6 mt-2">
-                                <div class="card {{$edit->created_at->diffInSeconds(\Carbon\Carbon::now()) < 5 ? 'backgroundAnimated' : ''}}">
-                                    <div class="card-body">
-                                        <div class="card-title text-center">
-                                            <h3>
-                                                Edit
-                                                @if($edit->approvals()->count() < $edit->required_number_of_approvals)
-                                                    <div class="badge badge-primary">Pending</div>
-                                                @else
-                                                    <div class="badge badge-success">Approved</div>
-                                                @endif
-                                            </h3>
-                                            <hr>
-                                        </div>
-                                        <div class="card-text">
-                                            <form method="POST" action="{{ route('request-insurance-edits.update', $edit) }}">
-                                                <table class="table-hover w-100 table-vertical table-striped">
-                                                    <tbody>
-                                                    <tr>
-                                                        <td>Editor:</td>
-                                                        <td>{{ $edit->admin_user }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>RequestInsurance Id:</td>
-                                                        <td>{{ $edit->request_insurance_id }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Priority:</td>
-                                                        <td><input name="new_priority" class="w-100" type="number" min="0" max="9999"
-                                                                   onchange="(() => {this.value=this.value < 0 ? 0 : this.value > 9999 ? 9999 : this.value;})()"
-                                                                   onkeyup="(() => {this.value=this.value < 0 ? 0 : this.value > 9999 ? 9999 : this.value;})()"
-                                                                   @disabled( ! $canModifyEdit)
-                                                                   value="{{ $edit->new_priority }}"/></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Method:</td>
-                                                        <td>
-                                                            <select name="new_method" @disabled( ! $canModifyEdit)>
-                                                                <option value="GET" @selected(mb_strtoupper($edit->new_method) == "GET")>GET</option>
-                                                                <option value="POST" @selected(mb_strtoupper($edit->new_method) == "POST")>POST</option>
-                                                                <option value="PUT" @selected(mb_strtoupper($edit->new_method) == "PUT")>PUT</option>
-                                                                <option value="PATCH" @selected(mb_strtoupper($edit->new_method) == "PATCH")>PATCH</option>
-                                                                <option value="DELETE" @selected(mb_strtoupper($edit->new_method) == "DELETE")>DELETE</option>
-                                                            </select>
-                                                        </td>
-                                                    </tr>
-                                                    <tr class="w-100">
-                                                        <td>Url:</td>
-                                                        <td><input name="new_url" class="w-100"
-                                                                   @disabled( ! $canModifyEdit)
-                                                                   value="{{ urldecode($edit->new_url) }}"/></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Payload:</td>
-                                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                                            @if($canModifyEdit)
-                                                                <x-request-insurance-pretty-print-text-area :name='"new_payload"' :content="$edit->new_payload" :disabled=" ! $canModifyEdit"/>
-                                                            @else
-                                                                <x-request-insurance-pretty-print :content="$edit->new_payload"/>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Headers:</td>
-                                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                                            @if($canModifyEdit)
-                                                                <x-request-insurance-pretty-print-text-area :name='"new_headers"' :content="$edit->new_headers" :disabled=" ! $canModifyEdit"/>
-                                                            @else
-                                                                <x-request-insurance-pretty-print :content="$edit->new_headers"/>
-                                                            @endif
-                                                            @if( ! empty($errorMsg = getEditErrorMessage($edit->id, 'header')))
-                                                                <span class="text-danger">{{$errorMsg}}</span>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                    </tbody>
-                                                </table>
-                                                <div class="m-2">
-                                                    @if ( $canModifyEdit )
-                                                        <input type="hidden" name="_method" value="post">
-                                                        <button class="btn btn-primary" type="submit">Save</button>
+                                <div class="col-6 mt-2">
+                                    <div class="card {{$edit->created_at->diffInSeconds(\Carbon\Carbon::now()) < 5 ? 'backgroundAnimated' : ''}}">
+                                        <div class="card-body">
+                                            <div class="card-title text-center">
+                                                <h3>
+                                                    Edit
+                                                    @if($edit->approvals()->count() < $edit->required_number_of_approvals)
+                                                        <div class="badge badge-primary">Pending</div>
+                                                    @else
+                                                        <div class="badge badge-success">Approved</div>
                                                     @endif
-                                                </div>
-                                            </form>
-                                            <form method="POST" action="{{ route('request-insurance-edits.destroy', $edit) }}">
-                                                <div class="m-2">
-                                                    @if ( $canModifyEdit )
-                                                        <input type="hidden" name="_method" value="delete">
-                                                        <button class="btn btn-danger" type="submit">Delete</button>
-                                                    @endif
-                                                </div>
-                                            </form>
-                                        </div>
+                                                </h3>
+                                                <hr>
+                                            </div>
+                                            <div class="card-text">
+                                                <form method="POST" action="{{ route('request-insurance-edits.update', $edit) }}">
+                                                    <table class="table-hover w-100 table-vertical table-striped">
+                                                        <tbody>
+                                                        <tr>
+                                                            <td>Editor:</td>
+                                                            <td>{{ $edit->admin_user }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>RequestInsurance Id:</td>
+                                                            <td>{{ $edit->request_insurance_id }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Priority:</td>
+                                                            <td><input name="new_priority" class="w-100" type="number" min="0" max="9999"
+                                                                       onchange="(() => {this.value=this.value < 0 ? 0 : this.value > 9999 ? 9999 : this.value;})()"
+                                                                       onkeyup="(() => {this.value=this.value < 0 ? 0 : this.value > 9999 ? 9999 : this.value;})()"
+                                                                       @disabled( ! $canModifyEdit)
+                                                                       value="{{ $edit->new_priority }}"/></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Method:</td>
+                                                            <td>
+                                                                <select name="new_method" @disabled( ! $canModifyEdit)>
+                                                                    <option value="GET" @selected(mb_strtoupper($edit->new_method) == "GET")>GET</option>
+                                                                    <option value="POST" @selected(mb_strtoupper($edit->new_method) == "POST")>POST</option>
+                                                                    <option value="PUT" @selected(mb_strtoupper($edit->new_method) == "PUT")>PUT</option>
+                                                                    <option value="PATCH" @selected(mb_strtoupper($edit->new_method) == "PATCH")>PATCH</option>
+                                                                    <option value="DELETE" @selected(mb_strtoupper($edit->new_method) == "DELETE")>DELETE</option>
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                        <tr class="w-100">
+                                                            <td>Url:</td>
+                                                            <td><input name="new_url" class="w-100"
+                                                                       @disabled( ! $canModifyEdit)
+                                                                       value="{{ urldecode($edit->new_url) }}"/></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Payload:</td>
+                                                            <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
+                                                                @if($canModifyEdit)
+                                                                    <x-request-insurance-pretty-print-text-area :name='"new_payload"' :content="$edit->new_payload" :disabled=" ! $canModifyEdit"/>
+                                                                @else
+                                                                    <x-request-insurance-pretty-print :content="$edit->new_payload"/>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Headers:</td>
+                                                            <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
+                                                                @if($canModifyEdit)
+                                                                    <x-request-insurance-pretty-print-text-area :name='"new_headers"' :content="$edit->new_headers" :disabled=" ! $canModifyEdit"/>
+                                                                @else
+                                                                    <x-request-insurance-pretty-print :content="$edit->new_headers"/>
+                                                                @endif
+                                                                @if( ! empty($errorMsg = getEditErrorMessage($edit->id, 'header')))
+                                                                    <span class="text-danger">{{$errorMsg}}</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <div class="m-2">
+                                                        @if ( $canModifyEdit )
+                                                            <input type="hidden" name="_method" value="post">
+                                                            <button class="btn btn-primary" type="submit">Save</button>
+                                                        @endif
+                                                    </div>
+                                                </form>
+                                                <form method="POST" action="{{ route('request-insurance-edits.destroy', $edit) }}">
+                                                    <div class="m-2">
+                                                        @if ( $canModifyEdit )
+                                                            <input type="hidden" name="_method" value="delete">
+                                                            <button class="btn btn-danger" type="submit">Delete</button>
+                                                        @endif
+                                                    </div>
+                                                </form>
+                                            </div>
                                         </div>
                                         <div class="card-text">
                                             <hr>
@@ -331,58 +331,58 @@ use Jfcherng\Diff\DiffHelper;
                                 <div class="col-6 mt-2">
                                     <div class="card">'
                                         <div class="card-body">
-                                        <div class="card-title text-center">
-                                            <h3>
-                                                Edit differences
-                                            </h3>
-                                            <hr>
-                                        </div>
-                                        <div class="card-text">
-                                            <table class="table-hover w-100 table-vertical table-striped">
-                                                <tbody>
-                                                <tr>
-                                                    <td>Editor: </td>
-                                                    <td>{{ $edit->admin_user }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>RequestInsurance Id: </td>
-                                                    <td>{{ $edit->request_insurance_id }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Priority:</td>
-                                                    <td>
-                                                        <x-request-insurance-pretty-print-difference :oldValues="strval($edit->old_priority)" :newValues="strval($edit->new_priority)"/>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Method:</td>
-                                                    <td>
-                                                        <x-request-insurance-pretty-print-difference :oldValues="strtoupper($edit->old_method)" :newValues="strtoupper($edit->new_method)" />
-                                                    </td>
-                                                </tr>
-                                                <tr class="w-100">
-                                                    <td>Url:</td>
-                                                    <td>
-                                                        <x-request-insurance-pretty-print-difference :oldValues="$edit->old_url" :newValues="$edit->new_url"/>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Payload:</td>
-                                                    <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                                        <x-request-insurance-pretty-print-difference :oldValues="$edit->old_payload" :newValues="$edit->new_payload" />
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Headers:</td>
-                                                    <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
-                                                        <x-request-insurance-pretty-print-difference :oldValues="$edit->old_headers" :newValues="$edit->new_headers" />
-                                                    </td>
-                                                </tr>
-                                                </tbody>
-                                            </table>
+                                            <div class="card-title text-center">
+                                                <h3>
+                                                    Edit differences
+                                                </h3>
+                                                <hr>
+                                            </div>
+                                            <div class="card-text">
+                                                <table class="table-hover w-100 table-vertical table-striped">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td>Editor: </td>
+                                                        <td>{{ $edit->admin_user }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>RequestInsurance Id: </td>
+                                                        <td>{{ $edit->request_insurance_id }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Priority:</td>
+                                                        <td>
+                                                            <x-request-insurance-pretty-print-difference :oldValues="strval($edit->old_priority)" :newValues="strval($edit->new_priority)"/>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Method:</td>
+                                                        <td>
+                                                            <x-request-insurance-pretty-print-difference :oldValues="strtoupper($edit->old_method)" :newValues="strtoupper($edit->new_method)" />
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="w-100">
+                                                        <td>Url:</td>
+                                                        <td>
+                                                            <x-request-insurance-pretty-print-difference :oldValues="$edit->old_url" :newValues="$edit->new_url"/>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Payload:</td>
+                                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
+                                                            <x-request-insurance-pretty-print-difference :oldValues="$edit->old_payload" :newValues="$edit->new_payload" />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Headers:</td>
+                                                        <td style="max-width:1px"><!-- Makes the pretty printed code wrap lines -->
+                                                            <x-request-insurance-pretty-print-difference :oldValues="$edit->old_headers" :newValues="$edit->new_headers" />
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 </div>
                             </div>
                         @endforeach

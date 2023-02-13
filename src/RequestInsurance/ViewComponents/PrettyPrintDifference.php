@@ -2,15 +2,13 @@
 
 namespace Cego\RequestInsurance\ViewComponents;
 
-use Illuminate\View\Component;
-use Illuminate\View\View;
-use Illuminate\View\Factory;
 use Exception;
-
+use Illuminate\View\View;
 use \Jfcherng\Diff\Differ;
-use \Jfcherng\Diff\DiffHelper;
-use Jfcherng\Diff\Factory\RendererFactory;
 
+use \Jfcherng\Diff\DiffHelper;
+use Illuminate\View\Component;
+use Jfcherng\Diff\Factory\RendererFactory;
 
 class PrettyPrintDifference extends Component
 {
@@ -21,18 +19,17 @@ class PrettyPrintDifference extends Component
      */
     public $content;
 
-
     /**
      * Rendering options used when creating string of HTML.
      *
      * @var array
      */
     protected array $rendererOptions = [
-        'detailLevel'           => 'word',
-        'showHeader'            => true,
-        'separateBlock'         => true,
-        'resultForIdenticals'   => null,
-        'lineNumbers'           => false,
+        'detailLevel'         => 'word',
+        'showHeader'          => true,
+        'separateBlock'       => true,
+        'resultForIdenticals' => null,
+        'lineNumbers'         => false,
     ];
 
     /**
@@ -42,7 +39,7 @@ class PrettyPrintDifference extends Component
      */
     protected array $differOptions = [
         'ignoreWhitespace' => false,
-        'context'          => 3
+        'context'          => 3,
     ];
 
     /**
@@ -52,7 +49,6 @@ class PrettyPrintDifference extends Component
      *
      * @throws \JsonException
      */
-
     public function __construct($oldValues, $newValues)
     {
         $this->content = $this->prettyPrint($oldValues, $newValues);
@@ -76,11 +72,9 @@ class PrettyPrintDifference extends Component
      *
      * @return string
      */
-
-    protected function prettyPrint(string $oldContent, string $newContent) : string
+    protected function prettyPrint(string $oldContent, string $newContent): string
     {
-        try
-        {
+        try {
             // We need to use different renderering options for capturing differences in json, otherwise the result is quite useless
             if ($this->validJson($oldContent)) {
                 return $this->prettyPrintDifferenceJson($oldContent, $newContent);
@@ -93,9 +87,8 @@ class PrettyPrintDifference extends Component
             $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
 
             return $renderedContent;
-
         } catch (Exception $exception) {
-            return " ";
+            return ' ';
         }
     }
 
@@ -106,13 +99,12 @@ class PrettyPrintDifference extends Component
      * @param string $oldContent
      * @param string $newContent
      *
-     * @return string
      * @throws \JsonException
+     *
+     * @return string
      */
-
-    protected function prettyPrintDifferenceJson(string $oldContent, string $newContent) : string
+    protected function prettyPrintDifferenceJson(string $oldContent, string $newContent): string
     {
-
         $oldFormattedJson = $this->formatJson($oldContent);
         $newFormattedJson = $newContent;
 
@@ -124,7 +116,7 @@ class PrettyPrintDifference extends Component
         $differ = new Differ(explode("\n", $oldFormattedJson), explode("\n", $newFormattedJson), $this->differOptions);
 
         // Change rendering options to better be able to capture differences
-        //$this->rendererOptions['detailLevel'] = 'char';
+        $this->rendererOptions['detailLevel'] = 'char';
         $this->rendererOptions['lineNumbers'] = true;
 
         $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
@@ -141,8 +133,7 @@ class PrettyPrintDifference extends Component
      *
      * @return bool
      */
-
-    protected function validJson(string $content) : bool
+    protected function validJson(string $content): bool
     {
         if (is_numeric($content)) {
             return false;
@@ -158,12 +149,11 @@ class PrettyPrintDifference extends Component
      *
      * @param string $content
      *
-     * @return string
      * @throws \JsonException
      *
+     * @return string
      */
-
-    protected function formatJson(string $content) : string
+    protected function formatJson(string $content): string
     {
         $jsonContent = json_decode($content, true, JSON_THROW_ON_ERROR);
 
