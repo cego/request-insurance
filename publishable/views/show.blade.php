@@ -1,6 +1,7 @@
 <?php
 use \Cego\RequestInsurance\Enums\State;
 use Jfcherng\Diff\DiffHelper;
+
 ?>
 @extends("request-insurance::layouts.master")
 
@@ -85,6 +86,10 @@ use Jfcherng\Diff\DiffHelper;
                                 <tr>
                                     <td>Headers:</td>
                                     <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->getHeadersWithMaskingApplied()"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Timings: </td>
+                                    <td style="max-width:1px"><x-request-insurance-pretty-print :content="$requestInsurance->timings"/></td>
                                 </tr>
                                 <tr>
                                     <td>Next attempt at:</td>
@@ -406,6 +411,7 @@ use Jfcherng\Diff\DiffHelper;
                                     <th>Response headers</th>
                                     <th>Response body</th>
                                     <th style="width: 185px">Created at</th>
+                                    <th style="width: 100px">Total time (ms) </th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -416,6 +422,7 @@ use Jfcherng\Diff\DiffHelper;
                                         <td><x-request-insurance-inline-print :content="$log->response_headers"/></td>
                                         <td><x-request-insurance-inline-print :content="$log->response_body"/></td>
                                         <td>{{ $log->created_at }}</td>
+                                        <td>{{$log->getTotalTime()}}</td>
                                     </tr>
                                 @endforeach
                                 </tbody>

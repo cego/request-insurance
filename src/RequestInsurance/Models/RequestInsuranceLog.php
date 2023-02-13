@@ -18,6 +18,7 @@ use Cego\RequestInsurance\Factories\RequestInsuranceLogFactory;
  * @property int $response_code
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property string | null $timings
  */
 class RequestInsuranceLog extends SaveRetryingModel
 {
@@ -75,5 +76,26 @@ class RequestInsuranceLog extends SaveRetryingModel
     protected static function newFactory()
     {
         return new RequestInsuranceLogFactory();
+    }
+
+    /**
+     * Gets the total time duration for a request. Returns -1 if request was never sent.
+     *
+     * @return int
+     */
+    public function getTotalTime()
+    {
+        if ( ! isset($this->timings)) {
+            return -1;
+        }
+
+        $arrayTimings = json_decode($this->timings, true);
+        $timeInMicroSeconds = $arrayTimings['total_time_us'] ?? null;
+
+        if ($timeInMicroSeconds === null) {
+            return -1;
+        }
+
+        return (int)(floor($timeInMicroSeconds / 1000));
     }
 }

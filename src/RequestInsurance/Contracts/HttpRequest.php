@@ -33,7 +33,7 @@ abstract class HttpRequest
         $class = app()->get(HttpRequest::class);
 
         /** @var HttpRequest $instance */
-        $instance = (new $class);
+        $instance = (new $class());
 
         $instance->timeout = Config::get('request-insurance.timeoutInSeconds', 5);
 
