@@ -28,7 +28,7 @@ class PrettyPrintDifference extends Component
         'separateBlock'         => true,
         'resultForIdenticals'   => null,
         'lineNumbers'           => false,
-        'wrapperClasses'        => ['diff-wrapper'],
+        'wrapperClasses'        => ['diff-wrapper', 'diff', 'diff-html', 'change ins'],
         ];
 
     protected array $differOptions = [
