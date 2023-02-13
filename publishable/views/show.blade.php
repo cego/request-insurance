@@ -1,12 +1,12 @@
 <?php
 use \Cego\RequestInsurance\Enums\State;
+use Jfcherng\Diff\DiffHelper;
 ?>
 @extends("request-insurance::layouts.master")
 
 @section("content")
 
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/zenburn.min.css">
-    <link rel="stylesheet" href="{{asset('../css/diff-table.css')}}">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
     <script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/languages/json.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
@@ -148,6 +148,7 @@ use \Cego\RequestInsurance\Enums\State;
                     -o-animation: fadeIt .5s ease-in-out;
                     animation: fadeIt .5s ease-in-out;
                 }
+                <?= DiffHelper::getStyleSheet(); ?>
             </style>
             @php
                 $pendingEdits = $requestInsurance->edits()->where('applied_at', null)->orderBy('updated_at', 'DESC');
