@@ -122,10 +122,9 @@ class PrettyPrintDifference extends Component
             $newFormattedJson = $this->formatJson($newContent);
         }
 
-        $differ = new Differ(explode(",", $oldFormattedJson), explode(",", $newFormattedJson), $this->differOptions);
+        $differ = new Differ(explode("\n", $oldFormattedJson), explode("\n", $newFormattedJson), $this->differOptions);
 
         $this->rendererOptions['cliColorization'] = RendererConstant::CLI_COLOR_ENABLE;
-        $this->rendererOptions['detailLevel'] = 'char';
 
         $htmlRenderer = RendererFactory::make('Combined', $this->rendererOptions);
         $renderedContent = $htmlRenderer->render($differ);
