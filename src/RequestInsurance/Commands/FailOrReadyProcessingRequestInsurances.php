@@ -4,10 +4,9 @@ namespace Cego\RequestInsurance\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
-use Illuminate\Support\Facades\Log;
-
 
 class FailOrReadyProcessingRequestInsurances extends Command
 {
@@ -30,11 +29,11 @@ class FailOrReadyProcessingRequestInsurances extends Command
      *
      * @return int
      */
-    public function handle() : int
+    public function handle(): int
     {
-       $this->unstuckProcessingRequestInsurances();
+        $this->unstuckProcessingRequestInsurances();
 
-       return 0;
+        return 0;
     }
 
     /**
@@ -43,15 +42,15 @@ class FailOrReadyProcessingRequestInsurances extends Command
      *
      * @return void
      */
-    protected function unstuckProcessingRequestInsurances() : void
+    protected function unstuckProcessingRequestInsurances(): void
     {
         RequestInsurance::query()->where('state', State::PROCESSING)
-            ->where("state_changed_at", "<", Carbon::now('UTC')->subMinutes(10))
+            ->where('state_changed_at', '<', Carbon::now('UTC')->subMinutes(10))
             ->get()
-            ->each(function(RequestInsurance $requestInsurance) {
+            ->each(function (RequestInsurance $requestInsurance) {
                 // State is updated based on retry_inconsistent
                 $stateChange = $requestInsurance->retry_inconsistent ? State::READY : State::FAILED;
-                $requestInsurance->update(["state" => $stateChange, "state_changed_at" => Carbon::now('UTC')]);
+                $requestInsurance->update(['state' => $stateChange, 'state_changed_at' => Carbon::now('UTC')]);
 
                 Log::info("Request insurance with id $requestInsurance->id was updated to $stateChange due to processing for too long.");
             });

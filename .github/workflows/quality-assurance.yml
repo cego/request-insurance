@@ -1,0 +1,37 @@
+---
+name: lint
+on:
+  push:
+    tags-ignore:
+      - '**'
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+
+  phpunit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: [7.4, 8.0, 8.1, 8.2]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+      - run: composer install
+      - run: ./vendor/bin/phpunit
+
+  php-cs-fixer:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: [7.4, 8.0, 8.1]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+      - run: composer install
+      - run: ./vendor/bin/php-cs-fixer fix --dry-run
