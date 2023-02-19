@@ -82,7 +82,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             Commands\RequestInsuranceService::class,
             Commands\UnlockBlockedRequestInsurances::class,
             Commands\CleanUpRequestInsurances::class,
-            Commands\FailOrReadyProcessingRequestInsurances::class
+            Commands\FailOrReadyProcessingRequestInsurances::class,
         ]);
 
         // Add specific commands to the schedule

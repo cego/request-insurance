@@ -236,21 +236,21 @@ class RequestInsuranceStateTest extends TestCase
     }
 
     /** @test */
-    public function it_updates_requests_to_ready_if_process_for_10_minutes_and_retry_inconsistent_is_true() : void
+    public function it_updates_requests_to_ready_if_process_for_10_minutes_and_retry_inconsistent_is_true(): void
     {
         // Arrange
         $requestInsurance1 = $this->createDummyRequestInsurance();
         $requestInsurance2 = $this->createDummyRequestInsurance();
 
-        $requestInsurance1->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => true]);
-        $requestInsurance2->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => true]);
+        $requestInsurance1->update(['state' => State::PROCESSING, 'state_changed_at' => Carbon::now()->subMinutes(11), 'retry_inconsistent' => true]);
+        $requestInsurance2->update(['state' => State::PROCESSING, 'state_changed_at' => Carbon::now()->subMinutes(11), 'retry_inconsistent' => true]);
 
         // Act
-        $this->artisan(" request-insurance:unstuck-processing");
+        $this->artisan(' request-insurance:unstuck-processing');
 
         // Assert
-        $this->assertEquals(State::READY , $requestInsurance1->refresh()->state);
-        $this->assertEquals(State::READY , $requestInsurance2->refresh()->state);
+        $this->assertEquals(State::READY, $requestInsurance1->refresh()->state);
+        $this->assertEquals(State::READY, $requestInsurance2->refresh()->state);
     }
 
     /** @test */
@@ -260,15 +260,15 @@ class RequestInsuranceStateTest extends TestCase
         $requestInsurance1 = $this->createDummyRequestInsurance();
         $requestInsurance2 = $this->createDummyRequestInsurance();
 
-        $requestInsurance1->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => false]);
-        $requestInsurance2->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(11), "retry_inconsistent" => false]);
+        $requestInsurance1->update(['state' => State::PROCESSING, 'state_changed_at' => Carbon::now()->subMinutes(11), 'retry_inconsistent' => false]);
+        $requestInsurance2->update(['state' => State::PROCESSING, 'state_changed_at' => Carbon::now()->subMinutes(11), 'retry_inconsistent' => false]);
 
         // Act
-        $this->artisan("request-insurance:unstuck-processing");
+        $this->artisan('request-insurance:unstuck-processing');
 
         // Assert
-        $this->assertEquals(State::FAILED , $requestInsurance1->refresh()->state);
-        $this->assertEquals(State::FAILED , $requestInsurance2->refresh()->state);
+        $this->assertEquals(State::FAILED, $requestInsurance1->refresh()->state);
+        $this->assertEquals(State::FAILED, $requestInsurance2->refresh()->state);
     }
 
     /** @test */
@@ -278,15 +278,15 @@ class RequestInsuranceStateTest extends TestCase
         $requestInsurance1 = $this->createDummyRequestInsurance();
         $requestInsurance2 = $this->createDummyRequestInsurance();
 
-        $requestInsurance1->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(9), "retry_inconsistent" => false]);
-        $requestInsurance2->update(["state" => State::PROCESSING, "state_changed_at" => Carbon::now()->subMinutes(9), "retry_inconsistent" => false]);
+        $requestInsurance1->update(['state' => State::PROCESSING, 'state_changed_at' => Carbon::now()->subMinutes(9), 'retry_inconsistent' => false]);
+        $requestInsurance2->update(['state' => State::PROCESSING, 'state_changed_at' => Carbon::now()->subMinutes(9), 'retry_inconsistent' => false]);
 
         // Act
-        $this->artisan("request-insurance:unstuck-processing");
+        $this->artisan('request-insurance:unstuck-processing');
 
         // Assert
-        $this->assertEquals(State::PROCESSING , $requestInsurance1->state);
-        $this->assertEquals(State::PROCESSING , $requestInsurance1->state);
+        $this->assertEquals(State::PROCESSING, $requestInsurance1->state);
+        $this->assertEquals(State::PROCESSING, $requestInsurance1->state);
     }
 
     /** @test */

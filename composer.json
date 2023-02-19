@@ -30,7 +30,7 @@
         "guzzlehttp/guzzle": "^6.5.5|^7.2"
     },
     "require-dev": {
-        "cego/php-cs-fixer": "^1.0.0",
+        "cego/php-cs-fixer": "^1.0",
         "orchestra/testbench": "^6.18",
         "doctrine/dbal": "^3.3"
     },
