@@ -4,8 +4,8 @@ namespace Cego\RequestInsurance\ViewComponents;
 
 use Exception;
 use Illuminate\View\View;
-use \Jfcherng\Diff\Differ;
-use \Jfcherng\Diff\DiffHelper;
+use Jfcherng\Diff\Differ;
+use Jfcherng\Diff\DiffHelper;
 use Illuminate\View\Component;
 use Jfcherng\Diff\Factory\RendererFactory;
 
