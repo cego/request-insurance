@@ -313,7 +313,7 @@ class RequestInsuranceWorker
             ->select('id')
             ->readyToBeProcessed()
             ->take(Config::get('request-insurance.batchSize'))
-            ->lockForUpdate()
+            ->lock('FOR UPDATE SKIP LOCKED')
             ->pluck('id');
     }
 }
