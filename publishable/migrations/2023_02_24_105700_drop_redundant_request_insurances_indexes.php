@@ -20,8 +20,8 @@ class DropRedundantRequestInsurancesIndexes extends Migration
                 $table->dropIndex('request_insurances_abandoned_at_created_at_index');
             }
 
-            if ($doctrineTable->hasIndex('request_insurances_abandoned_at_created_at_index')) {
-                $table->dropIndex('request_insurances_abandoned_at_created_at_index');
+            if ($doctrineTable->hasIndex('request_insurances_completed_at_created_at_index')) {
+                $table->dropIndex('request_insurances_completed_at_created_at_index');
             }
         });
     }
