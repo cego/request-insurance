@@ -74,9 +74,6 @@ class PrettyPrintDifference extends Component
     protected function prettyPrint(string $oldContent, string $newContent): string
     {
         try {
-            $oldContent = "<note>\n<to>Tove</to><from>Jani</from><heading>Reminder</heading><body>Don't forget me this weekend!</body>\n</note>";
-            $newContent = "<note>\n<to>Bøv</to><from>Ups</from><heading>Reminder to the general </heading><body>Don't forget me this weekend!</body>\n</note>";
-
             // We need to use different rendering options for capturing differences in json, otherwise the result is quite useless
             if ($this->validJson($oldContent)) {
                 return $this->prettyPrintDifferenceJson($oldContent, $newContent);
