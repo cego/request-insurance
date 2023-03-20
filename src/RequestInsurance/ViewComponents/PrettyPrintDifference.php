@@ -56,11 +56,11 @@ class PrettyPrintDifference extends Component
     /**
      * Get the view / contents that represent the component.
      *
-     * @return \Illuminate\Contracts\View\Factory|View
+     * @return string
      */
     public function render()
     {
-        return view('request-insurance::components.pretty-print-difference');
+        return $this->content;
     }
 
     /**
@@ -74,13 +74,16 @@ class PrettyPrintDifference extends Component
     protected function prettyPrint(string $oldContent, string $newContent): string
     {
         try {
+            $oldContent = "<note><to>Tove</to><from>Jani</from><heading>Reminder</heading><body>Don't forget me this weekend!</body></note>";
+
             // We need to use different renderering options for capturing differences in json, otherwise the result is quite useless
             if ($this->validJson($oldContent)) {
                 return $this->prettyPrintDifferenceJson($oldContent, $newContent);
             }
 
-            // DiffHelper returns a string in html format.
+            // DiffHelper returns content in json format
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
+            echo($content);
 
             $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
             $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
