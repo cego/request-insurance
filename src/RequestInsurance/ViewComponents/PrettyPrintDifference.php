@@ -83,7 +83,6 @@ class PrettyPrintDifference extends Component
 
             // DiffHelper returns content in json format
             $content = DiffHelper::calculate($oldContent, $newContent, 'Json', $this->differOptions);
-            echo($content);
 
             $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
             $renderedContent = $htmlRenderer->renderArray(json_decode($content, true));
