@@ -28,7 +28,7 @@ class PrettyPrintDifference extends Component
         'showHeader'          => true,
         'separateBlock'       => true,
         'resultForIdenticals' => null,
-        'lineNumbers'         => false,
+        'lineNumbers'         => true,
     ];
 
     /**
@@ -119,7 +119,6 @@ class PrettyPrintDifference extends Component
 
         // Change rendering options to better be able to capture differences
         $this->rendererOptions['detailLevel'] = 'char';
-        $this->rendererOptions['lineNumbers'] = true;
 
         $htmlRenderer = RendererFactory::make('Inline', $this->rendererOptions);
         $renderedContent = $htmlRenderer->render($differ);
