@@ -15,6 +15,7 @@ use Cego\RequestInsurance\ViewComponents\PrettyPrint;
 use Cego\RequestInsurance\Providers\CegoIdentityProvider;
 use Cego\RequestInsurance\ViewComponents\EditApprovalsStatus;
 use Cego\RequestInsurance\ViewComponents\PrettyPrintTextArea;
+use Cego\RequestInsurance\ViewComponents\PrettyPrintDifference;
 
 class RequestInsuranceServiceProvider extends ServiceProvider
 {
@@ -61,6 +62,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             HttpCode::class,
             PrettyPrint::class,
             InlinePrint::class,
+            PrettyPrintDifference::class,
             Status::class,
             EditApprovalsStatus::class,
             PrettyPrintTextArea::class,
