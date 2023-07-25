@@ -28,12 +28,12 @@
         "illuminate/pagination": "^7.0|^8.0|^9.0|^10.0",
         "illuminate/encryption": "^7.0|^8.0|^9.0|^10.0",
         "guzzlehttp/guzzle": "^6.5.5|^7.2",
-        "jfcherng/php-diff": "^6.13"
+        "jfcherng/php-diff": "^6.13",
+        "doctrine/dbal": "^3.3"
     },
     "require-dev": {
         "cego/php-cs-fixer": "^1.0",
-        "orchestra/testbench": "^6.18",
-        "doctrine/dbal": "^3.3"
+        "orchestra/testbench": "^6.18"
     },
     "autoload": {
         "psr-4": {
