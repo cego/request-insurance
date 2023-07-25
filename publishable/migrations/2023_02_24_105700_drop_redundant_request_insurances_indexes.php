@@ -33,9 +33,5 @@ class DropRedundantRequestInsurancesIndexes extends Migration
      */
     public function down(): void
     {
-        Schema::table('request_insurances', function (Blueprint $table) {
-            $table->index('created_at', 'request_insurances_abandoned_at_created_at_index');
-            $table->index('created_at', 'request_insurances_completed_at_created_at_index');
-        });
     }
 }
