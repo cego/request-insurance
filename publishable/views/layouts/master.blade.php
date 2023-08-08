@@ -19,7 +19,6 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
     <script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/languages/json.min.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
 
     <style>
         .table-vertical tr td:first-child {
@@ -53,5 +52,11 @@
     <div class="container-fluid col-12">
         @yield('content')
     </div>
+
+    <script>
+        setTimeout(() => {
+            hljs.initHighlighting();
+        }, 500);
+    </script>
 </body>
 </html>
