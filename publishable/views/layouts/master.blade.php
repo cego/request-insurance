@@ -54,9 +54,7 @@
     </div>
 
     <script>
-        setTimeout(() => {
-            hljs.initHighlighting();
-        }, 500);
+        hljs.highlightAll();
     </script>
 </body>
 </html>
