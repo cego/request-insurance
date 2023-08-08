@@ -4,12 +4,6 @@
 @extends("request-insurance::layouts.master")
 
 @section("content")
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/zenburn.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
-    <script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/languages/json.min.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
-
     <div class="container-flex mt-5 col-12">
         <div class="row">
             <div class="col-12">
