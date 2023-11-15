@@ -46,7 +46,7 @@ class FailOrReadyProcessingRequestInsurances extends Command
     {
         RequestInsurance::query()->where('state', State::PROCESSING)
             ->where('state_changed_at', '<', Carbon::now('UTC')->subMinutes(10))
-            ->get()
+            ->cursor()
             ->each(function (RequestInsurance $requestInsurance) {
                 // State is updated based on retry_inconsistent
                 $stateChange = $requestInsurance->retry_inconsistent ? State::READY : State::FAILED;
