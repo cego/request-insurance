@@ -152,6 +152,10 @@ class HttpResponse
             return '<REQUEST_TIMED_OUT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
         }
 
+        if ($this->isRequestException()) {
+            return '<REQUEST_EXCEPTION : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
+        }
+
         if ($this->isInconsistent()) {
             return '<REQUEST_INCONSISTENT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
         }
