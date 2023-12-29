@@ -6,11 +6,13 @@ use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 
 class HttpResponse
 {
     protected Response $response;
     protected ConnectException $connectException;
+    protected RequestException $requestException
 
     /**
      * @param Response|ConnectException $response
@@ -19,6 +21,8 @@ class HttpResponse
     {
         if ($response instanceof ConnectException) {
             $this->connectException = $response;
+        } elseif ($response instanceof RequestException) {
+            $this->requestException = $response;
         } elseif ($response !== null) {
             $this->response = $response;
         }
@@ -45,6 +49,11 @@ class HttpResponse
         return isset($this->connectException);
     }
 
+    public function isRequestException(): bool
+    {
+        return isset($this->requestException);
+    }
+
     /**
      * Logs the reason for the inconsistent state if the response is in an inconsistent state
      *
@@ -58,9 +67,16 @@ class HttpResponse
 
         if ($this->isTimedOut()) {
             Log::error($this->connectException);
-        } else {
-            Log::error('No response object nor connect exception received for request');
+            return;
         }
+
+        if ($this->isRequestException()) {
+            Log::error($this->requestException);
+            return;
+        }
+
+        Log::error('No response object, connect exception nor request exception was received for request');
+
     }
 
     /**
