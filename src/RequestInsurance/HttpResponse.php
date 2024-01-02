@@ -36,6 +36,19 @@ class HttpResponse
     }
 
     /**
+     * Returns true if the request has content-type image
+     *
+     * @return bool
+     */
+    public function isImageResponse(): bool
+    {
+        return collect($this->getHeaders()
+            ->get('content-type', []))
+            ->filter(fn ($type) => str_starts_with($type, 'image/'))
+            ->isNotEmpty();
+    }
+
+    /**
      * Returns true when the request timed out
      *
      * @return bool
@@ -138,6 +151,10 @@ class HttpResponse
 
         if ($this->isInconsistent()) {
             return '<REQUEST_INCONSISTENT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
+        }
+
+        if ($this->isImageResponse()) {
+            return '<REQUEST_IMAGE_GIF_RESPONSE : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
         }
 
         return $this->response->getBody()->getContents();
