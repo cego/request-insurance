@@ -353,7 +353,7 @@ class RequestInsuranceWorkerTest extends TestCase
     public function it_can_process_image_response()
     {
         // Arrange
-        RequestInsuranceClient::fake(fn () => Http::response([], 200, ['content-type' => 'image/gif']));
+        RequestInsuranceClient::fake(fn () => Http::response([], 200, ['content-type' => 'image/gif', 'some-header' => 'some-value']));
 
         $requestInsurance = RequestInsurance::getBuilder()
             ->url('https://test.lupinsdev.dk')
