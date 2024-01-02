@@ -140,6 +140,10 @@ class HttpResponse
             return '<REQUEST_INCONSISTENT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
         }
 
+        if ($this->getHeaders()->contains(['Content-Type' => 0], 'image/gif')) {
+            return '<REQUEST_IMAGE_GIF_RESPONSE : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
+        }
+
         return $this->response->getBody()->getContents();
     }
 

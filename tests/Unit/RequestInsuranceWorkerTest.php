@@ -348,4 +348,30 @@ class RequestInsuranceWorkerTest extends TestCase
         // Assert
         $this->assertEquals(State::WAITING, RequestInsurance::first()->state);
     }
+
+    /** @test */
+    public function it_can_process_image_response()
+    {
+        // Arrange
+        RequestInsuranceClient::fake(fn () => Http::response([], 200, ['content-type' => 'image/gif']));
+
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $requestInsurance->refresh();
+
+        $this->assertTrue($requestInsurance->hasState(State::READY));
+
+        // Act
+        $worker = new RequestInsuranceWorker();
+        $worker->run(true);
+
+        // Assert
+        $requestInsurance->refresh();
+
+        $this->assertTrue($requestInsurance->hasState(State::COMPLETED));
+        $this->assertEquals('<REQUEST_IMAGE_GIF_RESPONSE : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>', $requestInsurance->response_body);
+    }
 }
