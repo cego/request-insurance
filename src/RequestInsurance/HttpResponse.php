@@ -36,8 +36,7 @@ class HttpResponse
     }
 
     /**
-     * Returns true if the request is in an inconsistent state,
-     * caused by any reason which left us without any real response.
+     * Returns true if the request has content-type image
      *
      * @return bool
      */
