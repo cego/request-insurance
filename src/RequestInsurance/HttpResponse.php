@@ -43,8 +43,9 @@ class HttpResponse
     public function isImageResponse(): bool
     {
         return collect($this->getHeaders()
+            ->keyBy(fn ($value, $key) => strtolower($key))
             ->get('content-type', []))
-            ->filter(fn ($type) => str_starts_with($type, 'image/'))
+            ->filter(fn ($type) => str_starts_with($type, 'image'))
             ->isNotEmpty();
     }
 
