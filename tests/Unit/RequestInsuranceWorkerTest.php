@@ -354,17 +354,17 @@ class RequestInsuranceWorkerTest extends TestCase
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response('', 200, [
-            'Server' => 'nginx',
-            'Date' => 'Wed, 03 Jan 2024 07:18:24 GMT',
-            'Content-Type' => 'image/gif',
-            'Content-Length' => '43',
+            'Server'                       => 'nginx',
+            'Date'                         => 'Wed, 03 Jan 2024 07:18:24 GMT',
+            'Content-Type'                 => 'image/gif',
+            'Content-Length'               => '43',
             'Access-Control-Allow-Headers' => 'Authorization, Content-Type',
             'Access-Control-Allow-Methods' => 'DELETE, GET, OPTIONS, PATCH, POST, PUT',
-            'Access-Control-Allow-Origin' => '*',
-            'Cache-Control' => 'no-store',
-            'X-Cache-Status' => 'MISS',
-            'Via' => '1.1 google',
-            'Alt-Svc' => 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000',
+            'Access-Control-Allow-Origin'  => '*',
+            'Cache-Control'                => 'no-store',
+            'X-Cache-Status'               => 'MISS',
+            'Via'                          => '1.1 google',
+            'Alt-Svc'                      => 'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000',
         ]));
 
         $requestInsurance = RequestInsurance::getBuilder()
