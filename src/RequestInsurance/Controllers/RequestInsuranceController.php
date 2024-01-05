@@ -171,7 +171,7 @@ class RequestInsuranceController extends Controller
     public function monitor(): JsonResponse
     {
         return response()->json([
-            'activeCount' => (int) RequestInsurance::query()->where('state', State::READY)->count(),
+            'activeCount' => (int) RequestInsurance::query()->whereIn('state', State::READY, State::PROCESSING, State::PENDING)->count(),
             'failCount'   => (int) RequestInsurance::query()->where('state', State::FAILED)->count(),
         ]);
     }
