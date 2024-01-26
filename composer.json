@@ -29,7 +29,8 @@
         "illuminate/encryption": "^7.0|^8.0|^9.0|^10.0",
         "guzzlehttp/guzzle": "^6.5.5|^7.2",
         "jfcherng/php-diff": "^6.13",
-        "doctrine/dbal": "^3.3"
+        "doctrine/dbal": "^3.3",
+        "open-telemetry/sdk": "^1.0"
     },
     "require-dev": {
         "cego/php-cs-fixer": "^1.0",
@@ -53,6 +54,11 @@
             "providers": [
                 "Cego\\RequestInsurance\\RequestInsuranceServiceProvider"
             ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
         }
     }
 }
