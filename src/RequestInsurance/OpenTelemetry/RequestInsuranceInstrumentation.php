@@ -2,13 +2,15 @@
 
 namespace Cego\RequestInsurance\OpenTelemetry;
 
-use Cego\RequestInsurance\RequestInsuranceWorker;
 use Throwable;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\TraceAttributes;
+
 use function OpenTelemetry\Instrumentation\hook;
+
+use Cego\RequestInsurance\RequestInsuranceWorker;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 
 class RequestInsuranceInstrumentation
