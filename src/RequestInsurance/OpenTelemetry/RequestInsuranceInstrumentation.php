@@ -31,13 +31,13 @@ class RequestInsuranceInstrumentation
 {
     public const NAME = 'cego-request-insurance';
 
-    private static function hookClassMethod(CachedInstrumentation $instrumentation, string $className, string $methodName): void
+    private static function hookClassMethod(CachedInstrumentation $instrumentation, string $className, string $methodName, string $spanName): void
     {
         hook(
             $className,
             $methodName,
-            static function () use ($instrumentation, $className, $methodName) {
-                $span = $instrumentation->tracer()->spanBuilder($className . '::' . $methodName)->startSpan();
+            static function () use ($instrumentation, $className, $methodName, $spanName) {
+                $span = $instrumentation->tracer()->spanBuilder($spanName)->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
             static function ($object, $params, $result, ?Throwable $exception) {
@@ -51,12 +51,12 @@ class RequestInsuranceInstrumentation
         $instrumentation = new CachedInstrumentation('dk.cego.request-insurance-instrumentation');
 
         $methodsToHook = [
-            [RequestInsuranceWorker::class, 'processRequestInsurances'],
-            [RequestInsuranceWorker::class, 'readyWaitingRequestInsurances'],
+            [RequestInsuranceWorker::class, 'processRequestInsurances', 'Process request insurances'],
+            [RequestInsuranceWorker::class, 'readyWaitingRequestInsurances', 'Ready waiting request insurances'],
         ];
 
         foreach ($methodsToHook as $methodToHook) {
-            self::hookClassMethod($instrumentation, $methodToHook[0], $methodToHook[1]);
+            self::hookClassMethod($instrumentation, $methodToHook[0], $methodToHook[1], $methodToHook[2]);
         }
     }
 
