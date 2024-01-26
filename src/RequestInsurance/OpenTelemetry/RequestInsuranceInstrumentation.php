@@ -61,40 +61,6 @@ class RequestInsuranceInstrumentation
     }
 
     /**
-     * @param CachedInstrumentation $instrumentation
-     *
-     * @return void
-     */
-    public static function registerHandleNextMessageHook(CachedInstrumentation $instrumentation): void
-    {
-        hook(Consumer::class, 'handleNextMessage',
-            static function (Consumer $topicHandler, array $params) use ($instrumentation) {
-                // Detach the current span, if any
-                $scope = Context::storage()->scope();
-
-                if ($scope) {
-                    $scope->detach();
-                }
-
-                if ( ! ($kafkaMessage = $params[0]) instanceof KafkaMessage || ! $kafkaMessage->isRealMessage()) {
-                    return;
-                }
-                $span = $instrumentation->tracer()->spanBuilder(sprintf('%s | %s', $topicHandler->getGroupId(), $kafkaMessage->getTopic()))
-                    ->setSpanKind(SpanKind::KIND_CONSUMER)
-                    ->setAttribute(TraceAttributes::MESSAGING_SYSTEM, 'kafka')
-                    ->startSpan();
-                Context::storage()->attach($span->storeInContext(Context::getCurrent()));
-            },
-            static function (Consumer $topicHandler, array $params, bool $result, ?Throwable $exception) {
-                if ( ! ($kafkaMessage = $params[0]) instanceof KafkaMessage || ! $kafkaMessage->isRealMessage()) {
-                    return;
-                }
-
-                self::endCurrentSpan($exception);
-            });
-    }
-
-    /**
      * @param Throwable|null $exception
      *
      * @return void
