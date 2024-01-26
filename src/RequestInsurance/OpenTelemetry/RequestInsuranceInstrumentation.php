@@ -1,6 +1,6 @@
 <?php
 
-namespace Cego\Kafka\OpenTelemetry;
+namespace Cego\RequestInsurance\OpenTelemetry;
 
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Throwable;
