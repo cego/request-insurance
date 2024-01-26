@@ -4,23 +4,11 @@ namespace Cego\RequestInsurance\OpenTelemetry;
 
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Throwable;
-use RdKafka\KafkaConsumer;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\Context\Context;
-use OpenTelemetry\API\Trace\SpanKind;
-use Cego\Kafka\Kafka\Consumer\Consumer;
-use Cego\Kafka\Kafka\Producer\Producer;
 use OpenTelemetry\API\Trace\StatusCode;
-use Cego\Kafka\Common\CurrentApplication;
 use OpenTelemetry\SemConv\TraceAttributes;
-use Cego\Kafka\Kafka\Consumer\KafkaMessage;
-use Cego\Kafka\Kafka\Consumer\TopicHandler;
-use Cego\Kafka\Kafka\Consumer\CommitManager;
-use Cego\Kafka\Laravel\Commands\KafkaProducer;
-use Cego\Kafka\Kafka\Consumer\MessageRetriever;
 use function OpenTelemetry\Instrumentation\hook;
-use Cego\Kafka\Database\Consumer\DatabaseConsumer;
-use Cego\Kafka\Kafka\MessageHandlers\MessageHandler;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 
 class RequestInsuranceInstrumentation
@@ -32,7 +20,7 @@ class RequestInsuranceInstrumentation
         hook(
             $className,
             $methodName,
-            static function () use ($instrumentation, $className, $methodName, $spanName) {
+            static function () use ($instrumentation, $spanName) {
                 $span = $instrumentation->tracer()->spanBuilder($spanName)->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
             },
