@@ -70,6 +70,7 @@ class RequestInsuranceInstrumentation
         $methodsToHook = [
             [RequestInsuranceWorker::class, 'processRequestInsurances', 'Process request insurances'],
             [RequestInsuranceWorker::class, 'readyWaitingRequestInsurances', 'Ready waiting request insurances'],
+            [RequestInsuranceWorker::class, 'processHttpRequestChunk', 'Process batch of http requests'],
         ];
 
         foreach ($methodsToHook as $methodToHook) {
