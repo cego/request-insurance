@@ -89,9 +89,9 @@ class RequestInsuranceServiceProvider extends ServiceProvider
 
         // Add specific commands to the schedule
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
-            $schedule->command('unlock:request-insurances')->everyFiveMinutes();
-            $schedule->command('clean:request-insurances')->everyTenMinutes();
-            $schedule->command('request-insurance:unstuck-processing')->everyTenMinutes();
+            $schedule->command('unlock:request-insurances')->everyFiveMinutes()->withoutOverlapping()->runInBackground();
+            $schedule->command('clean:request-insurances')->everyTenMinutes()->withoutOverlapping()->runInBackground();
+            $schedule->command('request-insurance:unstuck-processing')->everyTenMinutes()->withoutOverlapping()->runInBackground();
         });
     }
 
