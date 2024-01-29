@@ -33,12 +33,16 @@
     },
     "require-dev": {
         "cego/php-cs-fixer": "^1.0",
-        "orchestra/testbench": "^6.18"
+        "orchestra/testbench": "^6.18",
+        "open-telemetry/sdk": "^1.0"
     },
     "autoload": {
         "psr-4": {
             "Cego\\": "src/"
-        }
+        },
+        "files": [
+            "src/RequestInsurance/OpenTelemetry/_register.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -50,6 +54,11 @@
             "providers": [
                 "Cego\\RequestInsurance\\RequestInsuranceServiceProvider"
             ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
         }
     }
 }
