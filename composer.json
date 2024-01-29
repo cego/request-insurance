@@ -39,15 +39,15 @@
     "autoload": {
         "psr-4": {
             "Cego\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
         },
         "files": [
             "src/RequestInsurance/OpenTelemetry/_register.php"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
     },
     "extra": {
         "laravel": {
