@@ -74,16 +74,17 @@ class HttpResponse
 
         if ($this->isTimedOut()) {
             Log::error($this->connectException);
+
             return;
         }
 
         if ($this->isRequestException()) {
             Log::error($this->requestException);
+
             return;
         }
 
         Log::error('No response object, connect exception nor request exception was received for request');
-
     }
 
     /**
