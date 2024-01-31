@@ -51,7 +51,8 @@ class HttpResponse
 
     /**
      * Returns true when the request failed due to a Guzzle RequestException.
-     * The RequestException is a generalization of some other Guzzle exceptions.
+     * The RequestException is a generalization of some other Guzzle exceptions,
+     * specifically BadResponseException, TooManyRedirectsException.
      *
      * @return bool
      */
