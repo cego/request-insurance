@@ -12,10 +12,10 @@ class HttpResponse
 {
     protected Response $response;
     protected ConnectException $connectException;
-    protected RequestException $requestException
+    protected RequestException $requestException;
 
     /**
-     * @param Response|ConnectException $response
+     * @param Response|ConnectException|RequestException $response
      */
     public function __construct($response)
     {
@@ -49,6 +49,12 @@ class HttpResponse
         return isset($this->connectException);
     }
 
+    /**
+     * Returns true when the request failed due to a Guzzle RequestException.
+     * The RequestException is a generalization of some other Guzzle exceptions.
+     *
+     * @return bool
+     */
     public function isRequestException(): bool
     {
         return isset($this->requestException);
@@ -176,7 +182,7 @@ class HttpResponse
     }
 
     /**
-     * Gets the execution tim of the request
+     * Gets the execution time of the request
      *
      * @return float
      */
