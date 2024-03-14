@@ -24,8 +24,7 @@ class RequestInsuranceWorkerTest extends TestCase
         parent::setUp();
     }
 
-    /** @test */
-    public function it_can_process_a_single_available_record(): void
+    public function test_it_can_process_a_single_available_record(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -49,8 +48,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertTrue($requestInsurance->hasState(State::COMPLETED));
     }
 
-    /** @test */
-    public function it_can_process_a_multiple_available_record(): void
+    public function test_it_can_process_a_multiple_available_record(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -75,8 +73,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertTrue($requestInsurance2->hasState(State::COMPLETED));
     }
 
-    /** @test */
-    public function it_does_not_consume_failed_records(): void
+    public function test_it_does_not_consume_failed_records(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -100,8 +97,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals(0, $requestInsurance->retry_count);
     }
 
-    /** @test */
-    public function it_does_not_consume_abandoned_records(): void
+    public function test_it_does_not_consume_abandoned_records(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -125,8 +121,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals(0, $requestInsurance->retry_count);
     }
 
-    /** @test */
-    public function it_does_not_consume_pending_records(): void
+    public function test_it_does_not_consume_pending_records(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -150,8 +145,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals(0, $requestInsurance->retry_count);
     }
 
-    /** @test */
-    public function it_only_consumes_to_a_given_batch_size(): void
+    public function test_it_only_consumes_to_a_given_batch_size(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -181,8 +175,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertCount(1, RequestInsurance::query()->where('state', '!=', State::COMPLETED)->get());
     }
 
-    /** @test */
-    public function it_pauses_requests_with_listeners_that_throw_exceptions_when_the_response_is_not_200(): void
+    public function test_it_pauses_requests_with_listeners_that_throw_exceptions_when_the_response_is_not_200(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 400));
@@ -208,8 +201,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals(1, $requestInsurance->retry_count);
     }
 
-    /** @test */
-    public function it_does_not_exit_processing_of_other_jobs_if_a_listener_throws_an_exception(): void
+    public function test_it_does_not_exit_processing_of_other_jobs_if_a_listener_throws_an_exception(): void
     {
         // Arrange
         Config::set('request-insurance.concurrentHttpEnabled', true);
@@ -251,8 +243,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals(1, $requestInsurance2->retry_count);
     }
 
-    /** @test */
-    public function it_completes_requests_with_listeners_that_throw_exceptions_when_the_response_is_200(): void
+    public function test_it_completes_requests_with_listeners_that_throw_exceptions_when_the_response_is_200(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -279,8 +270,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals(1, $requestInsurance->retry_count);
     }
 
-    /** @test */
-    public function headers_are_still_encrypted_in_db_after_processing_unkeyed_payload()
+    public function test_headers_are_still_encrypted_in_db_after_processing_unkeyed_payload()
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -302,8 +292,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals('Basic 12345', Crypt::decrypt($authorizationHeaderInDB));
     }
 
-    /** @test */
-    public function it_marks_timeouts_as_inconsistent()
+    public function test_it_marks_timeouts_as_inconsistent()
     {
         // Arrange
         RequestInsuranceClient::fake(function () {
@@ -325,8 +314,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals(State::FAILED, RequestInsurance::first()->state);
     }
 
-    /** @test */
-    public function it_can_retry_inconsistent_jobs()
+    public function test_it_can_retry_inconsistent_jobs()
     {
         // Arrange
         RequestInsuranceClient::fake(function () {
@@ -349,8 +337,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals(State::WAITING, RequestInsurance::first()->state);
     }
 
-    /** @test */
-    public function it_can_process_image_response()
+    public function test_it_can_process_image_response()
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200, ['content-type' => 'image/gif', 'some-header' => 'some-value']));

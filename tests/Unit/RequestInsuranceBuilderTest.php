@@ -8,8 +8,7 @@ use Cego\RequestInsurance\Models\RequestInsurance;
 
 class RequestInsuranceBuilderTest extends TestCase
 {
-    /** @test */
-    public function it_can_create_a_request_insurance(): void
+    public function test_it_can_create_a_request_insurance(): void
     {
         // Arrange
 
@@ -32,8 +31,7 @@ class RequestInsuranceBuilderTest extends TestCase
         $this->assertEquals('https://MyDev.lupinsdev.dk', $requestInsurance->url);
     }
 
-    /** @test */
-    public function it_can_set_retry_inconsistent(): void
+    public function test_it_can_set_retry_inconsistent(): void
     {
         // Arrange
 
@@ -53,8 +51,7 @@ class RequestInsuranceBuilderTest extends TestCase
         $this->assertEquals(true, $requestInsurance->retry_inconsistent);
     }
 
-    /** @test */
-    public function it_does_not_allow_empty_method(): void
+    public function test_it_does_not_allow_empty_method(): void
     {
         // Assert
         $this->expectException(InvalidArgumentException::class);
@@ -68,8 +65,7 @@ class RequestInsuranceBuilderTest extends TestCase
             ->create();
     }
 
-    /** @test */
-    public function it_does_not_allow_empty_url(): void
+    public function test_it_does_not_allow_empty_url(): void
     {
         // Assert
         $this->expectException(InvalidArgumentException::class);
@@ -83,8 +79,7 @@ class RequestInsuranceBuilderTest extends TestCase
             ->create();
     }
 
-    /** @test */
-    public function it_allows_url_with_special_chars(): void
+    public function test_it_allows_url_with_special_chars(): void
     {
         // Act
         $builder = RequestInsurance::getBuilder()
@@ -98,8 +93,7 @@ class RequestInsuranceBuilderTest extends TestCase
         $this->assertEquals('https://marketing-automation-test.spilnu.dk/api/v1/contacts/æøåäö@gmail.com', $builder->url);
     }
 
-    /** @test */
-    public function it_can_convert_arrays_to_json(): void
+    public function test_it_can_convert_arrays_to_json(): void
     {
         // Arrange
 

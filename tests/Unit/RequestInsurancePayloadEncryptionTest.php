@@ -9,8 +9,7 @@ use Cego\RequestInsurance\Models\RequestInsurance;
 
 class RequestInsurancePayloadEncryptionTest extends TestCase
 {
-    /** @test */
-    public function it_can_build_with_a_encrypted_payload(): void
+    public function test_it_can_build_with_a_encrypted_payload(): void
     {
         // Arrange
 
@@ -40,8 +39,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $this->assertNotEquals('Value', $requestInsurance->getJsonDecodedPayload()['Key']);
     }
 
-    /** @test */
-    public function it_only_encrypts_the_requested_payload(): void
+    public function test_it_only_encrypts_the_requested_payload(): void
     {
         // Arrange
 
@@ -71,8 +69,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $this->assertEquals('Value2', $requestInsurance->getJsonDecodedPayload()['Key2']);
     }
 
-    /** @test */
-    public function it_can_use_dot_notation_for_encrypted_payload(): void
+    public function test_it_can_use_dot_notation_for_encrypted_payload(): void
     {
         // Arrange
 
@@ -102,8 +99,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $this->assertNotEquals('NestedValue1', $requestInsurance->getJsonDecodedPayload()['NestedKeyCollection']['NestedKey1']);
     }
 
-    /** @test */
-    public function it_can_encrypt_arrays(): void
+    public function test_it_can_encrypt_arrays(): void
     {
         // Arrange
 
@@ -134,8 +130,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $this->assertIsString($requestInsurance->getJsonDecodedPayload()['NestedKeyCollection']);
     }
 
-    /** @test */
-    public function it_can_build_with_multiple_encrypted_payload_fields(): void
+    public function test_it_can_build_with_multiple_encrypted_payload_fields(): void
     {
         // Arrange
 
@@ -167,8 +162,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $this->assertNotEquals('Value2', $requestInsurance->getJsonDecodedPayload()['Key2']);
     }
 
-    /** @test */
-    public function it_can_auto_decrypt_after_resolving_from_db(): void
+    public function test_it_can_auto_decrypt_after_resolving_from_db(): void
     {
         // Arrange
 
@@ -196,8 +190,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $this->assertEquals('Value2', $requestInsurance->getJsonDecodedPayload()['Key2']);
     }
 
-    /** @test */
-    public function it_adds_auto_encrypted_payload(): void
+    public function test_it_adds_auto_encrypted_payload(): void
     {
         // Arrange
         Config::set('request-insurance.fieldsToAutoEncrypt', [
@@ -216,8 +209,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $this->assertContains('Key1', json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR)['payload']);
     }
 
-    /** @test */
-    public function it_can_handle_duplicate_encryption_payload(): void
+    public function test_it_can_handle_duplicate_encryption_payload(): void
     {
         // Arrange
         Config::set('request-insurance.fieldsToAutoEncrypt', [
@@ -247,8 +239,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $this->assertCount(0, RequestInsurance::query()->where('payload', 'like', '%Value1%')->get());
     }
 
-    /** @test */
-    public function it_can_merge_auto_encryption(): void
+    public function test_it_can_merge_auto_encryption(): void
     {
         // Arrange
         Config::set('request-insurance.fieldsToAutoEncrypt', [
@@ -273,8 +264,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         ], $encryptedFields);
     }
 
-    /** @test */
-    public function it_does_not_double_encrypt_when_saving_multiple_times()
+    public function test_it_does_not_double_encrypt_when_saving_multiple_times()
     {
         // Arrange
         Config::set('request-insurance.fieldsToAutoEncrypt', [
@@ -295,8 +285,7 @@ class RequestInsurancePayloadEncryptionTest extends TestCase
         $this->assertEquals(['payload' => ['Key1', 'Key2']], json_decode($requestInsurance->encrypted_fields, true, 512, JSON_THROW_ON_ERROR));
     }
 
-    /** @test */
-    public function it_sends_info_about_encrypted_body_as_header(): void
+    public function test_it_sends_info_about_encrypted_body_as_header(): void
     {
         // Arrange
 

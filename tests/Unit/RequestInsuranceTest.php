@@ -12,8 +12,7 @@ use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
 class RequestInsuranceTest extends TestCase
 {
-    /** @test */
-    public function it_can_create_a_request_insurance(): void
+    public function test_it_can_create_a_request_insurance(): void
     {
         // Arrange
 
@@ -29,8 +28,7 @@ class RequestInsuranceTest extends TestCase
         $this->assertCount(1, RequestInsurance::all());
     }
 
-    /** @test */
-    public function it_does_not_allow_empty_method(): void
+    public function test_it_does_not_allow_empty_method(): void
     {
         // Assert
         $this->expectException(EmptyPropertyException::class);
@@ -44,8 +42,7 @@ class RequestInsuranceTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_does_not_allow_empty_url(): void
+    public function test_it_does_not_allow_empty_url(): void
     {
         // Assert
         $this->expectException(EmptyPropertyException::class);
@@ -59,8 +56,7 @@ class RequestInsuranceTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_can_convert_arrays_to_json(): void
+    public function test_it_can_convert_arrays_to_json(): void
     {
         // Arrange
 
@@ -83,8 +79,7 @@ class RequestInsuranceTest extends TestCase
         $this->assertEquals(json_encode(['Content-Type' => 'application/json', 'X-Request-Trace-Id' => '123', 'X-Sensitive-Request-Headers-JSON' => json_encode(['Authorization', 'authorization'])], JSON_THROW_ON_ERROR), $requestInsurance->headers);
     }
 
-    /** @test */
-    public function it_can_mask_encrypted_headers(): void
+    public function test_it_can_mask_encrypted_headers(): void
     {
         // Arrange
         Config::set('request-insurance.fieldsToAutoEncrypt', [
@@ -106,8 +101,7 @@ class RequestInsuranceTest extends TestCase
         $this->assertStringContainsString('application\/json', $maskedHeaders);
     }
 
-    /** @test */
-    public function it_can_mask_encrypted_payload(): void
+    public function test_it_can_mask_encrypted_payload(): void
     {
         // Arrange
         Config::set('request-insurance.fieldsToAutoEncrypt', [
@@ -129,8 +123,7 @@ class RequestInsuranceTest extends TestCase
         $this->assertStringContainsString('Value2', $maskedPayload);
     }
 
-    /** @test */
-    public function it_can_get_payload_when_it_is_not_an_array(): void
+    public function test_it_can_get_payload_when_it_is_not_an_array(): void
     {
         // Arrange
 
@@ -147,8 +140,7 @@ class RequestInsuranceTest extends TestCase
         $this->assertStringContainsString('The payload is not an array json_encoded string.', $payload);
     }
 
-    /** @test */
-    public function it_always_increment_the_tries_count(): void
+    public function test_it_always_increment_the_tries_count(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -172,8 +164,7 @@ class RequestInsuranceTest extends TestCase
         $this->assertEquals(2, $requestInsurance->refresh()->retry_count);
     }
 
-    /** @test */
-    public function it_can_resume_request_insurances(): void
+    public function test_it_can_resume_request_insurances(): void
     {
         // Arrange
         $requestInsurance = RequestInsurance::getBuilder()
@@ -191,8 +182,7 @@ class RequestInsuranceTest extends TestCase
         $this->assertNull($requestInsurance->retry_at);
     }
 
-    /** @test */
-    public function it_is_not_retryable_if_completed(): void
+    public function test_it_is_not_retryable_if_completed(): void
     {
         // Arrange
         $requestInsurance = RequestInsurance::getBuilder()
@@ -207,8 +197,7 @@ class RequestInsuranceTest extends TestCase
         $this->assertFalse($requestInsurance->isRetryable());
     }
 
-    /** @test */
-    public function it_is_retryable_if_not_completed_but_failed(): void
+    public function test_it_is_retryable_if_not_completed_but_failed(): void
     {
         // Arrange
         $requestInsurance = RequestInsurance::getBuilder()
@@ -223,8 +212,7 @@ class RequestInsuranceTest extends TestCase
         $this->assertTrue($requestInsurance->isRetryable());
     }
 
-    /** @test */
-    public function it_is_retryable_if_not_completed_but_abandoned(): void
+    public function test_it_is_retryable_if_not_completed_but_abandoned(): void
     {
         // Arrange
         $requestInsurance = RequestInsurance::getBuilder()

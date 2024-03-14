@@ -11,8 +11,7 @@ use Cego\RequestInsurance\RequestInsuranceCleaner;
 
 class RequestInsuranceCleanerTest extends TestCase
 {
-    /** @test */
-    public function it_can_chunk_clean_up(): void
+    public function test_it_can_chunk_clean_up(): void
     {
         // Arrange
         Config::set('request-insurance.cleanChunkSize', 10); // Reduce chunk size, so many chunks are made

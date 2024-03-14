@@ -9,8 +9,7 @@ use Illuminate\Console\Scheduling\Schedule;
 
 class ScheduleTest extends TestCase
 {
-    /** @test */
-    public function it_has_auto_scheduling_of_cleanup_and_unlock_commands(): void
+    public function test_it_has_auto_scheduling_of_cleanup_and_unlock_commands(): void
     {
         // Assert
         $this->assertScheduleHasCommand('unlock:request-insurances');
