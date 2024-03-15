@@ -31,6 +31,10 @@ class RemoveOldStateColumnsInRequestInsurance extends Migration
             $table->dropIndex('request_insurances_abandoned_at_created_at_index');
             $table->dropColumn('abandoned_at');
         });
+
+        Schema::table('request_insurances', function (Blueprint $table) {
+            $table->index(['retry_at', 'priority'], 'covering_index');
+        });
     }
 
     /**
