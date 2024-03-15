@@ -17,8 +17,7 @@ use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
 class RequestInsuranceStateTest extends TestCase
 {
-    /** @test */
-    public function it_defaults_to_ready_state(): void
+    public function test_it_defaults_to_ready_state(): void
     {
         // Arrange
         Carbon::setTestNow(Carbon::now('UTC'));
@@ -31,8 +30,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(Carbon::now('UTC')->toDateTimeString(), $requestInsurance->state_changed_at->toDateTimeString());
     }
 
-    /** @test */
-    public function it_sets_state_completed_on_successful_processing(): void
+    public function test_it_sets_state_completed_on_successful_processing(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -46,8 +44,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::COMPLETED, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_sets_state_failed_on_400(): void
+    public function test_it_sets_state_failed_on_400(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 400));
@@ -61,8 +58,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::FAILED, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_sets_state_waiting_on_500(): void
+    public function test_it_sets_state_waiting_on_500(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 500));
@@ -76,8 +72,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::WAITING, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_exits_on_state_processing_on_unhandled_exceptions_in_processing(): void
+    public function test_it_exits_on_state_processing_on_unhandled_exceptions_in_processing(): void
     {
         // Arrange
         RequestInsuranceClient::fake(function () {
@@ -98,8 +93,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::PROCESSING, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_can_handle_that_some_requests_timeout_in_the_batch_but_not_all(): void
+    public function test_it_can_handle_that_some_requests_timeout_in_the_batch_but_not_all(): void
     {
         // Arrange
         Config::set('request-insurance.concurrentHttpEnabled', true);
@@ -124,8 +118,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::COMPLETED, $requestInsurance2->state);
     }
 
-    /** @test */
-    public function it_sets_state_to_ready_when_worker_process_jobs_with_500_response(): void
+    public function test_it_sets_state_to_ready_when_worker_process_jobs_with_500_response(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 500));
@@ -139,8 +132,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::WAITING, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_sets_state_to_failed_when_worker_process_jobs_with_400_response(): void
+    public function test_it_sets_state_to_failed_when_worker_process_jobs_with_400_response(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 400));
@@ -154,8 +146,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::FAILED, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_leaves_the_request_in_processing_state_when_worker_process_jobs_with_exception(): void
+    public function test_it_leaves_the_request_in_processing_state_when_worker_process_jobs_with_exception(): void
     {
         // Arrange
         RequestInsuranceClient::fake(function () {
@@ -171,8 +162,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::PROCESSING, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_sets_state_to_completed_when_worker_process_jobs_with_200_response(): void
+    public function test_it_sets_state_to_completed_when_worker_process_jobs_with_200_response(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -186,8 +176,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::COMPLETED, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_sets_state_pending_when_workers_lock_rows(): void
+    public function test_it_sets_state_pending_when_workers_lock_rows(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -201,8 +190,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::PENDING, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_sets_state_to_waiting_when_retry_count_is_equal_to_maximumNumberOfRetries(): void
+    public function test_it_sets_state_to_waiting_when_retry_count_is_equal_to_maximumNumberOfRetries(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 500));
@@ -218,8 +206,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::WAITING, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_sets_state_to_failed_when_retried_more_than_maximumNumberOfRetries(): void
+    public function test_it_sets_state_to_failed_when_retried_more_than_maximumNumberOfRetries(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 500));
@@ -235,8 +222,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::FAILED, $requestInsurance->state);
     }
 
-    /** @test */
-    public function it_updates_requests_to_ready_if_process_for_10_minutes_and_retry_inconsistent_is_true(): void
+    public function test_it_updates_requests_to_ready_if_process_for_10_minutes_and_retry_inconsistent_is_true(): void
     {
         // Arrange
         $requestInsurance1 = $this->createDummyRequestInsurance();
@@ -253,8 +239,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::READY, $requestInsurance2->refresh()->state);
     }
 
-    /** @test */
-    public function it_updates_requests_to_false_if_process_for_10_minutes_and_retry_inconsistent_is_false()
+    public function test_it_updates_requests_to_false_if_process_for_10_minutes_and_retry_inconsistent_is_false()
     {
         // Arrange
         $requestInsurance1 = $this->createDummyRequestInsurance();
@@ -271,8 +256,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::FAILED, $requestInsurance2->refresh()->state);
     }
 
-    /** @test */
-    public function it_does_not_update_state_if_processing_has_run_less_than_10_minutes()
+    public function test_it_does_not_update_state_if_processing_has_run_less_than_10_minutes()
     {
         // Arrange
         $requestInsurance1 = $this->createDummyRequestInsurance();
@@ -289,8 +273,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->assertEquals(State::PROCESSING, $requestInsurance1->state);
     }
 
-    /** @test */
-    public function it_sets_state_to_waiting_when_response_is_408_and_retry_inconsistent_is_true(): void
+    public function test_it_sets_state_to_waiting_when_response_is_408_and_retry_inconsistent_is_true(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 408));

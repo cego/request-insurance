@@ -14,6 +14,7 @@ class RemoveOldStateColumnsInRequestInsurance extends Migration
     public function up(): void
     {
         Schema::table('request_insurances', function (Blueprint $table) {
+            $table->dropIndex('covering_index');
             $table->dropIndex('request_insurances_completed_at_created_at_index');
             $table->dropColumn('completed_at');
         });
@@ -29,6 +30,10 @@ class RemoveOldStateColumnsInRequestInsurance extends Migration
         Schema::table('request_insurances', function (Blueprint $table) {
             $table->dropIndex('request_insurances_abandoned_at_created_at_index');
             $table->dropColumn('abandoned_at');
+        });
+
+        Schema::table('request_insurances', function (Blueprint $table) {
+            $table->index(['retry_at', 'priority'], 'covering_index');
         });
     }
 

@@ -16,8 +16,7 @@ use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
 class RequestInsuranceEventSystemTest extends TestCase
 {
-    /** @test */
-    public function it_triggers_successful_event_for_200_responses(): void
+    public function test_it_triggers_successful_event_for_200_responses(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 200));
@@ -37,8 +36,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         Event::assertNotDispatched(RequestFailed::class);
     }
 
-    /** @test */
-    public function it_triggers_failed_event_for_400_responses(): void
+    public function test_it_triggers_failed_event_for_400_responses(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 400));
@@ -58,8 +56,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         Event::assertNotDispatched(RequestSuccessful::class);
     }
 
-    /** @test */
-    public function it_triggers_failed_event_for_500_responses(): void
+    public function test_it_triggers_failed_event_for_500_responses(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 500));
@@ -79,8 +76,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         Event::assertNotDispatched(RequestSuccessful::class);
     }
 
-    /** @test */
-    public function it_triggers_client_error_event_for_400_responses(): void
+    public function test_it_triggers_client_error_event_for_400_responses(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 400));
@@ -100,8 +96,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         Event::assertNotDispatched(RequestServerError::class);
     }
 
-    /** @test */
-    public function it_triggers_server_error_event_for_500_responses(): void
+    public function test_it_triggers_server_error_event_for_500_responses(): void
     {
         // Arrange
         RequestInsuranceClient::fake(fn () => Http::response([], 500));
@@ -121,8 +116,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         Event::assertDispatched(RequestServerError::class);
     }
 
-    /** @test */
-    public function it_can_abandon_requests_before_they_are_sent(): void
+    public function test_it_can_abandon_requests_before_they_are_sent(): void
     {
         // Arrange
         Event::listen(function (RequestBeforeProcess $event) {
@@ -149,8 +143,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         $this->assertTrue($requestInsurance->hasState(State::ABANDONED));
     }
 
-    /** @test */
-    public function it_can_complete_requests_before_they_are_sent(): void
+    public function test_it_can_complete_requests_before_they_are_sent(): void
     {
         // Arrange
         Event::listen(function (RequestBeforeProcess $event) {
@@ -177,8 +170,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         $this->assertTrue($requestInsurance->hasState(State::COMPLETED));
     }
 
-    /** @test */
-    public function it_can_fail_requests_before_they_are_sent(): void
+    public function test_it_can_fail_requests_before_they_are_sent(): void
     {
         // Arrange
         Event::listen(function (RequestBeforeProcess $event) {
