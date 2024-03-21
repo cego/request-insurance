@@ -6,19 +6,23 @@ use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 
 class HttpResponse
 {
     protected Response $response;
     protected ConnectException $connectException;
+    protected RequestException $requestException;
 
     /**
-     * @param Response|ConnectException $response
+     * @param Response|ConnectException|RequestException $response
      */
     public function __construct($response)
     {
         if ($response instanceof ConnectException) {
             $this->connectException = $response;
+        } elseif ($response instanceof RequestException) {
+            $this->requestException = $response;
         } elseif ($response !== null) {
             $this->response = $response;
         }
@@ -60,6 +64,18 @@ class HttpResponse
     }
 
     /**
+     * Returns true when the request failed due to a Guzzle RequestException.
+     * The RequestException is a generalization of some other Guzzle exceptions,
+     * specifically BadResponseException, TooManyRedirectsException.
+     *
+     * @return bool
+     */
+    public function isRequestException(): bool
+    {
+        return isset($this->requestException);
+    }
+
+    /**
      * Logs the reason for the inconsistent state if the response is in an inconsistent state
      *
      * @return void
@@ -72,9 +88,17 @@ class HttpResponse
 
         if ($this->isTimedOut()) {
             Log::error($this->connectException);
-        } else {
-            Log::error('No response object nor connect exception received for request');
+
+            return;
         }
+
+        if ($this->isRequestException()) {
+            Log::error($this->requestException);
+
+            return;
+        }
+
+        Log::error('No response object, connect exception nor request exception was received for request');
     }
 
     /**
@@ -150,6 +174,10 @@ class HttpResponse
             return '<REQUEST_TIMED_OUT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
         }
 
+        if ($this->isRequestException()) {
+            return '<REQUEST_EXCEPTION : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
+        }
+
         if ($this->isInconsistent()) {
             return '<REQUEST_INCONSISTENT : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>';
         }
@@ -174,7 +202,7 @@ class HttpResponse
     }
 
     /**
-     * Gets the execution tim of the request
+     * Gets the execution time of the request
      *
      * @return float
      */
