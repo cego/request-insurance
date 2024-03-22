@@ -11,6 +11,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use GuzzleHttp\TransferStats;
 use Cego\RequestInsurance\Events;
+use Illuminate\Support\Enumerable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Crypt;
@@ -40,7 +41,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
  * @property int|null $timeout_ms
  * @property string|null $trace_id
  * @property string|array|null $encrypted_fields
- * @property string|array $response_headers
+ * @property string|array|Enumerable $response_headers
  * @property string $response_body
  * @property int $response_code
  * @property int $retry_count
@@ -228,6 +229,11 @@ class RequestInsurance extends SaveRetryingModel
             // We make sure to json encode response headers to json if passed as an array
             if (is_array($request->response_headers)) {
                 $request->response_headers = json_encode($request->response_headers, JSON_THROW_ON_ERROR);
+            }
+
+            // We make sure to json encode response headers to json if passed as an Enumerable
+            if ($request->response_headers instanceof Enumerable) {
+                $request->response_headers = json_encode($request->response_headers->all(), JSON_THROW_ON_ERROR);
             }
         });
 

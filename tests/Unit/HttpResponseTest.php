@@ -10,24 +10,21 @@ use GuzzleHttp\Exception\TooManyRedirectsException;
 
 class HttpResponseTest extends TestCase
 {
-    /** @test */
-    public function it_can_initialize_with_request_exception()
+    public function test_it_can_initialize_with_request_exception()
     {
         $httpResponse = new HttpResponse(new RequestException('F', new Request('GET', 'www.notaplaceforsho.dk')));
 
         $this->assertTrue($httpResponse->isRequestException());
     }
 
-    /** @test */
-    public function it_can_initialize_with_bad_response_exception()
+    public function test_it_can_initialize_with_bad_response_exception()
     {
         $httpResponse = new HttpResponse(new BadResponseException('F', new Request('GET', 'www.notaplaceforsho.dk'), new Response()));
 
         $this->assertTrue($httpResponse->isRequestException());
     }
 
-    /** @test */
-    public function it_can_initialize_with_too_many_redirects_exception()
+    public function test_it_can_initialize_with_too_many_redirects_exception()
     {
         $httpResponse = new HttpResponse(new TooManyRedirectsException('F', new Request('GET', 'www.notaplaceforsho.dk')));
 
