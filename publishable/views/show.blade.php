@@ -37,6 +37,7 @@ use Jfcherng\Diff\DiffHelper;
                             @if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
                                 <div class="mt-2">
                                     <form method="POST" action="{{ route('request-insurance-edits.create', $requestInsurance) }}">
+                                        @csrf
                                         <input type="hidden" name="_method" value="post">
                                         <button class="btn btn-primary" type="submit">Edit</button>
                                     </form>
@@ -192,6 +193,7 @@ use Jfcherng\Diff\DiffHelper;
                                             </div>
                                             <div class="card-text">
                                                 <form method="POST" action="{{ route('request-insurance-edits.update', $edit) }}">
+                                                    @csrf
                                                     <table class="table-hover w-100 table-vertical table-striped">
                                                         <tbody>
                                                         <tr>
@@ -261,6 +263,7 @@ use Jfcherng\Diff\DiffHelper;
                                                     </div>
                                                 </form>
                                                 <form method="POST" action="{{ route('request-insurance-edits.destroy', $edit) }}">
+                                                    @csrf
                                                     <div class="m-2">
                                                         @if ( $canModifyEdit )
                                                             <input type="hidden" name="_method" value="delete">
@@ -299,12 +302,14 @@ use Jfcherng\Diff\DiffHelper;
                                                             @endphp
                                                             @if($approvalsByUser->count() == 0)
                                                                 <form class="ml-2" method="POST" action="{{ route('request-insurance-edit-approvals.create', $edit) }}">
+                                                                    @csrf
                                                                     <input type="hidden" name="_method" value="post">
                                                                     <button class="btn btn-primary" type="submit"
                                                                             @disabled( ! $canApproveEdit)>Approve</button>
                                                                 </form>
                                                             @else
                                                                 <form class="ml-2" method="POST" action="{{ route('request-insurance-edit-approvals.destroy', $approvalsByUser->first()) }}">
+                                                                    @csrf
                                                                     <input type="hidden" name="_method" value="delete">
                                                                     <button class="btn btn-secondary" type="submit">Remove approval</button>
                                                                 </form>
@@ -314,6 +319,7 @@ use Jfcherng\Diff\DiffHelper;
                                                     <td>
                                                         @if($canModifyEdit)
                                                             <form class="ml-2" method="POST" action="{{ route('request-insurances-edits.apply', $edit) }}">
+                                                                @csrf
                                                                 <input type="hidden" name="_method" value="post">
                                                                 <button class="btn btn-primary" type="submit"
                                                                         @disabled( ! $canApplyEdit)>Apply</button>
