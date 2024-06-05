@@ -38,7 +38,7 @@ class RequestInsuranceBuilder
     public function url(string $url): RequestInsuranceBuilder
     {
         // These characters are specifically allowed in our URL, as FILTER_VALIDATE_URL will not accept them
-        $allowedSpecialCharacters = ['æ', 'ø', 'å', 'ä', 'ö'];
+        $allowedSpecialCharacters = ['æ', 'ø', 'å', 'ä', 'ö', '_'];
 
         if (filter_var(Str::remove($allowedSpecialCharacters, $url), FILTER_VALIDATE_URL) === false) {
             throw new InvalidArgumentException(sprintf('Invalid request insurance url: "%s"', $url));
