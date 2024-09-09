@@ -2,7 +2,7 @@
 
 [![QA](https://github.com/cego/request-insurance/actions/workflows/quality-assurance.yml/badge.svg)](https://github.com/cego/request-insurance/actions/workflows/quality-assurance.yml)
 
-# Supported version
+# Supported versions
 
 | Package version | PHP versions supported | Status
 |-----------------|------------------------|---|
