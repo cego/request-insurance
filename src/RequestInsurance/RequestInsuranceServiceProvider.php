@@ -67,6 +67,11 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             EditApprovalsStatus::class,
             PrettyPrintTextArea::class,
         ]);
+
+        // To avoid a hard dependency on spatie/prometheus-laravel and keep non-laravel and 7.4 support.
+        if (class_exists('Spatie\Prometheus\Prometheus')) {
+            $this->app->make(RequestInsuranceMetrics::class)->registerMetrics();
+        }
     }
 
     /**

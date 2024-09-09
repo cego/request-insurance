@@ -14,7 +14,7 @@ if (extension_loaded('opentelemetry') === false) {
     return;
 }
 
-if(class_exists(CachedInstrumentation::class) === false) {
+if (class_exists(CachedInstrumentation::class) === false) {
     return;
 }
 
