@@ -6,7 +6,6 @@ use Closure;
 use Exception;
 use Throwable;
 use Carbon\Carbon;
-use Nbj\Stopwatch;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
@@ -74,12 +73,14 @@ class RequestInsuranceWorker
                     DB::reconnect();
                 }
 
-                $executionTime = Stopwatch::time(function () {
-                    $this->processRequestInsurances();
-                    $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
-                });
+                $start = hrtime(true);
 
-                $waitTime = (int) max(Config::get('request-insurance.microSecondsToWait') - $executionTime->microseconds(), 0);
+                $this->processRequestInsurances();
+                $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
+
+                $executionTimeNs = hrtime(true) - $start;
+
+                $waitTime = (int) max(Config::get('request-insurance.microSecondsToWait') - ($executionTimeNs / 1000), 0);
 
                 usleep($waitTime);
             } catch (Throwable $throwable) {
