@@ -7,6 +7,7 @@ use JsonException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
 use GuzzleHttp\TransferStats;
+use Illuminate\Support\Facades\Config;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -76,7 +77,7 @@ class RequestPool
     private function convertRequestToPromise(Client $client, RequestInsurance $requestInsurance): PromiseInterface
     {
         return $client->requestAsync($requestInsurance->method, $requestInsurance->url, [
-            'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => 'RequestInsurance']),
+            'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => sprintf('RequestInsurance %s', Config::get('app.name', 'unknown'))]),
             'body'        => $requestInsurance->payload,
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
             'on_stats'    => fn (TransferStats $stats) => $requestInsurance->setTimings($stats),
