@@ -98,5 +98,11 @@ return [
     'table_edits'          => null,
     'table_edit_approvals' => null,
 
-    'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)
+    'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true),
+
+    /*
+     | Using skip locked optimizes request insurance to run with multiple worker threads,
+     | but is unavailable in mysql versions older than 8.0.0
+     */
+    'useSkipLocked' => env('REQUEST_INSURANCE_WORKER_USE_SKIP_LOCKED', true),
 ];

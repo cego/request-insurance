@@ -310,11 +310,17 @@ class RequestInsuranceWorker
      */
     public function getIdsOfReadyRequests()
     {
-        return resolve(RequestInsurance::class)::query()
+        $builder = resolve(RequestInsurance::class)::query()
             ->select('id')
             ->readyToBeProcessed()
-            ->take(Config::get('request-insurance.batchSize'))
-            ->lock('FOR UPDATE SKIP LOCKED')
-            ->pluck('id');
+            ->take(Config::get('request-insurance.batchSize'));
+
+        if (config('request-insurance.useSkipLockede')) {
+            $builder->lock('FOR UPDATE SKIP LOCKED');
+        } else {
+            $builder->lockForUpdate();
+        }
+
+        return $builder->pluck('id');
     }
 }
