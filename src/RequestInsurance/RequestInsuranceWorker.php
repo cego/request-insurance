@@ -315,7 +315,7 @@ class RequestInsuranceWorker
             ->readyToBeProcessed()
             ->take(Config::get('request-insurance.batchSize'));
 
-        if (config('request-insurance.useSkipLockede')) {
+        if (config('request-insurance.useSkipLocked')) {
             $builder->lock('FOR UPDATE SKIP LOCKED');
         } else {
             $builder->lockForUpdate();
