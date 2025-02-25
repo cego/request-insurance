@@ -5,11 +5,12 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
 class EditUrlLengthRequestInsurances extends Migration
-{    /**
- * Run the migrations.
- *
- * @return void
- */
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
     public function up(): void
     {
         Schema::table('request_insurances', function (Blueprint $table) {
