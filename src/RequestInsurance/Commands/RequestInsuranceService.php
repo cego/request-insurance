@@ -37,6 +37,10 @@ class RequestInsuranceService extends Command
             return 0;
         }
 
+        if (class_exists(\OpenTelemetry\Context\Context::class) && ($scope = \OpenTelemetry\Context\Context::storage()->scope()) !== null) {
+            $scope->detach();
+        }
+
         // Run the service
         (new RequestInsuranceWorker())->run();
 

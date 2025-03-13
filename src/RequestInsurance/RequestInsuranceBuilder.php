@@ -205,6 +205,15 @@ class RequestInsuranceBuilder
      */
     public function create(): RequestInsurance
     {
+        // Append traceparent to header if OTEL is installed
+        if (class_exists(\OpenTelemetry\API\Trace\Propagation\TraceContextPropagator::class)) {
+            $headers = $this->data['headers'] ?? [];
+
+            \OpenTelemetry\API\Trace\Propagation\TraceContextPropagator::getInstance()->inject($headers);
+
+            $this->headers($headers);
+        }
+
         return RequestInsurance::create($this->data);
     }
 
