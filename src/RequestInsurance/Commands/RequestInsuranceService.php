@@ -4,7 +4,6 @@ namespace Cego\RequestInsurance\Commands;
 
 use Throwable;
 use Illuminate\Console\Command;
-use OpenTelemetry\Context\Context;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 
@@ -38,7 +37,7 @@ class RequestInsuranceService extends Command
             return 0;
         }
 
-        if (($scope = Context::storage()->scope()) !== null) {
+        if (class_exists(\OpenTelemetry\Context\Context::class) && ($scope = \OpenTelemetry\Context\Context::storage()->scope()) !== null) {
             $scope->detach();
         }
 
