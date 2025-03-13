@@ -4,6 +4,7 @@ namespace Cego\RequestInsurance\Commands;
 
 use Throwable;
 use Illuminate\Console\Command;
+use OpenTelemetry\Context\Context;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 
@@ -35,6 +36,10 @@ class RequestInsuranceService extends Command
         // Bail-out early if request insurance is not enabled
         if (Config::get('request-insurance.enabled') == false) {
             return 0;
+        }
+
+        if (($scope = Context::storage()->scope()) !== null) {
+            $scope->detach();
         }
 
         // Run the service
