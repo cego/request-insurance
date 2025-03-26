@@ -261,6 +261,10 @@ class RequestInsuranceWorker
     {
         $requestIds = $this->acquireLockOnRowsToProcess();
 
+        if ($requestIds->isEmpty()) {
+            return EloquentCollection::empty();
+        }
+
         // Gets requests to process ordered by priority and id
         return resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
