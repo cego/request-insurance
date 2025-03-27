@@ -205,16 +205,33 @@ class RequestInsuranceBuilder
      */
     public function create(): RequestInsurance
     {
-        // Append traceparent to header if OTEL is installed
-        if (class_exists(\OpenTelemetry\API\Trace\Propagation\TraceContextPropagator::class)) {
-            $headers = $this->data['headers'] ?? [];
-
-            \OpenTelemetry\API\Trace\Propagation\TraceContextPropagator::getInstance()->inject($headers);
-
-            $this->headers($headers);
-        }
+        $this->headers(self::injectTraceHeaders($this->data['headers'] ?? []));
 
         return RequestInsurance::create($this->data);
+    }
+
+    /**
+     * Add trace headers if either OTEL or APM is installed.
+     *
+     * @param array<string, string> $headers
+     *
+     * @return array<string, string>
+     */
+    private static function injectTraceHeaders(array $headers): array
+    {
+        if (class_exists(\OpenTelemetry\API\Trace\Propagation\TraceContextPropagator::class)) {
+            \OpenTelemetry\API\Trace\Propagation\TraceContextPropagator::getInstance()->inject($headers);
+        }
+
+        // If APM is installed and exists, inject tracing headers using APM
+        if (class_exists(\Elastic\Apm\ElasticApm::class)) {
+            \Elastic\Apm\ElasticApm::getCurrentTransaction()->getCurrentSpan()->injectDistributedTracingHeaders(function (string $headerName, string $headerValue) use (&$headers) {
+                ;
+                $headers[$headerName] = $headerValue;
+            });
+        }
+
+        return $headers;
     }
 
     /**
