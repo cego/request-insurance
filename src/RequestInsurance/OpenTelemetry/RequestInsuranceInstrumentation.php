@@ -2,29 +2,22 @@
 
 namespace Cego\RequestInsurance\OpenTelemetry;
 
-use OpenTelemetry\API\Trace\SpanKind;
 use Throwable;
 use OpenTelemetry\API\Trace\Span;
 use Illuminate\Support\Collection;
 use OpenTelemetry\Context\Context;
+use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
-use OpenTelemetry\API\Trace\TraceFlags;
-use OpenTelemetry\API\Trace\TraceState;
-use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\SemConv\TraceAttributes;
 
 use function OpenTelemetry\Instrumentation\hook;
 
 use Cego\RequestInsurance\RequestInsuranceWorker;
+
 use OpenTelemetry\API\Trace\SpanContextInterface;
-use OpenTelemetry\API\Trace\SpanContextValidator;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
-
-use OpenTelemetry\API\Trace\Propagation\TraceContextValidator;
-
-use OpenTelemetry\Context\Propagation\ArrayAccessGetterSetter;
-use OpenTelemetry\Context\Propagation\PropagationGetterInterface;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 
 class RequestInsuranceInstrumentation
 {
@@ -78,67 +71,13 @@ class RequestInsuranceInstrumentation
      */
     private function getLinksFromCollection(Collection $collection): Collection
     {
-        return $collection->map(function (RequestInsurance $requestInsurance) {
-            return $this->extractSpanContextFromRequestInsurance($requestInsurance);
+        $traceContextPropagator = TraceContextPropagator::getInstance();
+
+        return $collection->map(function (RequestInsurance $requestInsurance) use ($traceContextPropagator) {
+            return Span::fromContext($traceContextPropagator->extract($requestInsurance->headers))->getContext();
         })->filter(function (SpanContextInterface $spanContext) {
             return $spanContext->isValid();
         });
-    }
-
-    private function extractSpanContextFromRequestInsurance(RequestInsurance $requestInsurance): SpanContextInterface
-    {
-        return self::extractImpl($requestInsurance->headers, ArrayAccessGetterSetter::getInstance());
-    }
-
-    // Copied from OpenTelemetry SDK, working on a refactor
-    private static function extractImpl($carrier, PropagationGetterInterface $getter): SpanContextInterface
-    {
-        $traceparent = $getter->get($carrier, 'traceparent');
-
-        if ($traceparent === null) {
-            return SpanContext::getInvalid();
-        }
-
-        // traceParent = {version}-{trace-id}-{parent-id}-{trace-flags}
-        $pieces = explode('-', $traceparent);
-
-        // If the header does not have at least 4 pieces, it is invalid -- restart the trace.
-        if (count($pieces) < 4) {
-            return SpanContext::getInvalid();
-        }
-
-        [$version, $traceId, $spanId, $traceFlags] = $pieces;
-
-        /**
-         * Return invalid if:
-         * - Version is invalid (not 2 char hex or 'ff')
-         * - Trace version, trace ID, span ID or trace flag are invalid
-         */
-        if ( ! TraceContextValidator::isValidTraceVersion($version)
-            || ! SpanContextValidator::isValidTraceId($traceId)
-            || ! SpanContextValidator::isValidSpanId($spanId)
-            || ! TraceContextValidator::isValidTraceFlag($traceFlags)
-        ) {
-            return SpanContext::getInvalid();
-        }
-
-        // Return invalid if the trace version is not a future version but still has > 4 pieces.
-        $versionIsFuture = hexdec($version) > hexdec('00');
-
-        if (count($pieces) > 4 && ! $versionIsFuture) {
-            return SpanContext::getInvalid();
-        }
-
-        // Only the sampled flag is extracted from the traceFlags (00000001)
-        $convertedTraceFlags = hexdec($traceFlags);
-        $isSampled = ($convertedTraceFlags & TraceFlags::SAMPLED) === TraceFlags::SAMPLED;
-
-        // Only traceparent header is extracted. No tracestate.
-        return SpanContext::createFromRemoteParent(
-            $traceId,
-            $spanId,
-            $isSampled ? TraceFlags::SAMPLED : TraceFlags::DEFAULT
-        );
     }
 
     private static function hookBatchProcessing(CachedInstrumentation $instrumentation)
@@ -154,13 +93,12 @@ class RequestInsuranceInstrumentation
                 // Set messaging.batch.message_count https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/
                 $spanBuilder->setAttribute('messaging.system', 'request-insurance-worker');
 
-                if($params->count() > 1) {
+                if ($params->count() > 1) {
                     $spanBuilder->setAttribute('messaging.batch.message_count', $params->count());
                     $spanContexts->each(function (SpanContextInterface $spanContext) use ($spanBuilder) {
                         $spanBuilder->addLink($spanContext);
                     });
-                }
-                elseif($params->count() === 1) {
+                } elseif ($params->count() === 1) {
                     $spanBuilder->setParent($spanContexts->first());
                 }
 
