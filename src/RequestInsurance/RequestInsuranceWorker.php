@@ -261,7 +261,7 @@ class RequestInsuranceWorker
     {
         $requestIds = $this->acquireLockOnRowsToProcess();
 
-        if($requestIds->isEmpty()) {
+        if ($requestIds->isEmpty()) {
             return EloquentCollection::empty();
         }
 
