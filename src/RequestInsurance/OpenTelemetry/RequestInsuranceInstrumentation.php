@@ -9,12 +9,12 @@ use OpenTelemetry\Context\Context;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\TraceAttributes;
+use OpenTelemetry\Context\ContextInterface;
 
 use function OpenTelemetry\Instrumentation\hook;
 
 use Cego\RequestInsurance\RequestInsuranceWorker;
 
-use OpenTelemetry\API\Trace\SpanContextInterface;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
@@ -67,16 +67,20 @@ class RequestInsuranceInstrumentation
     /**
      * @param Collection<array-key, RequestInsurance> $collection
      *
-     * @return Collection<array-key, SpanContextInterface>
+     * @return Collection<array-key, ContextInterface>
      */
-    private function getLinksFromCollection(Collection $collection): Collection
+    private static function getLinksFromCollection(Collection $collection): Collection
     {
         $traceContextPropagator = TraceContextPropagator::getInstance();
 
         return $collection->map(function (RequestInsurance $requestInsurance) use ($traceContextPropagator) {
-            return Span::fromContext($traceContextPropagator->extract($requestInsurance->headers))->getContext();
-        })->filter(function (SpanContextInterface $spanContext) {
-            return $spanContext->isValid();
+            $headers = $requestInsurance->headers;
+
+            if ( ! is_array($headers)) {
+                $headers = json_decode($requestInsurance->headers, true, 512, JSON_THROW_ON_ERROR);
+            }
+
+            return $traceContextPropagator->extract($headers);
         });
     }
 
@@ -88,18 +92,19 @@ class RequestInsuranceInstrumentation
             static function ($object, $params) use ($instrumentation) {
                 $spanBuilder = $instrumentation->tracer()->spanBuilder('Process batch of http requests');
 
-                $spanContexts = $this->getLinksFromCollection($params[0]);
-
                 // Set messaging.batch.message_count https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/
                 $spanBuilder->setAttribute('messaging.system', 'request-insurance-worker');
 
-                if ($params->count() > 1) {
-                    $spanBuilder->setAttribute('messaging.batch.message_count', $params->count());
-                    $spanContexts->each(function (SpanContextInterface $spanContext) use ($spanBuilder) {
-                        $spanBuilder->addLink($spanContext);
+                $count = $params[0]->count();
+
+                if ($count > 1) {
+                    $spanBuilder->setAttribute('messaging.batch.message_count', $count);
+                    $spanContexts = self::getLinksFromCollection($params[0]);
+                    $spanContexts->each(function (ContextInterface $spanContext) use ($spanBuilder) {
+                        $spanBuilder->addLink(Span::fromContext($spanContext)->getContext());
                     });
-                } elseif ($params->count() === 1) {
-                    $spanBuilder->setParent($spanContexts->first());
+                } elseif ($count === 1) {
+                    $spanBuilder->setParent(self::getLinksFromCollection($params[0])->first());
                 }
 
                 $spanBuilder->setSpanKind(SpanKind::KIND_CONSUMER);
@@ -139,7 +144,7 @@ class RequestInsuranceInstrumentation
         $instrumentation = new CachedInstrumentation('dk.cego.request-insurance-instrumentation');
 
         $methodsToHook = [
-            [RequestInsuranceWorker::class, 'processRequestInsurances', 'Process request insurances'],
+            [RequestInsuranceWorker::class, 'getRequestsToProcess', 'Get request insurances to process'],
             [RequestInsuranceWorker::class, 'readyWaitingRequestInsurances', 'Ready waiting request insurances'],
         ];
 
