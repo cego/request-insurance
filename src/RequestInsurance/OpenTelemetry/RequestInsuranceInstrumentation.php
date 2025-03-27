@@ -90,7 +90,7 @@ class RequestInsuranceInstrumentation
             RequestInsuranceWorker::class,
             'processHttpRequestChunk',
             static function ($object, $params) use ($instrumentation) {
-                $spanBuilder = $instrumentation->tracer()->spanBuilder('Process batch of http requests');
+                $spanBuilder = $instrumentation->tracer()->spanBuilder('RequestInsuranceWorker::processHttpRequestChunk');
 
                 // Set messaging.batch.message_count https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/
                 $spanBuilder->setAttribute('messaging.system', 'request-insurance-worker');
@@ -144,8 +144,8 @@ class RequestInsuranceInstrumentation
         $instrumentation = new CachedInstrumentation('dk.cego.request-insurance-instrumentation');
 
         $methodsToHook = [
-            [RequestInsuranceWorker::class, 'getRequestsToProcess', 'Get request insurances to process'],
-            [RequestInsuranceWorker::class, 'readyWaitingRequestInsurances', 'Ready waiting request insurances'],
+            [RequestInsuranceWorker::class, 'getRequestsToProcess', 'RequestInsuranceWorker::getRequestsToProcess'],
+            [RequestInsuranceWorker::class, 'readyWaitingRequestInsurances', 'RequestInsuranceWorker::readyWaitingRequestInsurances'],
         ];
 
         foreach ($methodsToHook as $methodToHook) {
