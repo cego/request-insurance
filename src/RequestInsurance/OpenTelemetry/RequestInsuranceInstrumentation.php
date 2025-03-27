@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance\OpenTelemetry;
 
+use OpenTelemetry\API\Trace\SpanKind;
 use Throwable;
 use OpenTelemetry\API\Trace\Span;
 use Illuminate\Support\Collection;
@@ -150,9 +151,20 @@ class RequestInsuranceInstrumentation
 
                 $spanContexts = $this->getLinksFromCollection($params[0]);
 
-                $spanContexts->each(function (SpanContextInterface $spanContext) use ($spanBuilder) {
-                    $spanBuilder->addLink($spanContext);
-                });
+                // Set messaging.batch.message_count https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/
+                $spanBuilder->setAttribute('messaging.system', 'request-insurance-worker');
+
+                if($params->count() > 1) {
+                    $spanBuilder->setAttribute('messaging.batch.message_count', $params->count());
+                    $spanContexts->each(function (SpanContextInterface $spanContext) use ($spanBuilder) {
+                        $spanBuilder->addLink($spanContext);
+                    });
+                }
+                elseif($params->count() === 1) {
+                    $spanBuilder->setParent($spanContexts->first());
+                }
+
+                $spanBuilder->setSpanKind(SpanKind::KIND_CONSUMER);
 
                 $span = $spanBuilder->startSpan();
                 Context::storage()->attach($span->storeInContext(Context::getCurrent()));
