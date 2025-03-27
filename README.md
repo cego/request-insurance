@@ -5,6 +5,7 @@
 # Supported versions
 
 | Package version | PHP versions supported | Status
-|-----------------|------------------------|---|
-| ^1            | ^7.4,^8.0              | Security and bug fixes only
-| ^2            | ^8.3                   | Active development
+|----------|------------------------|---|
+| ^1       | ^7.4,^8.0              | Security and bug fixes only
+| ^2       | ^8.3                   | Security and bug fixes only
+| ^3       | ^8.3                   | Active development
