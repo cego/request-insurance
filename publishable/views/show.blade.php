@@ -72,8 +72,12 @@ use Jfcherng\Diff\DiffHelper;
                                     <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Url:</td>
+                                    <td>Url (decoded):</td>
                                     <td>{{ urldecode($requestInsurance->url) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Url</td>
+                                    <td>{{ $requestInsurance->url }}</td>
                                 </tr>
                                 <tr>
                                     <td>Payload:</td>
