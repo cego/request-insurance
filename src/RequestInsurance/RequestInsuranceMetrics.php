@@ -25,5 +25,15 @@ class RequestInsuranceMetrics
                 [fn () => RequestInsurance::query()->where('state', State::PROCESSING)->count(), [State::PROCESSING]],
                 [fn () => RequestInsurance::query()->where('state', State::WAITING)->count(), [State::WAITING]],
             ]);
+
+        $this->prometheus->addGauge('request_insurances_ready_lag_seconds')
+            ->namespace('request_insurance')
+            ->value(fn () => [
+                [
+                    fn () => RequestInsurance::query()->where('state', State::READY)
+                        ->whereNotNull('ready_at')
+                        ->min('ready_at') - now()->timestamp
+                ],
+            ]);
     }
 }
