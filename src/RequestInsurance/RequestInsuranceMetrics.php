@@ -2,6 +2,7 @@
 
 namespace Cego\RequestInsurance;
 
+use Illuminate\Support\Carbon;
 use Spatie\Prometheus\Prometheus;
 use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
@@ -25,5 +26,14 @@ class RequestInsuranceMetrics
                 [fn () => RequestInsurance::query()->where('state', State::PROCESSING)->count(), [State::PROCESSING]],
                 [fn () => RequestInsurance::query()->where('state', State::WAITING)->count(), [State::WAITING]],
             ]);
+
+        $this->prometheus->addGauge('ready_delta_time_lag')
+            ->namespace('request_insurance')
+            ->helpText('The time, in seconds, since the earliest ready RI in queue was became ready.')
+            ->value(function () {
+                $now = now();
+
+                return Carbon::parse(RequestInsurance::where('state', '=', State::READY)->min('state_changed_at') ?? $now)->diffInSeconds($now);
+            });
     }
 }

@@ -60,4 +60,30 @@ class MetricsTest extends TestCase
         $response->assertSee('request_insurances_count{status="PROCESSING"} 1', false);
         $response->assertSee('request_insurances_count{status="WAITING"} 1', false);
     }
+
+    public function test_it_gets_no_lag_with_no_ready_ri()
+    {
+        $response = $this->get('prometheus');
+
+        $response->assertStatus(200);
+
+        // Assert that the response contains the metrics for ready_delta_time_lag
+        $response->assertSee('ready_delta_time_lag 0', false);
+    }
+
+    public function test_it_gets_lag_with_ready_ri(): void
+    {
+        RequestInsurance::factory()->createMany([
+            ['state' => 'READY', 'state_changed_at' => now()->subMinutes(5)],
+            ['state' => 'READY', 'state_changed_at' => now()->subMinutes(10)],
+            ['state' => 'READY', 'state_changed_at' => now()->subMinutes(5)],
+        ]);
+
+        $response = $this->get('prometheus');
+
+        $response->assertStatus(200);
+
+        // Assert that the response contains the metrics for ready_delta_time_lag
+        $response->assertSee('ready_delta_time_lag 600', false);
+    }
 }
