@@ -32,7 +32,7 @@ class RequestInsuranceMetrics
                 [
                     fn () => RequestInsurance::query()->where('state', State::READY)
                         ->whereNotNull('ready_at')
-                        ->min('ready_at') - now()->timestamp
+                        ->min('ready_at') - now()->timestamp,
                 ],
             ]);
     }
