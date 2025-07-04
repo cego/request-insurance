@@ -69,6 +69,8 @@ class RequestInsuranceWorker
 
         do {
             try {
+                $this->registerTimeoutHandler();
+
                 if (Config::get('request-insurance.useDbReconnect')) {
                     DB::reconnect();
                 }
@@ -84,16 +86,18 @@ class RequestInsuranceWorker
 
                 usleep($waitTime);
             } catch (Throwable $throwable) {
+                $this->resetTimeoutHandler(); // We need to reset here before logging the error and sleeping, otherwise the timeout handler might trigger while we are sleeping/logging, which is not desirable.
+
                 Log::error($throwable);
 
                 if ($runOnlyOnce) {
                     throw $throwable;
                 }
 
-                sleep(5); // Sleep to avoid spamming the log
+                usleep(100_000); // Sleep to avoid spamming the log
+            } finally {
+                $this->resetTimeoutHandler();
             }
-
-            pcntl_signal_dispatch();
         } while ( ! $runOnlyOnce && ! $this->shutdownSignalReceived);
 
         Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
@@ -107,6 +111,7 @@ class RequestInsuranceWorker
      */
     protected function setupShutdownSignalHandler(): void
     {
+        pcntl_async_signals(true);
         pcntl_signal(SIGQUIT, [$this, 'sig_handler']); // Code 3
         pcntl_signal(SIGTERM, [$this, 'sig_handler']); // Code 15
     }
@@ -326,5 +331,23 @@ class RequestInsuranceWorker
         }
 
         return $builder->pluck('id');
+    }
+
+    private function registerTimeoutHandler()
+    {
+        pcntl_signal(SIGALRM, function () {
+            Log::debug('Timeout handler was triggered indicating stuck worker, exiting...');
+
+            if (($pid = getmypid()) === false) {
+                posix_kill($pid, SIGKILL);
+            }
+            exit(1);
+        });
+        pcntl_alarm(Config::integer('request-insurance.maximumSecondsPerWorkerCycle', 60));
+    }
+
+    private function resetTimeoutHandler(): void
+    {
+        pcntl_alarm(0);
     }
 }
