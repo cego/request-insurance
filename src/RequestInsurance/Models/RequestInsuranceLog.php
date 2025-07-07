@@ -24,6 +24,8 @@ class RequestInsuranceLog extends SaveRetryingModel
 {
     use HasFactory;
 
+    public $dateFormat = 'Y-m-d H:i:s.u';
+
     /**
      * Indicates if all mass assignment is enabled.
      *
