@@ -343,7 +343,7 @@ class RequestInsuranceWorker
             }
             exit(1);
         });
-        pcntl_alarm(Config::integer('request-insurance.maximumSecondsPerWorkerCycle', 60));
+        pcntl_alarm(Config::integer('request-insurance.maximumSecondsPerWorkerCycle', 120));
     }
 
     private function resetTimeoutHandler(): void
