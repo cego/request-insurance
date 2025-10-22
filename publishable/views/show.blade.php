@@ -8,19 +8,21 @@ use Jfcherng\Diff\DiffHelper;
 @section("content")
 
     @php
-        function getEditErrorMessage($editId, $field) {
-            $requestInsuranceEdit = Session::get('requestInsuranceEdit');
-            $requestErrors = Session::get('requestErrors');
-            if ( empty($requestInsuranceEdit)){
-                return "";
+        if(!function_exists('getEditErrorMessage')){
+            function getEditErrorMessage($editId, $field) {
+                $requestInsuranceEdit = Session::get('requestInsuranceEdit');
+                $requestErrors = Session::get('requestErrors');
+                if ( empty($requestInsuranceEdit)){
+                    return "";
+                }
+                if ($requestInsuranceEdit->id != $editId){
+                    return "";
+                }
+                if ( empty($requestErrors[$field])){
+                    return "";
+                }
+                return $requestErrors[$field];
             }
-            if ($requestInsuranceEdit->id != $editId){
-                return "";
-            }
-            if ( empty($requestErrors[$field])){
-                return "";
-            }
-            return $requestErrors[$field];
         }
     @endphp
     <div class="container-flex mt-5 col-12">
