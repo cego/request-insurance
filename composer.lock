@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9f5c9111ea8d439fd7e30c521f7e4d4f",
+    "content-hash": "dc73451b7459a205b410fdf5869205fd",
     "packages": [
         {
             "name": "brick/math",
@@ -10225,21 +10225,21 @@
         },
         {
             "name": "spatie/laravel-prometheus",
-            "version": "1.2.1",
+            "version": "1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-prometheus.git",
-                "reference": "902e258ad382a5391f8679fd20a90b50062b9326"
+                "reference": "749a8f5e8c3a76b9f6e81547a47b090319ef9bf7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-prometheus/zipball/902e258ad382a5391f8679fd20a90b50062b9326",
-                "reference": "902e258ad382a5391f8679fd20a90b50062b9326",
+                "url": "https://api.github.com/repos/spatie/laravel-prometheus/zipball/749a8f5e8c3a76b9f6e81547a47b090319ef9bf7",
+                "reference": "749a8f5e8c3a76b9f6e81547a47b090319ef9bf7",
                 "shasum": ""
             },
             "require": {
                 "illuminate/config": "*",
-                "illuminate/contracts": "^11.0|^12.0",
+                "illuminate/contracts": "^10.0|^11.0|^12.0",
                 "illuminate/support": "*",
                 "php": "^8.3",
                 "promphp/prometheus_client_php": "^2.7.1",
@@ -10251,13 +10251,13 @@
                 "laravel/horizon": "^5.16.1",
                 "laravel/pint": "^1.10",
                 "mockery/mockery": "^1.6",
-                "nunomaduro/collision": "^7|^8",
-                "orchestra/testbench": "^8.5.5|^9|^10.0",
-                "pestphp/pest": "^2.6.2|^3.0",
-                "pestphp/pest-plugin-arch": "^2.2",
+                "nunomaduro/collision": "^7.0|^8.0",
+                "orchestra/testbench": "^8.5.5|^9.0|^10.0",
+                "pestphp/pest": "^3.0",
+                "pestphp/pest-plugin-arch": "^3.0",
                 "pestphp/pest-plugin-laravel": "^3.0",
                 "spatie/laravel-ray": "^1.32.4",
-                "spatie/pest-plugin-snapshots": "^3.0"
+                "spatie/pest-plugin-snapshots": "^2.0"
             },
             "type": "library",
             "extra": {
@@ -10296,9 +10296,9 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-prometheus/issues",
-                "source": "https://github.com/spatie/laravel-prometheus/tree/1.2.1"
+                "source": "https://github.com/spatie/laravel-prometheus/tree/1.3.0"
             },
-            "time": "2025-02-14T10:30:39+00:00"
+            "time": "2025-09-15T12:51:37+00:00"
         },
         {
             "name": "staabm/side-effects-detector",
@@ -10876,7 +10876,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -10884,8 +10884,9 @@
         "ext-json": "*",
         "ext-mbstring": "*",
         "ext-pcntl": "*",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "ext-posix": "*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }
