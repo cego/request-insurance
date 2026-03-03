@@ -617,11 +617,11 @@ class RequestInsurance extends SaveRetryingModel
             $query->whereIn('state', $searchedStates);
         }
 
-        if ($request->has('url') && trim($request->get('url'))) {
+        if ($request->filled('url')) {
             $query = $query->where('url', 'like', $request->get('url'));
         }
 
-        if ($request->has('trace_id') && trim($request->get('trace_id'))) {
+        if ($request->filled('trace_id')) {
             $query = $query->where('trace_id', $request->get('trace_id'));
         }
 
