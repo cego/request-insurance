@@ -608,7 +608,7 @@ class RequestInsurance extends SaveRetryingModel
         $searchedStates = [];
 
         foreach (State::getAll() as $state) {
-            if ($request->get($state) == 'on') {
+            if ($request->query($state) == 'on') {
                 $searchedStates[] = $state;
             }
         }
@@ -618,22 +618,22 @@ class RequestInsurance extends SaveRetryingModel
         }
 
         if ($request->filled('url')) {
-            $query = $query->where('url', 'like', $request->get('url'));
+            $query = $query->where('url', 'like', $request->query('url'));
         }
 
         if ($request->filled('trace_id')) {
-            $query = $query->where('trace_id', $request->get('trace_id'));
+            $query = $query->where('trace_id', $request->query('trace_id'));
         }
 
         try {
-            if ($request->has('from') && $request->get('from') != null) {
-                $from = Carbon::parse($request->get('from'));
+            if ($request->has('from') && $request->query('from') != null) {
+                $from = Carbon::parse($request->query('from'));
                 $query = $query->whereDate('created_at', '>=', $from);
                 $query = $query->whereTime('created_at', '>=', $from);
             }
 
-            if ($request->has('to') && $request->get('to') != null) {
-                $to = Carbon::parse($request->get('to'));
+            if ($request->has('to') && $request->query('to') != null) {
+                $to = Carbon::parse($request->query('to'));
                 $query = $query->whereDate('created_at', '<=', $to);
                 $query = $query->whereTime('created_at', '<=', $to);
             }
