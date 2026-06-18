@@ -94,9 +94,13 @@ class RequestInsuranceServiceProvider extends ServiceProvider
 
         // Add specific commands to the schedule
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
-            $schedule->command('unlock:request-insurances')->everyFiveMinutes()->withoutOverlapping()->runInBackground();
-            $schedule->command('clean:request-insurances')->everyTenMinutes()->withoutOverlapping()->runInBackground();
-            $schedule->command('request-insurance:unstuck-processing')->everyTenMinutes()->withoutOverlapping()->runInBackground();
+            $appOffset = crc32((string) config('app.name', ''));
+            $fiveMinutes = 5;
+            $tenMinutes = 10;
+
+            $schedule->command('unlock:request-insurances')->cron(sprintf('%d-59/%d * * * *', $appOffset % $fiveMinutes, $fiveMinutes))->withoutOverlapping()->runInBackground();
+            $schedule->command('clean:request-insurances')->cron(sprintf('%d-59/%d * * * *', $appOffset % $tenMinutes, $tenMinutes))->withoutOverlapping()->runInBackground();
+            $schedule->command('request-insurance:unstuck-processing')->cron(sprintf('%d-59/%d * * * *', ($appOffset + 3) % $tenMinutes, $tenMinutes))->withoutOverlapping()->runInBackground();
         });
     }
 
