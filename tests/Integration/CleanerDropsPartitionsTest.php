@@ -25,6 +25,7 @@ class CleanerDropsPartitionsTest extends IntegrationTestCase
         $deletes = [];
         DB::listen(static function ($query) use (&$deletes) {
             $sql = strtolower($query->sql);
+
             if (str_contains($sql, 'delete') && str_contains($sql, 'request_insurances')) {
                 $deletes[] = $query->sql;
             }

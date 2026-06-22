@@ -60,6 +60,7 @@ class PostgresPartitionManager extends PartitionManager
         // Re-own the legacy sequence to the new table's id column so identity keeps incrementing.
         $seqRow = $this->connection->selectOne('SELECT pg_get_serial_sequence(?, ?) AS s', [$legacy, 'id']);
         $seq = $seqRow?->s;
+
         if ($seq !== null) {
             $this->connection->statement("ALTER SEQUENCE {$seq} OWNED BY \"{$table}\".id");
             $this->connection->statement("ALTER TABLE \"{$table}\" ALTER COLUMN id SET DEFAULT nextval('{$seq}')");
@@ -75,6 +76,7 @@ class PostgresPartitionManager extends PartitionManager
             : PartitionWindow::forDate(CarbonImmutable::now('UTC'), $this->granularity);
 
         $windows = PartitionWindow::range($first->start(), CarbonImmutable::now('UTC')->addDays($this->precreateAhead), $this->granularity);
+
         foreach ($windows as $window) {
             $this->createPartition($table, $window);
         }
@@ -117,6 +119,7 @@ class PostgresPartitionManager extends PartitionManager
 
         foreach ($windows as $window) {
             $child = "{$table}_{$window->name()}";
+
             if ( ! in_array($child, $existing, true)) {
                 $this->createPartition($table, $window);
             }
@@ -141,13 +144,16 @@ class PostgresPartitionManager extends PartitionManager
         }
 
         $dropped = [];
+
         foreach ($this->partitionRanges($table) as $childName => [$start, $end]) {
             if ($end === null) {
                 continue; // DEFAULT catch-all is never dropped
             }
+
             if ($end->greaterThan($olderThan)) {
                 continue; // partition still within retention window
             }
+
             if ( ! $partitionIsSafeToDrop($start, $end)) {
                 Log::warning("Skipping drop of partition {$childName} on {$table}: contains non-terminal rows");
 
@@ -204,6 +210,7 @@ class PostgresPartitionManager extends PartitionManager
         );
 
         $ranges = [];
+
         foreach ($rows as $r) {
             if (str_contains($r->bound, 'DEFAULT')) {
                 $ranges[$r->relname] = [CarbonImmutable::createFromTimestamp(0, 'UTC'), null];

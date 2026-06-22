@@ -2,10 +2,10 @@
 
 namespace Tests\Unit;
 
-use Tests\TestCase;
 use Carbon\Carbon;
-use Cego\RequestInsurance\Enums\State;
+use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class WorkerPartitionPruningTest extends TestCase
@@ -20,6 +20,7 @@ class WorkerPartitionPruningTest extends TestCase
         $sawCreatedAtBound = false;
         DB::listen(function ($query) use (&$sawCreatedAtBound) {
             $sql = strtolower($query->sql);
+
             if (str_starts_with($sql, 'update') && str_contains($sql, 'created_at')) {
                 $sawCreatedAtBound = true;
             }

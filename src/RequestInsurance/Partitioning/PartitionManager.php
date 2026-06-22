@@ -10,8 +10,8 @@ abstract class PartitionManager
 {
     public function __construct(
         protected readonly ConnectionInterface $connection,
-        protected readonly string $granularity = PartitionGranularity::DAILY,
-        protected readonly int $precreateAhead = 7,
+        protected readonly string              $granularity = PartitionGranularity::DAILY,
+        protected readonly int                 $precreateAhead = 7,
     ) {
         PartitionGranularity::assertValid($this->granularity);
     }

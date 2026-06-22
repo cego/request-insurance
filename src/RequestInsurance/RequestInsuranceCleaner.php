@@ -4,8 +4,8 @@ namespace Cego\RequestInsurance;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Enums\State;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Models\RequestInsuranceLog;
 use Cego\RequestInsurance\Partitioning\PartitionManagerFactory;

@@ -67,6 +67,7 @@ class PartitionMigrationTest extends IntegrationTestCase
 
         // Rows inserted immediately after the cutover persist in the partitioned table.
         $insertedIds = [];
+
         for ($i = 0; $i < 3; $i++) {
             $insertedIds[] = RequestInsurance::factory()->create(['state' => State::READY, 'created_at' => Carbon::now('UTC')])->id;
         }

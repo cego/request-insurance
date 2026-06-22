@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use Tests\TestCase;
 use Carbon\Carbon;
+use Tests\TestCase;
 use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
@@ -54,6 +54,7 @@ class HasCompositeCreatedAtKeyTest extends TestCase
                 if ($b instanceof \DateTimeInterface) {
                     return $b->format('Y-m-d H:i:s.u');
                 }
+
                 return (string) $b;
             },
             $bindings

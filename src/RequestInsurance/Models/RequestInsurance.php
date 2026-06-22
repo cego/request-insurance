@@ -27,8 +27,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Cego\RequestInsurance\Factories\RequestInsuranceFactory;
-use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 use Cego\RequestInsurance\Models\Concerns\HasCompositeCreatedAtKey;
+use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
 /**
  * Class RequestInsurance

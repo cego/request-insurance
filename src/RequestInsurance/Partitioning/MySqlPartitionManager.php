@@ -106,13 +106,16 @@ class MySqlPartitionManager extends PartitionManager
         $logsPartitions = $logsIsPartitioned ? $this->existingPartitionNames($logsTable) : [];
 
         $dropped = [];
+
         foreach ($this->partitionRanges($table) as $name => [$start, $end]) {
             if ($name === 'pmax' || $end === null) {
                 continue; // never drop the catch-all
             }
+
             if ($end->greaterThan($olderThan)) {
                 continue; // partition still within retention window
             }
+
             if ( ! $partitionIsSafeToDrop($start, $end)) {
                 Log::warning("Skipping drop of partition {$name} on {$table}: contains non-terminal rows");
 
@@ -163,6 +166,7 @@ class MySqlPartitionManager extends PartitionManager
 
         $ranges = [];
         $prevEnd = null;
+
         foreach ($rows as $r) {
             if (str_contains($r->pd, 'MAXVALUE')) {
                 $ranges[$r->pn] = [$prevEnd ?? CarbonImmutable::createFromTimestamp(0, 'UTC'), null];
@@ -214,6 +218,7 @@ class MySqlPartitionManager extends PartitionManager
         $windows = PartitionWindow::range($first->start(), $now->addDays($this->precreateAhead), $this->granularity);
 
         $parts = [];
+
         foreach ($windows as $w) {
             $parts[] = sprintf("PARTITION %s VALUES LESS THAN ('%s')", $w->name(), $w->end()->toDateTimeString());
         }

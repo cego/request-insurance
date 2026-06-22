@@ -14,8 +14,8 @@ class PartitionManagerFactory
 
         return match ($connection->getDriverName()) {
             'mysql', 'mariadb' => new MySqlPartitionManager($connection, $granularity, $ahead),
-            'pgsql'            => new PostgresPartitionManager($connection, $granularity, $ahead),
-            default            => new UnsupportedPartitionManager($connection, $granularity, $ahead),
+            'pgsql' => new PostgresPartitionManager($connection, $granularity, $ahead),
+            default => new UnsupportedPartitionManager($connection, $granularity, $ahead),
         };
     }
 }

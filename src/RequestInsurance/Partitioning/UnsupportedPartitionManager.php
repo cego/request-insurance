@@ -4,8 +4,8 @@ namespace Cego\RequestInsurance\Partitioning;
 
 use Closure;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Enums\State;
+use Illuminate\Support\Facades\Config;
 
 class UnsupportedPartitionManager extends PartitionManager
 {

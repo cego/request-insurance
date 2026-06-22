@@ -3,8 +3,8 @@
 namespace Tests\Integration;
 
 use Carbon\CarbonImmutable;
-use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\DB;
+use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Partitioning\PartitionManagerFactory;
 
 class MySqlPartitionManagerTest extends IntegrationTestCase
@@ -121,6 +121,7 @@ class MySqlPartitionManagerTest extends IntegrationTestCase
 
         $rows = [];
         $states = [State::COMPLETED, State::COMPLETED, State::COMPLETED, State::READY, State::PENDING];
+
         foreach ($states as $i => $state) {
             $createdAt = $now->subMinutes(($i + 1) * 5)->toDateTimeString();
             $rows[] = [
@@ -143,6 +144,7 @@ class MySqlPartitionManagerTest extends IntegrationTestCase
 
         // One log per row so we can verify only active rows' logs are carried over.
         $logs = [];
+
         foreach ($rows as $i => $row) {
             $logs[] = [
                 'id'                   => $i + 1,
