@@ -5,6 +5,7 @@ namespace Cego\RequestInsurance\Partitioning;
 use Closure;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Config;
+use Cego\RequestInsurance\Enums\State;
 
 class UnsupportedPartitionManager extends PartitionManager
 {
@@ -32,7 +33,7 @@ class UnsupportedPartitionManager extends PartitionManager
 
         $this->connection->table($table)
             ->where('created_at', '<', $olderThan->toDateTimeString())
-            ->whereIn('state', ['COMPLETED', 'ABANDONED'])
+            ->whereIn('state', [State::COMPLETED, State::ABANDONED])
             ->orderBy('id')
             ->chunkById($chunkSize, function ($rows) use ($table, $logsTable) {
                 $ids = collect($rows)->pluck('id')->all();
