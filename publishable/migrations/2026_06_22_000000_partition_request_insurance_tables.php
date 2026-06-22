@@ -18,6 +18,16 @@ class PartitionRequestInsuranceTables extends Migration
      */
     public $withinTransaction = true;
 
+    /**
+     * TEST-ONLY seam. When set to false by the test harness, up() becomes a
+     * no-op so that manager integration tests can start from plain tables.
+     * This is NOT reachable via any consumer config key; only test code should
+     * ever write to it.
+     *
+     * @internal
+     */
+    public static bool $runForTesting = true;
+
     public function __construct()
     {
         $driver = DB::connection()->getDriverName();
@@ -26,12 +36,7 @@ class PartitionRequestInsuranceTables extends Migration
 
     public function up(): void
     {
-        // Allow consumers/tests to opt out of the in-place cutover during an
-        // ordinary migration run (e.g. when seeding plain tables in tests, or
-        // when the cutover is performed manually in a controlled maintenance
-        // window). Defaults to enabled so a normal `migrate` performs the
-        // cutover.
-        if ( ! Config::get('request-insurance.run_partition_migration', true)) {
+        if ( ! static::$runForTesting) {
             return;
         }
 

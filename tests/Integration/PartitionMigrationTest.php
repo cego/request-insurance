@@ -5,7 +5,6 @@ namespace Tests\Integration;
 use Carbon\Carbon;
 use PartitionRequestInsuranceTables;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
@@ -13,7 +12,7 @@ class PartitionMigrationTest extends IntegrationTestCase
 {
     public function test_migration_moves_active_rows_and_keeps_terminal_in_legacy(): void
     {
-        $this->runBaseMigrations(); // creates the plain tables (auto-run by RefreshDatabase)
+        $this->assertStartsUnpartitioned(); // creates the plain tables (auto-run by RefreshDatabase)
 
         RequestInsurance::factory(3)->create(['state' => State::COMPLETED, 'created_at' => Carbon::now('UTC')->subDay()]);
         RequestInsurance::factory(2)->create(['state' => State::READY, 'created_at' => Carbon::now('UTC')]);
@@ -30,7 +29,7 @@ class PartitionMigrationTest extends IntegrationTestCase
 
     public function test_id_sequence_continues_past_legacy_max(): void
     {
-        $this->runBaseMigrations();
+        $this->assertStartsUnpartitioned();
 
         RequestInsurance::factory(5)->create(['state' => State::COMPLETED, 'created_at' => Carbon::now('UTC')->subDay()]);
         $maxBefore = (int) DB::table('request_insurances')->max('id');
@@ -43,7 +42,7 @@ class PartitionMigrationTest extends IntegrationTestCase
 
     public function test_no_active_row_is_lost_and_post_migration_inserts_persist(): void
     {
-        $this->runBaseMigrations();
+        $this->assertStartsUnpartitioned();
 
         // A mix of terminal and active rows spread across two days.
         RequestInsurance::factory(4)->create(['state' => State::COMPLETED, 'created_at' => Carbon::now('UTC')->subDays(2)]);
@@ -84,10 +83,10 @@ class PartitionMigrationTest extends IntegrationTestCase
     /**
      * The plain base tables are created automatically by RefreshDatabase running
      * loadMigrationsFrom(); the partition cutover is suppressed during that run
-     * (see IntegrationTestCase::defineEnvironment). This helper just asserts the
-     * expected starting point.
+     * (see IntegrationTestCase::setUp). This helper asserts the expected starting
+     * point — the tables exist but are NOT yet partitioned.
      */
-    protected function runBaseMigrations(): void
+    protected function assertStartsUnpartitioned(): void
     {
         $this->assertFalse($this->isPartitioned('request_insurances'), 'base migrations must leave the table un-partitioned');
         $this->assertFalse($this->isPartitioned('request_insurance_logs'), 'base migrations must leave the logs table un-partitioned');
@@ -95,13 +94,12 @@ class PartitionMigrationTest extends IntegrationTestCase
 
     /**
      * Run the in-place partition cutover migration exactly as a real `migrate`
-     * would: enable the cutover and invoke the published migration class up().
+     * would: re-enable the test-only seam and invoke the published migration
+     * class up().
      */
     protected function runPartitionMigration(): void
     {
-        Config::set('request-insurance.run_partition_migration', true);
-
-        require_once __DIR__ . '/../../publishable/migrations/2026_06_22_000000_partition_request_insurance_tables.php';
+        PartitionRequestInsuranceTables::$runForTesting = true;
 
         (new PartitionRequestInsuranceTables())->up();
 
