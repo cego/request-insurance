@@ -103,13 +103,17 @@ class RequestInsuranceBuilder
     }
 
     /**
-     * Makes RI automatically retry inconsistent request insurances, instead of failing them.
+     * Controls whether RI automatically retries inconsistent request insurances, instead of failing them.
+     *
+     * Explicitly setting this overrides the 'retryInconsistentDefault' config option for this request.
+     *
+     * @param bool $retry
      *
      * @return $this
      */
-    public function retryInconsistentState(): RequestInsuranceBuilder
+    public function retryInconsistentState(bool $retry = true): RequestInsuranceBuilder
     {
-        return $this->set('retry_inconsistent', true);
+        return $this->set('retry_inconsistent', $retry);
     }
 
     /**
