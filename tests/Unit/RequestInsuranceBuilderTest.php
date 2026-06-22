@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use InvalidArgumentException;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class RequestInsuranceBuilderTest extends TestCase
@@ -49,6 +50,77 @@ class RequestInsuranceBuilderTest extends TestCase
         $requestInsurance = RequestInsurance::first();
 
         $this->assertEquals(true, $requestInsurance->retry_inconsistent);
+    }
+
+    public function test_it_defaults_retry_inconsistent_to_false(): void
+    {
+        // Act
+        RequestInsurance::getBuilder()
+            ->method('POST')
+            ->url('https://MyDev.lupinsdev.dk')
+            ->headers(['Content-Type' => 'application/json'])
+            ->payload(['data' => [1, 2, 3]])
+            ->create();
+
+        // Assert
+        $requestInsurance = RequestInsurance::first();
+        $this->assertEquals(false, $requestInsurance->retry_inconsistent);
+    }
+
+    public function test_it_defaults_retry_inconsistent_from_config(): void
+    {
+        // Arrange
+        Config::set('request-insurance.retryInconsistentDefault', true);
+
+        // Act
+        RequestInsurance::getBuilder()
+            ->method('POST')
+            ->url('https://MyDev.lupinsdev.dk')
+            ->headers(['Content-Type' => 'application/json'])
+            ->payload(['data' => [1, 2, 3]])
+            ->create();
+
+        // Assert
+        $requestInsurance = RequestInsurance::first();
+        $this->assertEquals(true, $requestInsurance->retry_inconsistent);
+    }
+
+    public function test_explicit_retry_inconsistent_state_overrides_config_default(): void
+    {
+        // Arrange
+        Config::set('request-insurance.retryInconsistentDefault', false);
+
+        // Act
+        RequestInsurance::getBuilder()
+            ->method('POST')
+            ->url('https://MyDev.lupinsdev.dk')
+            ->headers(['Content-Type' => 'application/json'])
+            ->payload(['data' => [1, 2, 3]])
+            ->retryInconsistentState()
+            ->create();
+
+        // Assert
+        $requestInsurance = RequestInsurance::first();
+        $this->assertEquals(true, $requestInsurance->retry_inconsistent);
+    }
+
+    public function test_explicit_retry_inconsistent_state_false_overrides_config_default(): void
+    {
+        // Arrange
+        Config::set('request-insurance.retryInconsistentDefault', true);
+
+        // Act
+        RequestInsurance::getBuilder()
+            ->method('POST')
+            ->url('https://MyDev.lupinsdev.dk')
+            ->headers(['Content-Type' => 'application/json'])
+            ->payload(['data' => [1, 2, 3]])
+            ->retryInconsistentState(false)
+            ->create();
+
+        // Assert
+        $requestInsurance = RequestInsurance::first();
+        $this->assertEquals(false, $requestInsurance->retry_inconsistent);
     }
 
     public function test_it_does_not_allow_empty_method(): void

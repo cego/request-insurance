@@ -15,6 +15,14 @@ return [
     'enabled' => env('REQUEST_INSURANCE_ENABLED', true),
 
     /*
+    | Sets the default value for the retry_inconsistent option on new request insurances.
+    | When enabled, request insurances that end up in an inconsistent state are retried by
+    | default instead of failed. This can still be overridden per request via the builder.
+    */
+
+    'retryInconsistentDefault' => env('REQUEST_INSURANCE_RETRY_INCONSISTENT_DEFAULT', false),
+
+    /*
     | Sets if keep alive should be sent with curl requests
     */
 

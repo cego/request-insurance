@@ -5,6 +5,7 @@ namespace Cego\RequestInsurance;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class RequestInsuranceBuilder
@@ -102,13 +103,17 @@ class RequestInsuranceBuilder
     }
 
     /**
-     * Makes RI automatically retry inconsistent request insurances, instead of failing them.
+     * Controls whether RI automatically retries inconsistent request insurances, instead of failing them.
+     *
+     * Explicitly setting this overrides the 'retryInconsistentDefault' config option for this request.
+     *
+     * @param bool $retry
      *
      * @return $this
      */
-    public function retryInconsistentState(): RequestInsuranceBuilder
+    public function retryInconsistentState(bool $retry = true): RequestInsuranceBuilder
     {
-        return $this->set('retry_inconsistent', true);
+        return $this->set('retry_inconsistent', $retry);
     }
 
     /**
@@ -206,6 +211,12 @@ class RequestInsuranceBuilder
     public function create(): RequestInsurance
     {
         $this->headers(self::injectTraceHeaders($this->data['headers'] ?? []));
+
+        // Apply the configured default for retry_inconsistent, unless it was
+        // explicitly set on this builder (e.g. via retryInconsistentState()).
+        if ( ! Arr::has($this->data, 'retry_inconsistent')) {
+            $this->set('retry_inconsistent', (bool) Config::get('request-insurance.retryInconsistentDefault', false));
+        }
 
         return RequestInsurance::create($this->data);
     }
