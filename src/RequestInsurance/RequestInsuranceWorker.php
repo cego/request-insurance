@@ -347,10 +347,8 @@ class RequestInsuranceWorker
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param EloquentCollection|Collection $rows
-     *
-     * @return \Illuminate\Database\Eloquent\Builder
      */
-    protected function applyCreatedAtBound($query, $rows)
+    private function applyCreatedAtBound($query, $rows): void
     {
         $timestamps = collect($rows)->pluck('created_at')->filter()->map(function ($ts) {
             if ($ts instanceof \DateTimeInterface) {
@@ -361,10 +359,10 @@ class RequestInsuranceWorker
         });
 
         if ($timestamps->isEmpty()) {
-            return $query;
+            return;
         }
 
-        return $query
+        $query
             ->where('created_at', '>=', $timestamps->min())
             ->where('created_at', '<=', $timestamps->max());
     }
