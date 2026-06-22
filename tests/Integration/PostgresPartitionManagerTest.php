@@ -172,13 +172,6 @@ class PostgresPartitionManagerTest extends IntegrationTestCase
         DB::table('request_insurance_logs')->insert($logs);
     }
 
-    private function isPartitioned(string $table): bool
-    {
-        $row = DB::selectOne('SELECT relkind FROM pg_class WHERE relname = ?', [$table]);
-
-        return $row !== null && $row->relkind === 'p';
-    }
-
     /** @return array<int, string> */
     private function childPartitions(string $table): array
     {
