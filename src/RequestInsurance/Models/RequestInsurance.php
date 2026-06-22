@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Cego\RequestInsurance\Factories\RequestInsuranceFactory;
+use Cego\RequestInsurance\Models\Concerns\HasCompositeCreatedAtKey;
 use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
 /**
@@ -61,6 +62,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 class RequestInsurance extends SaveRetryingModel
 {
     use HasFactory;
+    use HasCompositeCreatedAtKey;
 
     public $dateFormat = 'Y-m-d H:i:s.u';
 

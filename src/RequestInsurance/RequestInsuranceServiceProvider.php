@@ -90,6 +90,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             Commands\UnlockBlockedRequestInsurances::class,
             Commands\CleanUpRequestInsurances::class,
             Commands\FailOrReadyProcessingRequestInsurances::class,
+            Commands\ManagePartitions::class,
         ]);
 
         // Add specific commands to the schedule
@@ -101,6 +102,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             $schedule->command('unlock:request-insurances')->cron(sprintf('%d-59/%d * * * *', $appOffset % $fiveMinutes, $fiveMinutes))->withoutOverlapping()->runInBackground();
             $schedule->command('clean:request-insurances')->cron(sprintf('%d-59/%d * * * *', $appOffset % $tenMinutes, $tenMinutes))->withoutOverlapping()->runInBackground();
             $schedule->command('request-insurance:unstuck-processing')->cron(sprintf('%d-59/%d * * * *', ($appOffset + 3) % $tenMinutes, $tenMinutes))->withoutOverlapping()->runInBackground();
+            $schedule->command('request-insurance:manage-partitions')->cron(sprintf('%d * * * *', $appOffset % 60))->withoutOverlapping()->runInBackground();
         });
     }
 

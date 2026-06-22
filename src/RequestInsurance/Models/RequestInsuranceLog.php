@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Cego\RequestInsurance\Factories\RequestInsuranceLogFactory;
+use Cego\RequestInsurance\Models\Concerns\HasCompositeCreatedAtKey;
 
 /**
  * Class RequestInsuranceLog
@@ -23,6 +24,7 @@ use Cego\RequestInsurance\Factories\RequestInsuranceLogFactory;
 class RequestInsuranceLog extends SaveRetryingModel
 {
     use HasFactory;
+    use HasCompositeCreatedAtKey;
 
     public $dateFormat = 'Y-m-d H:i:s.u';
 

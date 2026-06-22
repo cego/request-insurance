@@ -113,4 +113,19 @@ return [
      | but is unavailable in mysql versions older than 8.0.0
      */
     'useSkipLocked' => env('REQUEST_INSURANCE_WORKER_USE_SKIP_LOCKED', true),
+
+    /*
+    | Partitioning configuration. When the underlying driver supports it
+    | (MySQL/MariaDB, PostgreSQL), the request_insurance tables are RANGE
+    | partitioned by created_at and retention is performed by dropping whole
+    | partitions instead of deleting rows. Unsupported drivers (e.g. sqlite)
+    | transparently fall back to a plain table with row-based retention.
+    */
+    'partitioning' => [
+        // Partition size: daily | weekly | monthly
+        'granularity' => env('REQUEST_INSURANCE_PARTITION_GRANULARITY', \Cego\RequestInsurance\Partitioning\PartitionGranularity::DAILY),
+
+        // Number of future partitions (in granularity units) to keep pre-created ahead of now
+        'precreate_ahead' => (int) env('REQUEST_INSURANCE_PARTITION_PRECREATE_AHEAD', 7),
+    ],
 ];
