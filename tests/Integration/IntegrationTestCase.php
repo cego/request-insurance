@@ -2,9 +2,10 @@
 
 namespace Tests\Integration;
 
-use PartitionRequestInsuranceTables;
 use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use PartitionRequestInsuranceTables;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 
 abstract class IntegrationTestCase extends TestCase
 {
@@ -17,6 +18,20 @@ abstract class IntegrationTestCase extends TestCase
         // reachable via any consumer config key.
         $this->requireMigrationClass();
         PartitionRequestInsuranceTables::$runForTesting = false;
+
+        // RefreshDatabase only runs `migrate:fresh` once per process and then
+        // wraps every test in a transaction it rolls back afterwards. The
+        // partition cutover, however, is pure DDL (RENAME/ALTER/CREATE ... PARTITION)
+        // which auto-commits on MySQL/MariaDB and is non-transactional, so it is
+        // NOT rolled back. That leaks the partitioned schema and the dynamically
+        // created `*_legacy` tables from one test into the next, breaking the
+        // un-partitioned starting assumption when the whole suite runs together.
+        //
+        // Forcing the migrated flag back to false makes RefreshDatabase wipe ALL
+        // tables (including any leaked `*_legacy` tables) and re-run the base
+        // migrations for every integration test, guaranteeing a clean,
+        // un-partitioned starting point regardless of test ordering.
+        RefreshDatabaseState::$migrated = false;
 
         parent::setUp();
 

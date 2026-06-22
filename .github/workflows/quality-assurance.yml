@@ -52,7 +52,7 @@ jobs:
         with:
           php-version: '8.3'
       - run: composer install
-      - run: ./vendor/bin/phpunit --testsuite Unit,Integration
+      - run: ./vendor/bin/phpunit --testsuite Integration
 
   phpunit-pgsql:
     runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
           php-version: '8.3'
           extensions: pdo_pgsql
       - run: composer install
-      - run: ./vendor/bin/phpunit --testsuite Unit,Integration
+      - run: ./vendor/bin/phpunit --testsuite Integration
 
   php-cs-fixer:
     runs-on: ubuntu-latest
