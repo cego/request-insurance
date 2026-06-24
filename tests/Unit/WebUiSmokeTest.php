@@ -35,6 +35,18 @@ class WebUiSmokeTest extends TestCase
             ->assertSee('#' . $requestInsurance->id, false);
     }
 
+    public function test_show_page_renders_for_a_failed_request_in_the_exceptions_table(): void
+    {
+        // Inspecting a row in the exceptions table must resolve the logs/edits
+        // relationships by request_insurance_id, not request_insurance_failed_id.
+        $requestInsurance = RequestInsurance::factory()->create(['state' => State::READY]);
+        $requestInsurance->setState(State::FAILED);
+        $requestInsurance->save();
+        FailedRequestMover::moveToFailed($requestInsurance);
+
+        $this->get(route('request-insurances.show', $requestInsurance))->assertOk();
+    }
+
     public function test_edit_history_page_renders(): void
     {
         $requestInsurance = RequestInsurance::factory()->create(['state' => State::READY]);

@@ -20,6 +20,16 @@ class RequestInsuranceFailed extends RequestInsurance
     }
 
     /**
+     * Logs and edits reference request_insurance_id regardless of which table the
+     * request lives in, so the relationship foreign key must not be derived from
+     * this subclass's name (which would yield request_insurance_failed_id).
+     */
+    public function getForeignKey(): string
+    {
+        return 'request_insurance_id';
+    }
+
+    /**
      * Relationship with RequestInsuranceFailedLog
      *
      * @return HasMany

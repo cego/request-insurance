@@ -88,7 +88,7 @@
                     <th>id</th><th>pri</th><th>method</th><th>code</th><th>url</th><th>state</th><th>attempts</th><th>next try</th><th>created</th><th class="text-right">ms</th><th class="text-right pr-4">actions</th>
                 </tr>
             </thead>
-            <tbody class="font-mono [&>tr]:border-b [&>tr]:border-line/70 [&>tr:last-child]:border-0 [&>tr>td]:px-4 [&>tr>td]:py-2">
+            <tbody class="font-mono [&>tr]:border-b [&>tr]:border-line/70 [&>tr:last-child]:border-0 [&>tr>td]:px-4 [&>tr>td]:py-2 [&>tr>td]:whitespace-nowrap">
                 @foreach($requestInsurances as $requestInsurance)
                     <tr class="hover:bg-surface-2/60">
                         <td>
@@ -100,7 +100,7 @@
                         <td class="tabular-nums">{{ $requestInsurance->priority }}</td>
                         <td>{{ mb_strtoupper($requestInsurance->method) }}</td>
                         <td><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}" /></td>
-                        <td class="max-w-[240px] truncate text-ink-soft" title="{{ urldecode($requestInsurance->url) }}">{{ urldecode($requestInsurance->url) }}</td>
+                        <td class="w-full max-w-0 truncate text-ink-soft" title="{{ urldecode($requestInsurance->url) }}">{{ urldecode($requestInsurance->url) }}</td>
                         <td><x-request-insurance-status :requestInsurance="$requestInsurance" /></td>
                         <td class="tabular-nums">{{ $requestInsurance->retry_count }}</td>
                         <td class="text-[12px]"><x-request-insurance-timestamp :value="$requestInsurance->retry_at" /></td>
