@@ -18,6 +18,12 @@ abstract class PartitionManager
 
     abstract public function isSupported(): bool;
 
+    /**
+     * Create a plain (non-partitioned) table $target shaped like $source, used
+     * for the exceptions ("failed jobs") tables. Idempotent.
+     */
+    abstract public function createPlainLike(string $source, string $target): void;
+
     /** @param array<int, string> $terminalStates */
     abstract public function migrateToPartitioned(string $table, array $terminalStates): void;
 

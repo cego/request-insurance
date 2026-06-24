@@ -106,6 +106,15 @@ return [
     'table_edits'          => null,
     'table_edit_approvals' => null,
 
+    /*
+     | Exceptions tables ("failed jobs" style). FAILED and ABANDONED request
+     | insurances are moved here so the partitioned main tables only ever hold the
+     | success lifecycle and whole partitions can be dropped at retention.
+     | Default to "{table}_failed" / "{table_logs}_failed" when left null.
+     */
+    'table_failed'      => null,
+    'table_failed_logs' => null,
+
     'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true),
 
     /*

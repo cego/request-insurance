@@ -14,6 +14,13 @@ class UnsupportedPartitionManager extends PartitionManager
         return false;
     }
 
+    public function createPlainLike(string $source, string $target): void
+    {
+        // sqlite (and friends): clone columns only — no PK/index needed for the
+        // small exceptions tables.
+        $this->connection->statement("CREATE TABLE IF NOT EXISTS \"{$target}\" AS SELECT * FROM \"{$source}\" WHERE 1 = 0");
+    }
+
     public function migrateToPartitioned(string $table, array $terminalStates): void
     {
         // Driver does not support partitioning (e.g. sqlite). The plain table

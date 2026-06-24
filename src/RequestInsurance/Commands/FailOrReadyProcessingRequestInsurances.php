@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Cego\RequestInsurance\Enums\State;
+use Cego\RequestInsurance\FailedRequestMover;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class FailOrReadyProcessingRequestInsurances extends Command
@@ -51,6 +52,11 @@ class FailOrReadyProcessingRequestInsurances extends Command
                 // State is updated based on retry_inconsistent
                 $stateChange = $requestInsurance->retry_inconsistent ? State::READY : State::FAILED;
                 $requestInsurance->update(['state' => $stateChange, 'state_changed_at' => Carbon::now('UTC')]);
+
+                // A row that failed must leave the partitioned main table.
+                if ($stateChange === State::FAILED) {
+                    FailedRequestMover::moveToFailed($requestInsurance);
+                }
 
                 Log::info("Request insurance with id $requestInsurance->id was updated to $stateChange due to processing for too long.");
             });

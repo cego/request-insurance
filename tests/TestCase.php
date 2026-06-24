@@ -5,7 +5,9 @@ namespace Tests;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\RequestInsuranceWorker;
+use Cego\RequestInsurance\Models\RequestInsurance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Cego\RequestInsurance\Models\RequestInsuranceFailed;
 use Cego\RequestInsurance\RequestInsuranceServiceProvider;
 
 /**
@@ -89,5 +91,25 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function driverName(): string
     {
         return \Illuminate\Support\Facades\DB::connection()->getDriverName();
+    }
+
+    /**
+     * Reload a request from the main table, falling back to the exceptions table
+     * once it has FAILED/ABANDONED and been moved there. Mirrors refresh() but is
+     * aware of the move to the exceptions tables.
+     */
+    protected function reloadOrFailed(RequestInsurance $requestInsurance): RequestInsurance
+    {
+        $fresh = RequestInsurance::query()->find($requestInsurance->getKey());
+
+        if ($fresh !== null) {
+            return $fresh;
+        }
+
+        $failed = RequestInsuranceFailed::query()->find($requestInsurance->getKey());
+
+        $this->assertNotNull($failed, 'Request insurance was found in neither the main nor the exceptions table');
+
+        return $failed;
     }
 }

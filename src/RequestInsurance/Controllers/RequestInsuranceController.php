@@ -13,8 +13,10 @@ use Illuminate\Support\Facades\DB;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+use Cego\RequestInsurance\FailedRequestMover;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Providers\IdentityProvider;
+use Cego\RequestInsurance\Models\RequestInsuranceFailed;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
 class RequestInsuranceController extends Controller
@@ -33,14 +35,70 @@ class RequestInsuranceController extends Controller
         // Flash the request parameters, so we can redisplay the same filter parameters.
         $request->flash();
 
+        $perPage = (int) $request->input('per_page', 25);
+
+        if ( ! in_array($perPage, [25, 50, 100], true)) {
+            $perPage = 25;
+        }
+
+        // The listing spans both the partitioned main table and the exceptions
+        // ("failed jobs") table, so FAILED/ABANDONED requests remain visible. Cursor
+        // pagination avoids an exact COUNT over the (large, partitioned) main table.
         $paginator = RequestInsurance::query()
-            ->orderByDesc('id')
             ->filteredByRequest($request)
-            ->paginate(25);
+            ->unionAll(RequestInsuranceFailed::query()->filteredByRequest($request))
+            ->orderByDesc('id')
+            ->cursorPaginate($perPage)
+            ->withQueryString();
 
         return view('request-insurance::index')->with([
             'requestInsurances' => $paginator,
+            'perPage'           => $perPage,
         ]);
+    }
+
+    /**
+     * Retries a batch of selected (FAILED/ABANDONED) request insurances at once,
+     * restoring each from the exceptions tables into the active pipeline.
+     *
+     * @param Request $request
+     *
+     * @return mixed
+     */
+    public function retrySelected(Request $request)
+    {
+        $ids = array_values(array_filter(array_map('intval', (array) $request->input('ids', []))));
+
+        if ( ! empty($ids)) {
+            RequestInsuranceFailed::query()
+                ->whereIn('id', $ids)
+                ->get()
+                ->each(fn (RequestInsuranceFailed $requestInsurance) => $requestInsurance->retryNow());
+        }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Abandons a batch of selected request insurances at once.
+     *
+     * @param Request $request
+     *
+     * @return mixed
+     */
+    public function abandonSelected(Request $request)
+    {
+        $ids = array_values(array_filter(array_map('intval', (array) $request->input('ids', []))));
+
+        foreach ($ids as $id) {
+            $requestInsurance = RequestInsurance::query()->find($id) ?? RequestInsuranceFailed::query()->find($id);
+
+            if ($requestInsurance !== null && $requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED)) {
+                $requestInsurance->abandon();
+            }
+        }
+
+        return redirect()->back();
     }
 
     /**
@@ -172,7 +230,7 @@ class RequestInsuranceController extends Controller
     {
         return response()->json([
             'activeCount' => (int) RequestInsurance::query()->whereIn('state', [ State::READY, State::PROCESSING, State::PENDING ])->count(),
-            'failCount'   => (int) RequestInsurance::query()->where('state', State::FAILED)->count(),
+            'failCount'   => (int) RequestInsuranceFailed::query()->where('state', State::FAILED)->count(),
         ]);
     }
 
@@ -183,22 +241,33 @@ class RequestInsuranceController extends Controller
      */
     public function monitor_segmented(): JsonResponse
     {
-        $stateCounts = DB::query()
-            ->from(RequestInsurance::make()->getTable())
-            ->selectRaw('state as state, COUNT(*) as count')
-            ->groupBy('state')
-            ->get()
-            ->mapWithKeys(fn (object $row) => [$row->state => $row->count]);
+        // COMPLETED is deliberately not counted: it is the bulk of the partitioned
+        // main table and an exact COUNT would scan everything. The remaining states
+        // are cheap — the transient states are indexed, and FAILED/ABANDONED live in
+        // the small exceptions table.
+        $transient = [State::WAITING, State::READY, State::PENDING, State::PROCESSING];
 
-        return response()->json(
-            collect(State::getAll())
-                // Add default value of 0 for all states
-                ->map(fn () => 0)
-                // Merge actual state counts into the collection (not all states are present within the state counts)
-                ->merge($stateCounts)
-                // Force integer type, since the query returns strings
-                ->map(fn ($value) => (int) $value)
-                ->toArray()
-        );
+        $mainCounts = DB::query()
+            ->from(resolve(RequestInsurance::class)->getTable())
+            ->select('state', DB::raw('COUNT(*) as count'))
+            ->whereIn('state', $transient)
+            ->groupBy('state')
+            ->pluck('count', 'state');
+
+        $failedCounts = DB::query()
+            ->from(FailedRequestMover::failedTable())
+            ->select('state', DB::raw('COUNT(*) as count'))
+            ->groupBy('state')
+            ->pluck('count', 'state');
+
+        $counts = collect(State::getAll())
+            ->reject(fn (string $state) => $state === State::COMPLETED)
+            ->mapWithKeys(fn (string $state) => [$state => 0])
+            ->merge($mainCounts)
+            ->merge($failedCounts)
+            ->map(fn ($value) => (int) $value)
+            ->toArray();
+
+        return response()->json($counts);
     }
 }

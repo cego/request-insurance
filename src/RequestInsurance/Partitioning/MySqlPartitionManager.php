@@ -4,7 +4,6 @@ namespace Cego\RequestInsurance\Partitioning;
 
 use Closure;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 
 class MySqlPartitionManager extends PartitionManager
@@ -12,6 +11,11 @@ class MySqlPartitionManager extends PartitionManager
     public function isSupported(): bool
     {
         return true;
+    }
+
+    public function createPlainLike(string $source, string $target): void
+    {
+        $this->connection->statement("CREATE TABLE IF NOT EXISTS `{$target}` LIKE `{$source}`");
     }
 
     /**
@@ -117,9 +121,7 @@ class MySqlPartitionManager extends PartitionManager
             }
 
             if ( ! $partitionIsSafeToDrop($start, $end)) {
-                Log::warning("Skipping drop of partition {$name} on {$table}: contains non-terminal rows");
-
-                continue;
+                throw new PartitionNotDroppableException("Refusing to drop partition {$name} on {$table}: it still holds non-COMPLETED rows that should have been extracted to the exceptions tables");
             }
 
             $this->connection->statement("ALTER TABLE `{$table}` DROP PARTITION {$name}");

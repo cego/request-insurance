@@ -9,6 +9,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\ViewComponents\Status;
 use Cego\RequestInsurance\ViewComponents\HttpCode;
+use Cego\RequestInsurance\ViewComponents\Timestamp;
 use Cego\RequestInsurance\Providers\IdentityProvider;
 use Cego\RequestInsurance\ViewComponents\InlinePrint;
 use Cego\RequestInsurance\ViewComponents\PrettyPrint;
@@ -66,6 +67,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             Status::class,
             EditApprovalsStatus::class,
             PrettyPrintTextArea::class,
+            Timestamp::class,
         ]);
 
         // To avoid a hard dependency on spatie/prometheus-laravel and keep non-laravel and 7.4 support.
@@ -90,7 +92,6 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             Commands\UnlockBlockedRequestInsurances::class,
             Commands\CleanUpRequestInsurances::class,
             Commands\FailOrReadyProcessingRequestInsurances::class,
-            Commands\ManagePartitions::class,
         ]);
 
         // Add specific commands to the schedule
@@ -102,7 +103,6 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             $schedule->command('unlock:request-insurances')->cron(sprintf('%d-59/%d * * * *', $appOffset % $fiveMinutes, $fiveMinutes))->withoutOverlapping()->runInBackground();
             $schedule->command('clean:request-insurances')->cron(sprintf('%d-59/%d * * * *', $appOffset % $tenMinutes, $tenMinutes))->withoutOverlapping()->runInBackground();
             $schedule->command('request-insurance:unstuck-processing')->cron(sprintf('%d-59/%d * * * *', ($appOffset + 3) % $tenMinutes, $tenMinutes))->withoutOverlapping()->runInBackground();
-            $schedule->command('request-insurance:manage-partitions')->cron(sprintf('%d * * * *', $appOffset % 60))->withoutOverlapping()->runInBackground();
         });
     }
 

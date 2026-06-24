@@ -1,71 +1,99 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Migrations\Migration;
 use Cego\RequestInsurance\Enums\State;
+use Cego\RequestInsurance\FailedRequestMover;
 use Cego\RequestInsurance\Partitioning\PartitionManagerFactory;
 
 class PartitionRequestInsuranceTables extends Migration
 {
     /**
-     * PostgreSQL keeps the default wrapping migration transaction so the
-     * LOCK + rename + create + copy is atomic and concurrent inserts block
-     * safely until commit. MySQL/MariaDB auto-commit DDL, so the migration
-     * cannot meaningfully run inside a transaction there; running it wrapped
-     * would only give a false sense of atomicity. The driver is detected in
-     * the constructor and this flag is set accordingly.
+     * PostgreSQL keeps the wrapping transaction so the cutover (LOCK + rename +
+     * create + copy) is atomic. MySQL/MariaDB auto-commit DDL, so wrapping would
+     * give only a false sense of atomicity.
      */
-    public $withinTransaction = true;
-
-    /**
-     * TEST-ONLY seam. When set to false by the test harness, up() becomes a
-     * no-op so that manager integration tests can start from plain tables.
-     * This is NOT reachable via any consumer config key; only test code should
-     * ever write to it.
-     *
-     * @internal
-     */
-    public static bool $runForTesting = true;
+    public $withinTransaction = false;
 
     public function __construct()
     {
-        $driver = DB::connection()->getDriverName();
-        $this->withinTransaction = $driver === 'pgsql';
+        $this->withinTransaction = DB::connection()->getDriverName() === 'pgsql';
     }
 
     public function up(): void
     {
-        if ( ! static::$runForTesting) {
-            return;
+        $connection = DB::connection();
+        $manager = PartitionManagerFactory::for($connection);
+
+        $main = FailedRequestMover::mainTable();
+        $mainLogs = FailedRequestMover::mainLogsTable();
+        $failed = FailedRequestMover::failedTable();
+        $failedLogs = FailedRequestMover::failedLogsTable();
+
+        // 1. Create the exceptions ("failed jobs") tables, shaped like the main tables.
+        $manager->createPlainLike($main, $failed);
+        $manager->createPlainLike($mainLogs, $failedLogs);
+
+        // 2. Move existing FAILED/ABANDONED rows (and their logs) out of the main
+        //    tables so they survive the partition drops and the main tables only
+        //    hold the success lifecycle.
+        $this->extractExisting($connection, $main, $mainLogs, $failed, $failedLogs, [State::FAILED, State::ABANDONED]);
+
+        // 3. On supported drivers, convert the main tables to RANGE partitioning by
+        //    created_at. Only the small set of non-COMPLETED (transient) rows is
+        //    copied into the new partitioned tables; COMPLETED rows stay in the
+        //    renamed *_legacy tables and age out there.
+        if ($manager->isSupported()) {
+            $manager->migrateToPartitioned($main, [State::COMPLETED]);
+            $manager->ensureFuturePartitions($main);
+            $manager->ensureFuturePartitions($mainLogs);
         }
-
-        $manager = PartitionManagerFactory::for(DB::connection());
-
-        if ( ! $manager->isSupported()) {
-            return; // sqlite and friends keep the plain table from the base migrations
-        }
-
-        $table = Config::get('request-insurance.table') ?? 'request_insurances';
-
-        // The manager migrates the parent table and its logs table together
-        // inside migrateToPartitioned(); do NOT migrate the logs table again
-        // here or it would be double-processed.
-        $manager->migrateToPartitioned($table, [State::COMPLETED, State::ABANDONED]);
-
-        // Pre-create the forward partitions for both the parent and the logs
-        // table so inserts immediately following the cutover have a target.
-        $logsTable = Config::get('request-insurance.table_logs') ?? 'request_insurance_logs';
-
-        $manager->ensureFuturePartitions($table);
-        $manager->ensureFuturePartitions($logsTable);
     }
 
     public function down(): void
     {
         throw new RuntimeException(
             'Reversing the request_insurance partition migration is not supported automatically. '
-            . 'The pre-migration data is preserved in the *_legacy tables; restore manually if required.'
+            . 'Pre-migration COMPLETED rows are preserved in the *_legacy tables; FAILED/ABANDONED rows in the *_failed tables.'
         );
+    }
+
+    /**
+     * @param array<int, string> $states
+     */
+    private function extractExisting(ConnectionInterface $connection, string $main, string $mainLogs, string $failed, string $failedLogs, array $states): void
+    {
+        if ($connection->table($main)->whereIn('state', $states)->doesntExist()) {
+            return;
+        }
+
+        $grammar = $connection->getQueryGrammar();
+        $placeholders = implode(',', array_fill(0, count($states), '?'));
+
+        // Logs first (their subquery still sees the rows in the main table).
+        $connection->insert(sprintf(
+            'INSERT INTO %s SELECT * FROM %s WHERE request_insurance_id IN (SELECT id FROM %s WHERE state IN (%s))',
+            $grammar->wrapTable($failedLogs),
+            $grammar->wrapTable($mainLogs),
+            $grammar->wrapTable($main),
+            $placeholders
+        ), $states);
+
+        $connection->delete(sprintf(
+            'DELETE FROM %s WHERE request_insurance_id IN (SELECT id FROM (SELECT id FROM %s WHERE state IN (%s)) sub)',
+            $grammar->wrapTable($mainLogs),
+            $grammar->wrapTable($main),
+            $placeholders
+        ), $states);
+
+        $connection->insert(sprintf(
+            'INSERT INTO %s SELECT * FROM %s WHERE state IN (%s)',
+            $grammar->wrapTable($failed),
+            $grammar->wrapTable($main),
+            $placeholders
+        ), $states);
+
+        $connection->table($main)->whereIn('state', $states)->delete();
     }
 }

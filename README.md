@@ -10,17 +10,29 @@
 | ^2       | ^8.3                   | Security and bug fixes only
 | ^3       | ^8.3                   | Active development
 
-## Partitioning
+## Partitioning & the exceptions tables
 
 ### Overview
 
-On MySQL/MariaDB and PostgreSQL, the `request_insurances` and `request_insurance_logs` tables are RANGE-partitioned by `created_at`. Retention is performed by dropping entire partitions instead of row-by-row deletes, which is faster and produces less I/O on large tables. On SQLite and other unsupported drivers the tables remain plain and row-based retention continues unchanged.
+On MySQL/MariaDB and PostgreSQL the `request_insurances` and `request_insurance_logs` tables are RANGE-partitioned by `created_at`, and retention drops whole partitions instead of deleting rows one chunk at a time — far cheaper on large, high-throughput tables.
+
+For that to be safe, a partition must contain only `COMPLETED` rows by the time it ages out. So request insurances that leave the success path — `FAILED` and `ABANDONED` — are moved into separate, plain **exceptions tables** (`request_insurances_failed` / `request_insurance_logs_failed`), in the spirit of Laravel's `failed_jobs` table. The bulk of the data (the `COMPLETED` firehose) is never moved or deleted row-by-row; it simply ages out when its partition is dropped.
+
+On SQLite and other unsupported drivers the main tables stay plain and retention falls back to row-based deletes; the exceptions tables still apply.
+
+### Lifecycle
+
+- A request that **fails** (or is **abandoned**) is moved out of the partitioned main tables into the exceptions tables, together with its logs, in one transaction.
+- **Retrying** a failed/abandoned request restores it into the main table as `READY` with a fresh `created_at` (so it lands in a current partition). Its historical logs remain in the exceptions logs table as an audit record.
+- The web UI is unaffected: route-model binding, the listing, retry, abandon and edit all transparently span both the main and the exceptions tables.
 
 ### Configuration
 
-Publish the config file and adjust the `partitioning` block:
-
 ```php
+// Exceptions table names (default to "{table}_failed" / "{table_logs}_failed").
+'table_failed'      => null,
+'table_failed_logs' => null,
+
 'partitioning' => [
     // Partition size: 'daily' | 'weekly' | 'monthly'  (default: 'daily')
     'granularity' => env('REQUEST_INSURANCE_PARTITION_GRANULARITY', 'daily'),
@@ -30,7 +42,7 @@ Publish the config file and adjust the `partitioning` block:
 ],
 ```
 
-The retention window is shared with the existing `cleanUpKeepDays` setting (default `14` days). Partitions whose entire range falls outside that window are dropped.
+Retention reuses the existing `cleanUpKeepDays` setting (default `14` days): main partitions whose entire range falls outside the window are dropped, and aged `ABANDONED` rows are removed from the exceptions tables. `FAILED` rows are kept until a human resolves them. Partition pre-creation and dropping are handled by the existing scheduled `clean:request-insurances` command.
 
 | Config key | Env var | Default |
 |---|---|---|
@@ -40,31 +52,21 @@ The retention window is shared with the existing `cleanUpKeepDays` setting (defa
 
 ### Migration
 
-Running `artisan migrate` applies `2026_06_22_000000_partition_request_insurance_tables` automatically. The migration:
+Running `artisan migrate` applies `2026_06_22_000000_partition_request_insurance_tables` automatically. It:
 
-1. Renames the existing `request_insurances` table to `request_insurances_legacy` (and `request_insurance_logs` to `request_insurance_logs_legacy`) — an atomic rename with no window where the canonical name is absent.
-2. Creates new partitioned tables in their place with a composite primary key `(id, created_at)`. On MySQL/MariaDB the `created_at` column is converted to `datetime(6) NOT NULL` (required by `RANGE COLUMNS`).
-3. Copies only non-terminal (non-COMPLETED, non-ABANDONED) rows from the legacy tables into the new partitioned tables. Terminal rows stay in `*_legacy` — zero copy for the bulk of historical data.
-4. Pre-creates the initial forward partitions so inserts immediately after cutover have a target.
+1. Creates the exceptions tables, shaped like the main tables.
+2. Moves any existing `FAILED`/`ABANDONED` rows (and their logs) into the exceptions tables.
+3. On supported drivers, converts the main tables to RANGE partitioning by `created_at` with a composite primary key `(id, created_at)` (on MySQL/MariaDB `created_at` becomes `datetime(6) NOT NULL`, required by `RANGE COLUMNS`). Only the small set of in-flight rows is copied into the new partitioned tables; `COMPLETED` rows stay in the renamed `*_legacy` tables and age out there — the bulk of historical data is never copied.
 
-The `*_legacy` tables are safe to drop manually once you have confirmed they are no longer needed (e.g. after the retention window has passed and all active rows have settled).
+The `*_legacy` tables are safe to drop manually once the retention window has passed. `down()` throws — the migration is not automatically reversible.
 
-`down()` throws a `RuntimeException` — the migration is not automatically reversible. The pre-migration data is preserved in the `*_legacy` tables and can be restored manually if required.
+### Retention guard
 
-### Partition lifecycle command
-
-```
-artisan request-insurance:manage-partitions
-```
-
-This command pre-creates upcoming partitions (up to `precreate_ahead` units ahead of now) and drops partitions older than the `cleanUpKeepDays` retention window. It guards against dropping parent partitions that still contain non-terminal rows.
-
-The service provider auto-schedules this command to run **hourly** (with overlap protection), so no consumer action is required. If you manage the scheduler yourself outside of Laravel's built-in schedule runner, ensure this command runs at least once per day.
+When the cleaner drops an aged partition it first verifies the partition holds only `COMPLETED` rows. A non-`COMPLETED` row in an aged partition means an extraction was missed (or a request is genuinely stuck), so the cleaner throws `PartitionNotDroppableException` rather than silently dropping a row that still needs attention.
 
 ### Breaking changes
 
-Consumers upgrading to this version must be aware of the following:
-
-- **Composite primary key.** The primary key on `request_insurances` and `request_insurance_logs` is now `(id, created_at)`. Raw SQL or query builders that filter by `id` alone are no longer partition-pruned and should include a `created_at` predicate to avoid full-table scans across all partitions.
-- **Tables renamed on migration.** The existing tables are renamed to `request_insurances_legacy` and `request_insurance_logs_legacy` during the migration. Any external tooling (e.g. direct SQL, reporting queries, custom Eloquent models) that references the original table names will break until the migration is applied.
-- **`created_at` column type change (MySQL/MariaDB).** The `created_at` column is converted from `timestamp` to `datetime(6) NOT NULL`. Applications that stored or compared explicit `NULL` in this column must be updated.
+- **Composite primary key.** The primary key on the main tables is now `(id, created_at)`. Raw SQL or query builders that filter by `id` alone are no longer partition-pruned and should include a `created_at` predicate.
+- **`created_at` column type (MySQL/MariaDB).** Converted from `timestamp` to `datetime(6) NOT NULL`. Applications that stored or compared explicit `NULL` must be updated.
+- **FAILED/ABANDONED rows live in the exceptions tables.** External tooling that reads `FAILED`/`ABANDONED` rows directly from `request_insurances` must look in `request_insurances_failed`. The package's own models and UI handle this transparently.
+- **Tables renamed on migration.** Pre-migration `COMPLETED` rows are preserved in the `*_legacy` tables until you drop them.

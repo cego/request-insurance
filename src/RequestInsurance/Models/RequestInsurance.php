@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Cego\RequestInsurance\Casts\CarbonUtc;
+use Cego\RequestInsurance\FailedRequestMover;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\RequestInsuranceBuilder;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -104,6 +105,27 @@ class RequestInsurance extends SaveRetryingModel
     {
         // Use the one defined in the config, or the whatever is default
         return Config::get('request-insurance.table') ?? parent::getTable();
+    }
+
+    /**
+     * Resolve route-model bindings from the main table, falling back to the
+     * exceptions table so the UI can show and act on FAILED/ABANDONED requests
+     * (returning a RequestInsuranceFailed whose retry/abandon are table-aware).
+     *
+     * @param mixed $value
+     * @param string|null $field
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $resolved = parent::resolveRouteBinding($value, $field);
+
+        if ($resolved !== null) {
+            return $resolved;
+        }
+
+        return RequestInsuranceFailed::query()
+            ->where($field ?? $this->getRouteKeyName(), $value)
+            ->first();
     }
 
     /**
@@ -694,6 +716,10 @@ class RequestInsurance extends SaveRetryingModel
 
         $this->save();
 
+        // ABANDONED requests also leave the partitioned main table for the
+        // exceptions tables (they remain retryable from there).
+        FailedRequestMover::moveToFailed($this);
+
         return $this;
     }
 
@@ -900,6 +926,14 @@ class RequestInsurance extends SaveRetryingModel
             if ($this->hasAnyOfStates([State::WAITING, State::READY]) && $response->wasNotSuccessful()) {
                 $this->setState(State::FAILED);
             }
+        }
+
+        // FAILED requests are moved to the exceptions ("failed jobs") tables so the
+        // partitioned main tables only ever hold the success lifecycle and whole
+        // partitions can be dropped at retention. A failure here leaves the row
+        // FAILED in the main table; the retention guard will surface it.
+        if ($this->hasState(State::FAILED)) {
+            rescue(fn () => FailedRequestMover::moveToFailed($this));
         }
     }
 

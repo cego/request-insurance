@@ -31,6 +31,16 @@ Route::namespace('Cego\RequestInsurance\Controllers')
             ->only(['index', 'show', 'destroy'])
             ->withoutMiddleware(VerifyCsrfToken::class);
 
+        Route::post('request-insurances/retry-selected', [
+            'uses' => 'RequestInsuranceController@retrySelected',
+            'as'   => 'request-insurances.retry-selected',
+        ])->withoutMiddleware(VerifyCsrfToken::class);
+
+        Route::post('request-insurances/abandon-selected', [
+            'uses' => 'RequestInsuranceController@abandonSelected',
+            'as'   => 'request-insurances.abandon-selected',
+        ])->withoutMiddleware(VerifyCsrfToken::class);
+
         Route::post('request-insurances/{request_insurance}/retry', [
             'uses' => 'RequestInsuranceController@retry',
             'as'   => 'request-insurances.retry',

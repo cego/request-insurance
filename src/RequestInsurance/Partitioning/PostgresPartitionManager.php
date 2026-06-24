@@ -4,7 +4,6 @@ namespace Cego\RequestInsurance\Partitioning;
 
 use Closure;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 
 class PostgresPartitionManager extends PartitionManager
@@ -12,6 +11,11 @@ class PostgresPartitionManager extends PartitionManager
     public function isSupported(): bool
     {
         return true;
+    }
+
+    public function createPlainLike(string $source, string $target): void
+    {
+        $this->connection->statement("CREATE TABLE IF NOT EXISTS \"{$target}\" (LIKE \"{$source}\" INCLUDING DEFAULTS INCLUDING INDEXES)");
     }
 
     /**
@@ -155,9 +159,7 @@ class PostgresPartitionManager extends PartitionManager
             }
 
             if ( ! $partitionIsSafeToDrop($start, $end)) {
-                Log::warning("Skipping drop of partition {$childName} on {$table}: contains non-terminal rows");
-
-                continue;
+                throw new PartitionNotDroppableException("Refusing to drop partition {$childName} on {$table}: it still holds non-COMPLETED rows that should have been extracted to the exceptions tables");
             }
 
             // DROP TABLE on a child detaches and removes it atomically.
