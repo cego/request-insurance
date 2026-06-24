@@ -50,7 +50,7 @@
             @foreach(State::getAll() as $state)
                 <label class="cursor-pointer select-none">
                     <input type="checkbox" name="{{ $state }}" @checked(old($state) == 'on') onchange="this.form.requestSubmit()" class="peer sr-only">
-                    <span class="chip inline-block rounded-full px-2.5 py-1 text-[12px] font-mono opacity-45 transition peer-checked:opacity-100 peer-checked:ring-1 peer-checked:ring-current peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-accent" style="--chip:var(--c-{{ State::getBootstrapColor($state) }})">{{ ucfirst(strtolower($state)) }}</span>
+                    <span class="chip inline-block rounded-full px-2.5 py-1 text-[12px] font-mono opacity-70 transition peer-checked:opacity-100 peer-checked:ring-1 peer-checked:ring-current peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-accent" style="--chip:var(--c-{{ State::getBootstrapColor($state) }})">{{ ucfirst(strtolower($state)) }}</span>
                 </label>
             @endforeach
         </div>
@@ -74,7 +74,7 @@
                     class="h-8 rounded-lg bg-accent px-3.5 text-[12px] font-medium text-white hover:opacity-90">Retry selected</button>
             <button type="submit" form="ri-bulk" formaction="{{ route('request-insurances.abandon-selected') }}"
                     onclick="return confirm('Abandon the selected request insurances? Active requests will stop being processed.')"
-                    class="h-8 rounded-lg border border-st-danger/45 px-3.5 text-[12px] font-medium text-st-danger hover:bg-st-danger/10">Abandon selected</button>
+                    class="h-8 rounded-lg border border-st-danger/60 px-3.5 text-[12px] font-medium text-st-danger hover:bg-st-danger/10">Abandon selected</button>
             <button type="button" id="ri-clearsel" class="text-[12px] text-ink-soft hover:text-ink">Clear</button>
         </div>
     </div>
@@ -110,19 +110,19 @@
                             <div class="grid grid-cols-[4.3rem_5rem_4.7rem] items-center gap-1.5">
                                 @if($requestInsurance->isRetryable())
                                     <form method="POST" action="{{ route('request-insurances.retry', $requestInsurance) }}" class="w-full">@csrf
-                                        <button type="submit" class="act border-st-warning/45 text-st-warning hover:bg-st-warning/10">Retry</button>
+                                        <button type="submit" class="act border-st-warning/60 text-st-warning hover:bg-st-warning/10">Retry</button>
                                     </form>
                                 @else <span></span> @endif
 
                                 @if($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
                                     <form method="POST" action="{{ route('request-insurances.destroy', $requestInsurance) }}" class="w-full">@csrf
                                         <input type="hidden" name="_method" value="delete">
-                                        <button type="submit" class="act border-st-danger/40 text-st-danger hover:bg-st-danger/10"
+                                        <button type="submit" class="act border-st-danger/60 text-st-danger hover:bg-st-danger/10"
                                                 onclick="return confirm('Abandon request insurance #{{ $requestInsurance->id }}?')">Abandon</button>
                                     </form>
                                 @else <span></span> @endif
 
-                                <a href="{{ route('request-insurances.show', $requestInsurance) }}" class="act border-accent/40 text-accent no-underline hover:bg-accent/10">Inspect</a>
+                                <a href="{{ route('request-insurances.show', $requestInsurance) }}" class="act border-accent/60 text-accent no-underline hover:bg-accent/10">Inspect</a>
                             </div>
                         </td>
                     </tr>
@@ -137,7 +137,7 @@
             <label class="flex items-center gap-2">rows
                 <select onchange="const u=new URL(location); u.searchParams.set('per_page', this.value); u.searchParams.delete('cursor'); location = u;"
                         class="h-8 rounded-md border border-line bg-surface px-2 text-ink focus:border-accent focus:outline-none">
-                    @foreach([25, 50, 100] as $size)
+                    @foreach([25, 50, 100, 250, 500, 1000] as $size)
                         <option value="{{ $size }}" @selected($perPage === $size)>{{ $size }}</option>
                     @endforeach
                 </select>

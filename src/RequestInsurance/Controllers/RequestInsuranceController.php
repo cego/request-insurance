@@ -37,7 +37,7 @@ class RequestInsuranceController extends Controller
 
         $perPage = (int) $request->input('per_page', 25);
 
-        if ( ! in_array($perPage, [25, 50, 100], true)) {
+        if ( ! in_array($perPage, [25, 50, 100, 250, 500, 1000], true)) {
             $perPage = 25;
         }
 

@@ -41,7 +41,7 @@
         }
         /* State chip: tinted background + colored text/dot, theme-aware via color-mix. Set --chip per state. */
         .chip{ background:color-mix(in srgb, var(--chip,var(--accent)) 13%, transparent); color:var(--chip,var(--accent)); }
-        @media (prefers-color-scheme: dark){ .chip{ background:color-mix(in srgb, var(--chip,var(--accent)) 20%, transparent); } }
+        @media (prefers-color-scheme: dark){ .chip{ background:color-mix(in srgb, var(--chip,var(--accent)) 26%, transparent); } }
         /* Row action button: clearly an action, consistent size so column slots stay aligned. */
         .act{ display:inline-flex; align-items:center; justify-content:center; width:100%; height:1.75rem;
               border-radius:.375rem; border:1px solid; font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap; }
