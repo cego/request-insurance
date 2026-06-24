@@ -49,7 +49,7 @@
         <div class="flex flex-wrap items-center gap-1.5">
             @foreach(State::getAll() as $state)
                 <label class="cursor-pointer select-none">
-                    <input type="checkbox" name="{{ $state }}" @checked(old($state) == 'on') class="peer sr-only">
+                    <input type="checkbox" name="{{ $state }}" @checked(old($state) == 'on') onchange="this.form.requestSubmit()" class="peer sr-only">
                     <span class="chip inline-block rounded-full px-2.5 py-1 text-[12px] font-mono opacity-45 transition peer-checked:opacity-100 peer-checked:ring-1 peer-checked:ring-current peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-accent" style="--chip:var(--c-{{ State::getBootstrapColor($state) }})">{{ ucfirst(strtolower($state)) }}</span>
                 </label>
             @endforeach
