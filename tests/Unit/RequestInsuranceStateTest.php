@@ -54,7 +54,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->runWorkerOnce();
 
         // Assert
-        $requestInsurance->refresh();
+        $requestInsurance = $this->reloadOrFailed($requestInsurance);
         $this->assertEquals(State::FAILED, $requestInsurance->state);
     }
 
@@ -111,8 +111,8 @@ class RequestInsuranceStateTest extends TestCase
         $this->runWorkerOnce();
 
         // Assert
-        $requestInsurance1->refresh();
-        $requestInsurance2->refresh();
+        $requestInsurance1 = $this->reloadOrFailed($requestInsurance1);
+        $requestInsurance2 = $this->reloadOrFailed($requestInsurance2);
 
         $this->assertEquals(State::FAILED, $requestInsurance1->state);
         $this->assertEquals(State::COMPLETED, $requestInsurance2->state);
@@ -142,7 +142,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->runWorkerOnce();
 
         // Assert
-        $requestInsurance->refresh();
+        $requestInsurance = $this->reloadOrFailed($requestInsurance);
         $this->assertEquals(State::FAILED, $requestInsurance->state);
     }
 
@@ -218,7 +218,7 @@ class RequestInsuranceStateTest extends TestCase
         $this->runWorkerOnce();
 
         // Assert
-        $requestInsurance->refresh();
+        $requestInsurance = $this->reloadOrFailed($requestInsurance);
         $this->assertEquals(State::FAILED, $requestInsurance->state);
     }
 
@@ -252,8 +252,8 @@ class RequestInsuranceStateTest extends TestCase
         $this->artisan('request-insurance:unstuck-processing');
 
         // Assert
-        $this->assertEquals(State::FAILED, $requestInsurance1->refresh()->state);
-        $this->assertEquals(State::FAILED, $requestInsurance2->refresh()->state);
+        $this->assertEquals(State::FAILED, $this->reloadOrFailed($requestInsurance1)->state);
+        $this->assertEquals(State::FAILED, $this->reloadOrFailed($requestInsurance2)->state);
     }
 
     public function test_it_does_not_update_state_if_processing_has_run_less_than_10_minutes()

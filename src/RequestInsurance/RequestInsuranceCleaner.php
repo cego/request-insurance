@@ -2,49 +2,75 @@
 
 namespace Cego\RequestInsurance;
 
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Cego\RequestInsurance\Enums\State;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Models\RequestInsuranceLog;
+use Cego\RequestInsurance\Partitioning\PartitionManagerFactory;
 
 class RequestInsuranceCleaner
 {
     /**
-     * Cleans up old completed request insurances.
+     * Cleans up old request insurances.
+     *
+     *  - Main tables: on partition-capable drivers whole partitions older than the
+     *    retention window are dropped. The guard throws if an aged partition still
+     *    holds a non-COMPLETED row (those should have been extracted to the
+     *    exceptions tables). On other drivers retention falls back to row deletes.
+     *  - Exceptions tables: aged ABANDONED rows are removed by row delete (FAILED
+     *    rows are kept until a human resolves them, as before).
      */
     public static function cleanUp(): void
     {
-        $deletionCutoff = Carbon::now('UTC')->subDays(Config::get('request-insurance.cleanUpKeepDays', 14));
-        $chunkSize = Config::get('request-insurance.cleanChunkSize', 1000);
+        $manager = PartitionManagerFactory::for(DB::connection());
+        $keepDays = (int) Config::get('request-insurance.cleanUpKeepDays', 14);
+        $olderThan = CarbonImmutable::now('UTC')->subDays($keepDays);
 
-        // Get RI ids to delete
-        /** @var Builder $query */
-        $query = resolve(RequestInsurance::class)::query();
+        $mainTable = resolve(RequestInsurance::class)->getTable();
+        $logsTable = resolve(RequestInsuranceLog::class)->getTable();
 
-        // Delete RI that have been completed for more than cleanUpKeepDays
-        $query->select(['id'])
-            ->whereIn('state', [State::COMPLETED, State::ABANDONED])
-            ->where('created_at', '<', $deletionCutoff)
-            ->chunkById($chunkSize, fn (Collection $idsToDelete) => static::deleteChunk($idsToDelete->pluck('id')));
+        if ($manager->isSupported()) {
+            $manager->ensureFuturePartitions($mainTable);
+            $manager->ensureFuturePartitions($logsTable);
+            $manager->pruneOldPartitions($mainTable, $olderThan, $manager->nonTerminalGuardFor($mainTable, [State::COMPLETED]));
+            $manager->pruneOldPartitions($logsTable, $olderThan, fn () => true);
+        } else {
+            // Unsupported driver (e.g. sqlite): legacy row-delete retention of the
+            // completed lifecycle in the main table.
+            $manager->pruneOldPartitions($mainTable, $olderThan, fn () => true);
+        }
+
+        static::pruneAbandonedExceptions($olderThan);
     }
 
     /**
-     * Deletes a chunk of request insurances and their logs
-     *
-     * @param Collection $idsToDelete
+     * Remove ABANDONED rows (and their logs) from the exceptions tables once they
+     * fall outside the retention window, preserving the previous behaviour where
+     * abandoned requests are eventually deleted. FAILED rows are left untouched.
      */
-    protected static function deleteChunk(Collection $idsToDelete): void
+    protected static function pruneAbandonedExceptions(CarbonImmutable $olderThan): void
     {
-        // Clean up RequestInsurances table
-        resolve(RequestInsurance::class)->whereIn('id', $idsToDelete)->delete();
+        $connection = DB::connection();
+        $failed = FailedRequestMover::failedTable();
+        $failedLogs = FailedRequestMover::failedLogsTable();
 
-        // Clean up RequestInsuranceLogs table
-        resolve(RequestInsuranceLog::class)::whereIn('request_insurance_id', $idsToDelete)->delete();
+        if ( ! $connection->getSchemaBuilder()->hasTable($failed)) {
+            return;
+        }
 
-        // Be a good boy and sleep 10ms
-        usleep(10000);
+        $chunkSize = (int) Config::get('request-insurance.cleanChunkSize', 1000);
+
+        $connection->table($failed)
+            ->where('state', State::ABANDONED)
+            ->where('created_at', '<', $olderThan->toDateTimeString())
+            ->orderBy('id')
+            ->chunkById($chunkSize, function ($rows) use ($connection, $failed, $failedLogs) {
+                $ids = collect($rows)->pluck('id')->all();
+                $connection->table($failedLogs)->whereIn('request_insurance_id', $ids)->delete();
+                $connection->table($failed)->whereIn('id', $ids)->delete();
+                usleep(10000);
+            });
     }
 }

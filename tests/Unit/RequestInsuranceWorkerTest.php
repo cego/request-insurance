@@ -14,6 +14,7 @@ use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Events\RequestSuccessful;
+use Cego\RequestInsurance\Models\RequestInsuranceFailed;
 use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 
 class RequestInsuranceWorkerTest extends TestCase
@@ -195,7 +196,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $worker->run(true);
 
         // Assert
-        $requestInsurance->refresh();
+        $requestInsurance = $this->reloadOrFailed($requestInsurance);
 
         $this->assertEquals(State::FAILED, $requestInsurance->state);
         $this->assertEquals(1, $requestInsurance->retry_count);
@@ -233,8 +234,8 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->runWorkerOnce();
 
         // Assert
-        $requestInsurance1->refresh();
-        $requestInsurance2->refresh();
+        $requestInsurance1 = $this->reloadOrFailed($requestInsurance1);
+        $requestInsurance2 = $this->reloadOrFailed($requestInsurance2);
 
         $this->assertEquals(State::FAILED, $requestInsurance1->state);
         $this->assertEquals(1, $requestInsurance1->retry_count);
@@ -311,7 +312,7 @@ class RequestInsuranceWorkerTest extends TestCase
         $worker->run(true);
 
         // Assert
-        $this->assertEquals(State::FAILED, RequestInsurance::first()->state);
+        $this->assertEquals(State::FAILED, RequestInsuranceFailed::first()->state);
     }
 
     public function test_it_can_retry_inconsistent_jobs()

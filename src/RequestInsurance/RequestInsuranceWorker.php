@@ -221,13 +221,14 @@ class RequestInsuranceWorker
     {
         $now = Carbon::now('UTC');
 
-        $updatedRows = RequestInsurance::query()
-            ->whereIn('id', $requests->pluck('id'))
-            ->update([
-                'state'            => State::PROCESSING,
-                'state_changed_at' => $now,
-                'retry_count'      => DB::raw('retry_count + 1'),
-            ]);
+        $query = RequestInsurance::query()->whereIn('id', $requests->pluck('id'));
+        $this->applyCreatedAtBound($query, $requests);
+
+        $updatedRows = $query->update([
+            'state'            => State::PROCESSING,
+            'state_changed_at' => $now,
+            'retry_count'      => DB::raw('retry_count + 1'),
+        ]);
 
         if ( ! $updatedRows) {
             throw new \RuntimeException('Could not update jobs before processing begins');
@@ -264,21 +265,24 @@ class RequestInsuranceWorker
      */
     protected function getRequestsToProcess(): EloquentCollection
     {
-        $requestIds = $this->acquireLockOnRowsToProcess();
+        $rows = $this->acquireLockOnRowsToProcess();
 
-        if ($requestIds->isEmpty()) {
+        if ($rows->isEmpty()) {
             return EloquentCollection::empty();
         }
 
         // Gets requests to process ordered by priority and id
-        return resolve(RequestInsurance::class)::query()
-            ->whereIn('id', $requestIds)
-            ->get()
-            ->sortBy(['priority', 'id']);
+        $query = resolve(RequestInsurance::class)::query()->whereIn('id', collect($rows)->pluck('id'));
+        $this->applyCreatedAtBound($query, $rows);
+
+        return $query->get()->sortBy(['priority', 'id']);
     }
 
     /**
      * Acquires a lock on the next rows to process
+     *
+     * Returns a Collection of row objects carrying {id, created_at} so callers
+     * can apply a created_at range bound for partition pruning.
      *
      * @throws Exception
      *
@@ -287,40 +291,44 @@ class RequestInsuranceWorker
     public function acquireLockOnRowsToProcess(): Collection
     {
         return DB::transaction(function () {
-            $requestIds = $this->getIdsOfReadyRequests();
+            $rows = $this->getIdsOfReadyRequests();
 
             // Bail if no request are ready to be processed
-            if ($requestIds->isEmpty()) {
-                return $requestIds;
+            if ($rows->isEmpty()) {
+                return collect();
             }
 
             // Mark the selected jobs as PENDING so other workers do not try to consume them
             $now = CarbonImmutable::now();
+            $ids = collect($rows)->pluck('id');
 
-            $locksWereObtained = resolve(RequestInsurance::class)::query()
-                ->whereIn('id', $requestIds)
-                ->update([
-                    'state'            => State::PENDING,
-                    'state_changed_at' => $now,
-                ]);
+            $query = resolve(RequestInsurance::class)::query()->whereIn('id', $ids);
+            $this->applyCreatedAtBound($query, $rows);
+
+            $locksWereObtained = $query->update([
+                'state'            => State::PENDING,
+                'state_changed_at' => $now,
+            ]);
 
             if ( ! $locksWereObtained) {
-                throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $requestIds->implode(',')));
+                throw new Exception(sprintf('RequestInsurance failed to obtain lock on ids: [%s]', $ids->implode(',')));
             }
 
-            return $requestIds;
+            return $rows; // carry {id, created_at} forward
         }, 5);
     }
 
     /**
      * Gets a collection of RequestInsurances ready to be processed
      *
-     * @return mixed
+     * Returns a Collection of objects with {id, created_at} attributes.
+     *
+     * @return Collection
      */
-    public function getIdsOfReadyRequests()
+    public function getIdsOfReadyRequests(): Collection
     {
         $builder = resolve(RequestInsurance::class)::query()
-            ->select('id')
+            ->select(['id', 'created_at'])
             ->readyToBeProcessed()
             ->take(Config::get('request-insurance.batchSize'));
 
@@ -330,7 +338,33 @@ class RequestInsuranceWorker
             $builder->lockForUpdate();
         }
 
-        return $builder->pluck('id');
+        return $builder->get(); // collection of {id, created_at}
+    }
+
+    /**
+     * Constrains a query to the created_at span of the given rows, so the query
+     * prunes to the relevant partitions. Rows must expose a created_at attribute.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param EloquentCollection|Collection $rows
+     */
+    private function applyCreatedAtBound($query, $rows): void
+    {
+        $timestamps = collect($rows)->pluck('created_at')->filter()->map(function ($ts) {
+            if ($ts instanceof \DateTimeInterface) {
+                return Carbon::instance($ts)->setTimezone('UTC')->toDateTimeString('microsecond');
+            }
+
+            return (string) $ts;
+        });
+
+        if ($timestamps->isEmpty()) {
+            return;
+        }
+
+        $query
+            ->where('created_at', '>=', $timestamps->min())
+            ->where('created_at', '<=', $timestamps->max());
     }
 
     private function registerTimeoutHandler()

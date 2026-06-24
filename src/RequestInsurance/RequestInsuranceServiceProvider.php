@@ -9,6 +9,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\ViewComponents\Status;
 use Cego\RequestInsurance\ViewComponents\HttpCode;
+use Cego\RequestInsurance\ViewComponents\Timestamp;
 use Cego\RequestInsurance\Providers\IdentityProvider;
 use Cego\RequestInsurance\ViewComponents\InlinePrint;
 use Cego\RequestInsurance\ViewComponents\PrettyPrint;
@@ -66,6 +67,7 @@ class RequestInsuranceServiceProvider extends ServiceProvider
             Status::class,
             EditApprovalsStatus::class,
             PrettyPrintTextArea::class,
+            Timestamp::class,
         ]);
 
         // To avoid a hard dependency on spatie/prometheus-laravel and keep non-laravel and 7.4 support.

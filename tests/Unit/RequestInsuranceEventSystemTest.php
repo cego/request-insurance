@@ -137,7 +137,7 @@ class RequestInsuranceEventSystemTest extends TestCase
         $this->runWorkerOnce();
 
         // Assert
-        $requestInsurance->refresh();
+        $requestInsurance = $this->reloadOrFailed($requestInsurance);
 
         $this->assertEquals(0, $requestInsurance->retry_count);
         $this->assertTrue($requestInsurance->hasState(State::ABANDONED));

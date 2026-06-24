@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Config;
 use Cego\RequestInsurance\HttpResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Cego\RequestInsurance\Casts\CarbonUtc;
+use Cego\RequestInsurance\FailedRequestMover;
 use Cego\RequestInsurance\Contracts\HttpRequest;
 use Cego\RequestInsurance\RequestInsuranceBuilder;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Cego\RequestInsurance\Exceptions\EmptyPropertyException;
 use Cego\RequestInsurance\Factories\RequestInsuranceFactory;
+use Cego\RequestInsurance\Models\Concerns\HasCompositeCreatedAtKey;
 use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 
 /**
@@ -61,6 +63,7 @@ use Cego\RequestInsurance\Exceptions\MethodNotAllowedForRequestInsurance;
 class RequestInsurance extends SaveRetryingModel
 {
     use HasFactory;
+    use HasCompositeCreatedAtKey;
 
     public $dateFormat = 'Y-m-d H:i:s.u';
 
@@ -102,6 +105,27 @@ class RequestInsurance extends SaveRetryingModel
     {
         // Use the one defined in the config, or the whatever is default
         return Config::get('request-insurance.table') ?? parent::getTable();
+    }
+
+    /**
+     * Resolve route-model bindings from the main table, falling back to the
+     * exceptions table so the UI can show and act on FAILED/ABANDONED requests
+     * (returning a RequestInsuranceFailed whose retry/abandon are table-aware).
+     *
+     * @param mixed $value
+     * @param string|null $field
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $resolved = parent::resolveRouteBinding($value, $field);
+
+        if ($resolved !== null) {
+            return $resolved;
+        }
+
+        return RequestInsuranceFailed::query()
+            ->where($field ?? $this->getRouteKeyName(), $value)
+            ->first();
     }
 
     /**
@@ -663,23 +687,6 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Unstuck the RequestInsurance instance if was left in the PENDING state
-     *
-     * @throws Exception
-     *
-     * @return $this
-     */
-    public function unstuckPending(): RequestInsurance
-    {
-        if ($this->hasState(State::PENDING)) {
-            $this->setState(State::READY);
-            $this->save();
-        }
-
-        return $this;
-    }
-
-    /**
      * Abandons the RequestInsurance instance
      *
      * @throws Exception
@@ -691,6 +698,10 @@ class RequestInsurance extends SaveRetryingModel
         $this->setState(State::ABANDONED);
 
         $this->save();
+
+        // ABANDONED requests also leave the partitioned main table for the
+        // exceptions tables (they remain retryable from there).
+        FailedRequestMover::moveToFailed($this);
 
         return $this;
     }
@@ -898,6 +909,14 @@ class RequestInsurance extends SaveRetryingModel
             if ($this->hasAnyOfStates([State::WAITING, State::READY]) && $response->wasNotSuccessful()) {
                 $this->setState(State::FAILED);
             }
+        }
+
+        // FAILED requests are moved to the exceptions ("failed jobs") tables so the
+        // partitioned main tables only ever hold the success lifecycle and whole
+        // partitions can be dropped at retention. A failure here leaves the row
+        // FAILED in the main table; the retention guard will surface it.
+        if ($this->hasState(State::FAILED)) {
+            rescue(fn () => FailedRequestMover::moveToFailed($this));
         }
     }
 

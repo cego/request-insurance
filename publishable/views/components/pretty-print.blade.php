@@ -1,1 +1,1 @@
-<pre><code class="json">{{ $content }}</code></pre>
+<pre class="overflow-x-auto rounded-lg border border-line text-[12px] [&>code]:!bg-transparent"><code class="json !p-3">{{ $content }}</code></pre>
