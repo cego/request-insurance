@@ -42,6 +42,8 @@ class RequestInsuranceFailed extends RequestInsurance
     /**
      * Restore this request into the active main table as READY (with a fresh
      * created_at, so it lands in a current partition) and remove it from here.
+     * Returns the restored row from the main table (this exceptions-table instance
+     * no longer exists once restored).
      */
     public function retryNow(): RequestInsurance
     {
@@ -51,7 +53,7 @@ class RequestInsuranceFailed extends RequestInsurance
 
         FailedRequestMover::restoreToActive($this->getKey());
 
-        return $this;
+        return RequestInsurance::query()->find($this->getKey()) ?? $this;
     }
 
     /**

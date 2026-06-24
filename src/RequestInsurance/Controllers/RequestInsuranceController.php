@@ -44,12 +44,15 @@ class RequestInsuranceController extends Controller
         // The listing spans both the partitioned main table and the exceptions
         // ("failed jobs") table, so FAILED/ABANDONED requests remain visible. Cursor
         // pagination avoids an exact COUNT over the (large, partitioned) main table.
-        $paginator = RequestInsurance::query()
-            ->filteredByRequest($request)
-            ->unionAll(RequestInsuranceFailed::query()->filteredByRequest($request))
-            ->orderByDesc('id')
-            ->cursorPaginate($perPage)
-            ->withQueryString();
+        // The exceptions table is only unioned in once it exists (i.e. after the
+        // migration has run) so the page does not break during a rolling deploy.
+        $query = RequestInsurance::query()->filteredByRequest($request);
+
+        if (FailedRequestMover::isAvailable(DB::connection())) {
+            $query->unionAll(RequestInsuranceFailed::query()->filteredByRequest($request));
+        }
+
+        $paginator = $query->orderByDesc('id')->cursorPaginate($perPage)->withQueryString();
 
         return view('request-insurance::index')->with([
             'requestInsurances' => $paginator,
@@ -216,7 +219,9 @@ class RequestInsuranceController extends Controller
     {
         return response()->json([
             'activeCount' => (int) RequestInsurance::query()->whereIn('state', [ State::READY, State::PROCESSING, State::PENDING ])->count(),
-            'failCount'   => (int) RequestInsuranceFailed::query()->where('state', State::FAILED)->count(),
+            'failCount'   => FailedRequestMover::isAvailable(DB::connection())
+                ? (int) RequestInsuranceFailed::query()->where('state', State::FAILED)->count()
+                : 0,
         ]);
     }
 
@@ -240,11 +245,14 @@ class RequestInsuranceController extends Controller
             ->groupBy('state')
             ->pluck('count', 'state');
 
-        $failedCounts = DB::query()
-            ->from(FailedRequestMover::failedTable())
-            ->select('state', DB::raw('COUNT(*) as count'))
-            ->groupBy('state')
-            ->pluck('count', 'state');
+        // Skip the exceptions table until it exists (e.g. before the migration runs).
+        $failedCounts = FailedRequestMover::isAvailable(DB::connection())
+            ? DB::query()
+                ->from(FailedRequestMover::failedTable())
+                ->select('state', DB::raw('COUNT(*) as count'))
+                ->groupBy('state')
+                ->pluck('count', 'state')
+            : collect();
 
         $counts = collect(State::getAll())
             ->reject(fn (string $state) => $state === State::COMPLETED)
