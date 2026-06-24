@@ -3,9 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\VerifyCsrfToken;
 
+// The monitoring endpoints are fetched by the dashboard (asynchronously, so a slow
+// count never blocks page load), so they run under the same `web` session as the
+// dashboard rather than `api` — otherwise SSO/forward-auth redirects the XHR to the
+// login provider and the cross-origin redirect is blocked by CORS. Defined before the
+// resource route so the literal paths match ahead of show's {request_insurance}.
 Route::namespace('Cego\RequestInsurance\Controllers')
     ->prefix('vendor')
-    ->middleware('api')
+    ->middleware('web')
     ->group(function () {
         Route::get('request-insurances/load', [
             'uses' => 'RequestInsuranceController@load',
