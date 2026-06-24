@@ -1,6 +1,5 @@
 <?php
 use \Cego\RequestInsurance\Enums\State;
-use Jfcherng\Diff\DiffHelper;
 ?>
 @extends("request-insurance::layouts.master")
 
@@ -21,7 +20,44 @@ use Jfcherng\Diff\DiffHelper;
     <style>
         @keyframes riFlash { 0%{background:transparent} 45%{background:color-mix(in srgb, var(--accent) 18%, transparent)} 100%{background:transparent} }
         .backgroundAnimated{ animation: riFlash .8s ease-in-out; }
-        <?= DiffHelper::getStyleSheet(); ?>
+
+        /* Modernised diff viewer (replaces the bundled jfcherng stylesheet); theme-aware. */
+        .diff-wrapper.diff{
+            width:100%; border-collapse:collapse; background:transparent; color:var(--ink);
+            font-family:var(--font-mono); font-size:12px; line-height:1.55; word-break:break-all;
+            border:1px solid var(--line); border-radius:.5rem; overflow:hidden;
+        }
+        .diff-wrapper.diff thead th{
+            background:var(--surface-2); color:var(--ink-soft); white-space:nowrap;
+            font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em;
+            text-align:left; padding:.4rem .6rem; border-bottom:1px solid var(--line);
+        }
+        .diff-wrapper.diff td, .diff-wrapper.diff th{ padding:.12rem .6rem; vertical-align:top; border:0; }
+        .diff-wrapper.diff tbody th{
+            width:1%; white-space:nowrap; text-align:right; font-weight:400; user-select:none;
+            color:var(--ink-soft); background:var(--surface-2);
+        }
+        .diff-wrapper.diff tbody th.sign{ padding:0 .4rem; text-align:center; }
+        .diff-wrapper.diff tbody th.sign.del{ color:var(--c-danger); }
+        .diff-wrapper.diff tbody th.sign.ins{ color:var(--c-success); }
+        .diff-wrapper.diff td.old, .diff-wrapper.diff td.rep{ background:color-mix(in srgb, var(--c-danger) 9%, transparent); }
+        .diff-wrapper.diff td.new{ background:color-mix(in srgb, var(--c-success) 10%, transparent); }
+        .diff-wrapper.diff td.none{ background:transparent; }
+        .diff-wrapper.diff .change-eq td{ color:var(--ink-soft); }
+        .diff-wrapper.diff tbody.skipped td, .diff-wrapper.diff tbody.skipped th{
+            background:var(--surface-2); color:var(--ink-soft); text-align:center;
+        }
+        /* inline word/char-level changes */
+        .diff-wrapper.diff.diff-html .change ins{
+            text-decoration:none; border-radius:2px; padding:0 1px;
+            background:color-mix(in srgb, var(--c-success) 30%, transparent);
+            color:color-mix(in srgb, var(--c-success) 75%, var(--ink));
+        }
+        .diff-wrapper.diff.diff-html .change del{
+            text-decoration:none; border-radius:2px; padding:0 1px;
+            background:color-mix(in srgb, var(--c-danger) 30%, transparent);
+            color:color-mix(in srgb, var(--c-danger) 75%, var(--ink));
+        }
     </style>
 
     @php
