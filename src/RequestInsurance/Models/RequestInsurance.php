@@ -150,6 +150,8 @@ class RequestInsurance extends SaveRetryingModel
                 throw new EmptyPropertyException('method', $request);
             }
 
+            $request->method = mb_strtoupper($request->method);
+
             // Throw exception if url is not set
             if ( ! $request->url) {
                 throw new EmptyPropertyException('url', $request);
