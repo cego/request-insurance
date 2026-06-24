@@ -58,13 +58,15 @@ class RequestInsuranceEdit extends SaveRetryingModel
     }
 
     /**
-     * Relationship with RequestInsurance
+     * Relationship with the edited request. Editing is only possible on FAILED
+     * requests, which live in the exceptions table, so the relationship targets
+     * RequestInsuranceFailed — this is the row that apply() must update.
      *
      * @return BelongsTo
      */
     public function requestInsurance()
     {
-        return $this->belongsTo(RequestInsurance::class);
+        return $this->belongsTo(RequestInsuranceFailed::class);
     }
 
     /**

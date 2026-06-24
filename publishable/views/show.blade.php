@@ -44,7 +44,7 @@ use Jfcherng\Diff\DiffHelper;
             <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
                 <h3 class="font-semibold">Request</h3>
                 <div class="flex gap-2">
-                    @if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
+                    @if ($requestInsurance->hasState(State::FAILED))
                         <form method="POST" action="{{ route('request-insurance-edits.create', $requestInsurance) }}">@csrf
                             <button class="{{ $btnPrimary }}" type="submit">Edit</button>
                         </form>

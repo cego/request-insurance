@@ -23,9 +23,9 @@ class RequestInsuranceEditController extends Controller
      */
     public function create(Request $request, RequestInsurance $requestInsurance, IdentityProvider $identityProvider)
     {
-        // Only allow updates for requests that have not completed or been abandoned
-        if ($requestInsurance->inOneOfStates(State::COMPLETED, State::ABANDONED)) {
-            // This should not be possible from the view, so we don't send any error messages
+        // Editing is only possible on FAILED requests (which live in the exceptions
+        // table). This should not be reachable from the view for other states.
+        if ( ! $requestInsurance->hasState(State::FAILED)) {
             return redirect()->back();
         }
 
