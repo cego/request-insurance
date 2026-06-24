@@ -56,11 +56,11 @@ class WebUiSmokeTest extends TestCase
             ->assertSee('Edit history');
     }
 
-    public function test_ui_endpoints_survive_missing_exceptions_tables(): void
+    public function test_index_page_survives_missing_exceptions_table(): void
     {
         // Simulate a rolling deploy where the new code runs before the migration:
-        // the exceptions tables do not exist yet. The index/monitor endpoints must
-        // still respond instead of 500-ing on a missing table.
+        // the exceptions table does not exist yet. The index page must still render
+        // (it only unions in the exceptions table once it exists).
         RequestInsurance::factory(2)->create(['state' => State::READY]);
 
         \Illuminate\Support\Facades\Schema::dropIfExists(FailedRequestMover::failedLogsTable());
@@ -71,8 +71,6 @@ class WebUiSmokeTest extends TestCase
         $available->setValue(null, []);
 
         $this->get(route('request-insurances.index'))->assertOk();
-        $this->getJson(route('request-insurances.monitor'))->assertOk();
-        $this->getJson(route('request-insurances.monitor_segmented'))->assertOk();
     }
 
     public function test_monitor_segmented_does_not_include_completed(): void

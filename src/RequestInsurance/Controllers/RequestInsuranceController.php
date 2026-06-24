@@ -219,9 +219,7 @@ class RequestInsuranceController extends Controller
     {
         return response()->json([
             'activeCount' => (int) RequestInsurance::query()->whereIn('state', [ State::READY, State::PROCESSING, State::PENDING ])->count(),
-            'failCount'   => FailedRequestMover::isAvailable(DB::connection())
-                ? (int) RequestInsuranceFailed::query()->where('state', State::FAILED)->count()
-                : 0,
+            'failCount'   => (int) RequestInsuranceFailed::query()->where('state', State::FAILED)->count(),
         ]);
     }
 
@@ -245,14 +243,11 @@ class RequestInsuranceController extends Controller
             ->groupBy('state')
             ->pluck('count', 'state');
 
-        // Skip the exceptions table until it exists (e.g. before the migration runs).
-        $failedCounts = FailedRequestMover::isAvailable(DB::connection())
-            ? DB::query()
-                ->from(FailedRequestMover::failedTable())
-                ->select('state', DB::raw('COUNT(*) as count'))
-                ->groupBy('state')
-                ->pluck('count', 'state')
-            : collect();
+        $failedCounts = DB::query()
+            ->from(FailedRequestMover::failedTable())
+            ->select('state', DB::raw('COUNT(*) as count'))
+            ->groupBy('state')
+            ->pluck('count', 'state');
 
         $counts = collect(State::getAll())
             ->reject(fn (string $state) => $state === State::COMPLETED)
