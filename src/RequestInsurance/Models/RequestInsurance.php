@@ -687,23 +687,6 @@ class RequestInsurance extends SaveRetryingModel
     }
 
     /**
-     * Unstuck the RequestInsurance instance if was left in the PENDING state
-     *
-     * @throws Exception
-     *
-     * @return $this
-     */
-    public function unstuckPending(): RequestInsurance
-    {
-        if ($this->hasState(State::PENDING)) {
-            $this->setState(State::READY);
-            $this->save();
-        }
-
-        return $this;
-    }
-
-    /**
      * Abandons the RequestInsurance instance
      *
      * @throws Exception

@@ -46,11 +46,6 @@ Route::namespace('Cego\RequestInsurance\Controllers')
             'as'   => 'request-insurances.retry',
         ])->withoutMiddleware(VerifyCsrfToken::class);
 
-        Route::post('request-insurances/{request_insurance}/unlock', [
-            'uses' => 'RequestInsuranceController@unlock',
-            'as'   => 'request-insurances.unlock',
-        ])->withoutMiddleware(VerifyCsrfToken::class);
-
         Route::get('request-insurances/{request_insurance}/edit-history', [
             'uses' => 'RequestInsuranceController@editHistory',
             'as'   => 'request-insurances.edit-history',

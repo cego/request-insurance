@@ -59,7 +59,7 @@
 </head>
 <body class="bg-bg text-ink font-sans antialiased min-h-screen">
     <header class="sticky top-0 z-20 border-b border-line bg-surface/85 backdrop-blur">
-        <div class="mx-auto max-w-[1500px] px-6 h-14 flex items-center gap-4">
+        <div class="px-6 lg:px-8 h-14 flex items-center gap-4">
             <a href="{{ route('request-insurances.index') }}" class="flex items-center gap-2.5 no-underline text-ink">
                 <span class="grid place-items-center size-6 rounded-[7px] bg-accent text-white text-[13px] font-bold">R</span>
                 <span class="font-mono text-[15px] font-semibold tracking-tight">request<span class="text-ink-soft">·</span>insurance</span>
@@ -67,7 +67,7 @@
         </div>
     </header>
 
-    <main class="mx-auto max-w-[1500px] px-6 py-8">
+    <main class="px-6 lg:px-8 py-8">
         @yield('content')
     </main>
 

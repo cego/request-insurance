@@ -107,16 +107,10 @@
                         <td class="text-[12px] text-ink-soft"><x-request-insurance-timestamp :value="$requestInsurance->created_at" /></td>
                         <td class="text-right tabular-nums text-ink-soft">{{ $requestInsurance->getTotalTime() < 0 ? '·' : number_format($requestInsurance->getTotalTime()) }}</td>
                         <td>
-                            <div class="grid grid-cols-[4.3rem_4.6rem_5rem_4.7rem] items-center gap-1.5">
+                            <div class="grid grid-cols-[4.3rem_5rem_4.7rem] items-center gap-1.5">
                                 @if($requestInsurance->isRetryable())
                                     <form method="POST" action="{{ route('request-insurances.retry', $requestInsurance) }}" class="w-full">@csrf
                                         <button type="submit" class="act border-st-warning/45 text-st-warning hover:bg-st-warning/10">Retry</button>
-                                    </form>
-                                @else <span></span> @endif
-
-                                @if($requestInsurance->hasState(State::PENDING))
-                                    <form method="POST" action="{{ route('request-insurances.unlock', $requestInsurance) }}" class="w-full">@csrf
-                                        <button type="submit" class="act border-line text-ink-soft hover:bg-surface-2 hover:text-ink">Unlock</button>
                                     </form>
                                 @else <span></span> @endif
 

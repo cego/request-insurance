@@ -168,20 +168,6 @@ class RequestInsuranceController extends Controller
     }
 
     /**
-     * Unlocks a request insurance
-     *
-     * @param RequestInsurance $requestInsurance
-     *
-     * @return mixed
-     */
-    public function unlock(RequestInsurance $requestInsurance)
-    {
-        $requestInsurance->unstuckPending();
-
-        return redirect()->back();
-    }
-
-    /**
      * Gets json representation of service load
      *
      * @return array
