@@ -11,39 +11,15 @@ class PartitionWindow
         private readonly CarbonImmutable $start,
         private readonly CarbonImmutable $end,
         private readonly string          $name,
-        private readonly string          $granularity,
     ) {
     }
 
-    public static function forDate(CarbonInterface $date, string $granularity): self
+    public static function forDate(CarbonInterface $date): self
     {
-        PartitionGranularity::assertValid($granularity);
+        $start = CarbonImmutable::parse($date->toDateTimeString(), 'UTC')->startOfDay();
+        $name = sprintf('p%04d%02d%02d', $start->year, $start->month, $start->day);
 
-        $utc = CarbonImmutable::parse($date->toDateTimeString(), 'UTC');
-
-        switch ($granularity) {
-            case PartitionGranularity::WEEKLY:
-                $start = $utc->startOfWeek(CarbonInterface::MONDAY)->startOfDay();
-                $end = $start->addWeek();
-                $name = sprintf('p%04dw%02d', $start->isoWeekYear, $start->isoWeek);
-
-                break;
-            case PartitionGranularity::MONTHLY:
-                $start = $utc->startOfMonth();
-                $end = $start->addMonthNoOverflow();
-                $name = sprintf('p%04d%02d', $start->year, $start->month);
-
-                break;
-            case PartitionGranularity::DAILY:
-            default:
-                $start = $utc->startOfDay();
-                $end = $start->addDay();
-                $name = sprintf('p%04d%02d%02d', $start->year, $start->month, $start->day);
-
-                break;
-        }
-
-        return new self($start, $end, $name, $granularity);
+        return new self($start, $start->addDay(), $name);
     }
 
     public function name(): string
@@ -63,15 +39,15 @@ class PartitionWindow
 
     public function next(): self
     {
-        return self::forDate($this->end, $this->granularity);
+        return self::forDate($this->end);
     }
 
     /** @return array<int, self> */
-    public static function range(CarbonInterface $from, CarbonInterface $to, string $granularity): array
+    public static function range(CarbonInterface $from, CarbonInterface $to): array
     {
         $windows = [];
-        $cursor = self::forDate($from, $granularity);
-        $last = self::forDate($to, $granularity);
+        $cursor = self::forDate($from);
+        $last = self::forDate($to);
 
         while ($cursor->start()->lessThanOrEqualTo($last->start())) {
             $windows[] = $cursor;

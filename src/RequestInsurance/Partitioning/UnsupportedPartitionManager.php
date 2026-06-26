@@ -14,6 +14,24 @@ class UnsupportedPartitionManager extends PartitionManager
         return false;
     }
 
+    // Never partitioned on unsupported drivers; retention is handled by the
+    // pruneOldPartitions() row-delete override below, so these are never reached.
+    protected function isPartitioned(string $table): bool
+    {
+        return false;
+    }
+
+    /** @return array<string, array{0: CarbonImmutable, 1: ?CarbonImmutable}> */
+    protected function partitionRanges(string $table): array
+    {
+        return [];
+    }
+
+    protected function dropPartition(string $table, string $name): void
+    {
+        // No-op: unsupported drivers have no partitions to drop.
+    }
+
     public function createPlainLike(string $source, string $target): void
     {
         // sqlite (and friends): clone columns only — no PK/index needed for the

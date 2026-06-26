@@ -131,10 +131,7 @@ return [
     | transparently fall back to a plain table with row-based retention.
     */
     'partitioning' => [
-        // Partition size: daily | weekly | monthly
-        'granularity' => env('REQUEST_INSURANCE_PARTITION_GRANULARITY', \Cego\RequestInsurance\Partitioning\PartitionGranularity::DAILY),
-
-        // Number of future partitions (in granularity units) to keep pre-created ahead of now
+        // Number of future daily partitions to keep pre-created ahead of now
         'precreate_ahead' => (int) env('REQUEST_INSURANCE_PARTITION_PRECREATE_AHEAD', 7),
     ],
 ];

@@ -4,16 +4,15 @@ namespace Cego\RequestInsurance\Partitioning;
 
 use Closure;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Database\ConnectionInterface;
 
 abstract class PartitionManager
 {
     public function __construct(
         protected readonly ConnectionInterface $connection,
-        protected readonly string              $granularity = PartitionGranularity::DAILY,
         protected readonly int                 $precreateAhead = 7,
     ) {
-        PartitionGranularity::assertValid($this->granularity);
     }
 
     abstract public function isSupported(): bool;
@@ -29,8 +28,47 @@ abstract class PartitionManager
 
     abstract public function ensureFuturePartitions(string $table): void;
 
-    /** @return array<int, string> dropped partition names */
-    abstract public function pruneOldPartitions(string $table, CarbonImmutable $olderThan, Closure $partitionIsSafeToDrop): array;
+    /**
+     * Drops partitions whose upper bound is at or before $olderThan, provided the
+     * guard confirms the range holds no non-terminal rows. Driver specifics are
+     * delegated to isPartitioned()/partitionRanges()/dropPartition().
+     *
+     * @return array<int, string> dropped partition names
+     */
+    public function pruneOldPartitions(string $table, CarbonImmutable $olderThan, Closure $partitionIsSafeToDrop): array
+    {
+        if ( ! $this->isPartitioned($table)) {
+            return [];
+        }
+
+        $dropped = [];
+
+        foreach ($this->partitionRanges($table) as $name => [$start, $end]) {
+            if ($end === null) {
+                continue; // catch-all partition (pmax / DEFAULT) is never dropped
+            }
+
+            if ($end->greaterThan($olderThan)) {
+                continue; // still within the retention window
+            }
+
+            if ( ! $partitionIsSafeToDrop($start, $end)) {
+                throw new PartitionNotDroppableException("Refusing to drop partition {$name} on {$table}: it still holds non-COMPLETED rows that should have been extracted to the exceptions tables");
+            }
+
+            $this->dropPartition($table, $name);
+            $dropped[] = $name;
+        }
+
+        return $dropped;
+    }
+
+    abstract protected function isPartitioned(string $table): bool;
+
+    /** @return array<string, array{0: CarbonImmutable, 1: ?CarbonImmutable}> name => [start, end] (end null for the catch-all) */
+    abstract protected function partitionRanges(string $table): array;
+
+    abstract protected function dropPartition(string $table, string $name): void;
 
     /**
      * Returns a closure(CarbonImmutable $start, CarbonImmutable $end): bool
@@ -49,5 +87,22 @@ abstract class PartitionManager
 
             return $count === 0;
         };
+    }
+
+    /**
+     * Resolve the canonical logs table name.
+     *
+     * The logs table is `request_insurance_logs` (singular "insurance"); it must
+     * never be derived by concatenating `_logs` onto the parent table name.
+     */
+    protected function logsTableFor(string $table): string
+    {
+        $configuredParent = Config::get('request-insurance.table') ?? 'request_insurances';
+
+        if ($table === $configuredParent) {
+            return Config::get('request-insurance.table_logs') ?? 'request_insurance_logs';
+        }
+
+        return $table . '_logs';
     }
 }

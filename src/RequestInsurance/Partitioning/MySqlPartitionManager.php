@@ -2,9 +2,7 @@
 
 namespace Cego\RequestInsurance\Partitioning;
 
-use Closure;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Config;
 
 class MySqlPartitionManager extends PartitionManager
 {
@@ -74,7 +72,7 @@ class MySqlPartitionManager extends PartitionManager
         }
 
         $now = CarbonImmutable::now('UTC');
-        $windows = PartitionWindow::range($now, $now->addDays($this->precreateAhead), $this->granularity);
+        $windows = PartitionWindow::range($now, $now->addDays($this->precreateAhead));
         $existing = $this->existingPartitionNames($table);
 
         foreach ($windows as $window) {
@@ -94,49 +92,12 @@ class MySqlPartitionManager extends PartitionManager
         }
     }
 
-    /**
-     * @param array<int, string> $terminalStates ignored here; safety is delegated to the guard closure
-     *
-     * @return array<int, string> dropped partition names
-     */
-    public function pruneOldPartitions(string $table, CarbonImmutable $olderThan, Closure $partitionIsSafeToDrop): array
+    protected function dropPartition(string $table, string $name): void
     {
-        if ( ! $this->isPartitioned($table)) {
-            return [];
-        }
-
-        $logsTable = $this->logsTableFor($table);
-        $logsIsPartitioned = $this->isPartitioned($logsTable);
-        $logsPartitions = $logsIsPartitioned ? $this->existingPartitionNames($logsTable) : [];
-
-        $dropped = [];
-
-        foreach ($this->partitionRanges($table) as $name => [$start, $end]) {
-            if ($name === 'pmax' || $end === null) {
-                continue; // never drop the catch-all
-            }
-
-            if ($end->greaterThan($olderThan)) {
-                continue; // partition still within retention window
-            }
-
-            if ( ! $partitionIsSafeToDrop($start, $end)) {
-                throw new PartitionNotDroppableException("Refusing to drop partition {$name} on {$table}: it still holds non-COMPLETED rows that should have been extracted to the exceptions tables");
-            }
-
-            $this->connection->statement("ALTER TABLE `{$table}` DROP PARTITION {$name}");
-
-            if ($logsIsPartitioned && in_array($name, $logsPartitions, true)) {
-                $this->connection->statement("ALTER TABLE `{$logsTable}` DROP PARTITION {$name}");
-            }
-
-            $dropped[] = $name;
-        }
-
-        return $dropped;
+        $this->connection->statement("ALTER TABLE `{$table}` DROP PARTITION {$name}");
     }
 
-    private function isPartitioned(string $table): bool
+    protected function isPartitioned(string $table): bool
     {
         $row = $this->connection->selectOne(
             'SELECT COUNT(*) c FROM information_schema.partitions WHERE table_schema = DATABASE() AND table_name = ? AND partition_name IS NOT NULL',
@@ -158,7 +119,7 @@ class MySqlPartitionManager extends PartitionManager
     }
 
     /** @return array<string, array{0: CarbonImmutable, 1: ?CarbonImmutable}> */
-    private function partitionRanges(string $table): array
+    protected function partitionRanges(string $table): array
     {
         // RANGE COLUMNS(created_at) stores the quoted upper bound in partition_description.
         $rows = $this->connection->select(
@@ -213,11 +174,11 @@ class MySqlPartitionManager extends PartitionManager
         // Build the partition list. The first partition's lower bound is open in
         // RANGE COLUMNS, so any historical rows below it fall into it naturally.
         $first = $oldestActive !== null
-            ? PartitionWindow::forDate(CarbonImmutable::parse($oldestActive, 'UTC'), $this->granularity)
-            : PartitionWindow::forDate(CarbonImmutable::now('UTC'), $this->granularity);
+            ? PartitionWindow::forDate(CarbonImmutable::parse($oldestActive, 'UTC'))
+            : PartitionWindow::forDate(CarbonImmutable::now('UTC'));
 
         $now = CarbonImmutable::now('UTC');
-        $windows = PartitionWindow::range($first->start(), $now->addDays($this->precreateAhead), $this->granularity);
+        $windows = PartitionWindow::range($first->start(), $now->addDays($this->precreateAhead));
 
         $parts = [];
 
@@ -257,22 +218,5 @@ class MySqlPartitionManager extends PartitionManager
         $this->connection->statement(
             "INSERT IGNORE INTO `{$logsTable}` SELECT l.* FROM `{$legacyLogs}` l WHERE l.request_insurance_id IN (SELECT id FROM `{$table}`)"
         );
-    }
-
-    /**
-     * Resolve the canonical logs table name.
-     *
-     * The logs table is `request_insurance_logs` (singular "insurance"); it must
-     * never be derived by concatenating `_logs` onto the parent table name.
-     */
-    private function logsTableFor(string $table): string
-    {
-        $configuredParent = Config::get('request-insurance.table') ?? 'request_insurances';
-
-        if ($table === $configuredParent) {
-            return Config::get('request-insurance.table_logs') ?? 'request_insurance_logs';
-        }
-
-        return $table . '_logs';
     }
 }

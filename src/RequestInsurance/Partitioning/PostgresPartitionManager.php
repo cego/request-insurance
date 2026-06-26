@@ -2,9 +2,7 @@
 
 namespace Cego\RequestInsurance\Partitioning;
 
-use Closure;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Config;
 
 class PostgresPartitionManager extends PartitionManager
 {
@@ -76,10 +74,10 @@ class PostgresPartitionManager extends PartitionManager
             : $this->connection->table($legacy)->whereNotIn('state', $terminalStates)->min('created_at');
 
         $first = $oldestActive !== null
-            ? PartitionWindow::forDate(CarbonImmutable::parse($oldestActive, 'UTC'), $this->granularity)
-            : PartitionWindow::forDate(CarbonImmutable::now('UTC'), $this->granularity);
+            ? PartitionWindow::forDate(CarbonImmutable::parse($oldestActive, 'UTC'))
+            : PartitionWindow::forDate(CarbonImmutable::now('UTC'));
 
-        $windows = PartitionWindow::range($first->start(), CarbonImmutable::now('UTC')->addDays($this->precreateAhead), $this->granularity);
+        $windows = PartitionWindow::range($first->start(), CarbonImmutable::now('UTC')->addDays($this->precreateAhead));
 
         foreach ($windows as $window) {
             $this->createPartition($table, $window);
@@ -118,7 +116,7 @@ class PostgresPartitionManager extends PartitionManager
         }
 
         $now = CarbonImmutable::now('UTC');
-        $windows = PartitionWindow::range($now, $now->addDays($this->precreateAhead), $this->granularity);
+        $windows = PartitionWindow::range($now, $now->addDays($this->precreateAhead));
         $existing = $this->existingPartitionNames($table);
 
         foreach ($windows as $window) {
@@ -130,44 +128,10 @@ class PostgresPartitionManager extends PartitionManager
         }
     }
 
-    /**
-     * Drops partitions of $table whose upper bound is at or before $olderThan,
-     * provided the guard confirms the range holds no non-terminal rows.
-     *
-     * Logs partitions are pruned independently by passing the logs table here;
-     * this method never reaches across to drop a sibling table's children.
-     *
-     * @param array<int, string> $terminalStates ignored here; safety is delegated to the guard closure
-     *
-     * @return array<int, string> dropped partition names
-     */
-    public function pruneOldPartitions(string $table, CarbonImmutable $olderThan, Closure $partitionIsSafeToDrop): array
+    // DROP TABLE on a child detaches and removes it atomically.
+    protected function dropPartition(string $table, string $name): void
     {
-        if ( ! $this->isPartitioned($table)) {
-            return [];
-        }
-
-        $dropped = [];
-
-        foreach ($this->partitionRanges($table) as $childName => [$start, $end]) {
-            if ($end === null) {
-                continue; // DEFAULT catch-all is never dropped
-            }
-
-            if ($end->greaterThan($olderThan)) {
-                continue; // partition still within retention window
-            }
-
-            if ( ! $partitionIsSafeToDrop($start, $end)) {
-                throw new PartitionNotDroppableException("Refusing to drop partition {$childName} on {$table}: it still holds non-COMPLETED rows that should have been extracted to the exceptions tables");
-            }
-
-            // DROP TABLE on a child detaches and removes it atomically.
-            $this->connection->statement("DROP TABLE IF EXISTS \"{$childName}\"");
-            $dropped[] = $childName;
-        }
-
-        return $dropped;
+        $this->connection->statement("DROP TABLE IF EXISTS \"{$name}\"");
     }
 
     private function createPartition(string $table, PartitionWindow $window): void
@@ -183,7 +147,7 @@ class PostgresPartitionManager extends PartitionManager
         ));
     }
 
-    private function isPartitioned(string $table): bool
+    protected function isPartitioned(string $table): bool
     {
         $row = $this->connection->selectOne('SELECT relkind FROM pg_class WHERE relname = ?', [$table]);
 
@@ -202,7 +166,7 @@ class PostgresPartitionManager extends PartitionManager
     }
 
     /** @return array<string, array{0: CarbonImmutable, 1: ?CarbonImmutable}> */
-    private function partitionRanges(string $table): array
+    protected function partitionRanges(string $table): array
     {
         $rows = $this->connection->select(
             'SELECT c.relname, pg_get_expr(c.relpartbound, c.oid) AS bound
@@ -227,22 +191,5 @@ class PostgresPartitionManager extends PartitionManager
         }
 
         return $ranges;
-    }
-
-    /**
-     * Resolve the canonical logs table name.
-     *
-     * The logs table is `request_insurance_logs` (singular "insurance"); it must
-     * never be derived by concatenating `_logs` onto the parent table name.
-     */
-    private function logsTableFor(string $table): string
-    {
-        $configuredParent = Config::get('request-insurance.table') ?? 'request_insurances';
-
-        if ($table === $configuredParent) {
-            return Config::get('request-insurance.table_logs') ?? 'request_insurance_logs';
-        }
-
-        return $table . '_logs';
     }
 }
