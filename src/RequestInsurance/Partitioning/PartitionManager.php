@@ -4,6 +4,7 @@ namespace Cego\RequestInsurance\Partitioning;
 
 use Closure;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\ConnectionInterface;
 
@@ -30,8 +31,9 @@ abstract class PartitionManager
 
     /**
      * Drops partitions whose upper bound is at or before $olderThan, provided the
-     * guard confirms the range holds no non-terminal rows. Driver specifics are
-     * delegated to isPartitioned()/partitionRanges()/dropPartition().
+     * guard confirms the range holds no non-terminal rows. A partition failing the
+     * guard is skipped with a warning so the remaining partitions still get pruned.
+     * Driver specifics are delegated to isPartitioned()/partitionRanges()/dropPartition().
      *
      * @return array<int, string> dropped partition names
      */
@@ -53,7 +55,9 @@ abstract class PartitionManager
             }
 
             if ( ! $partitionIsSafeToDrop($start, $end)) {
-                throw new PartitionNotDroppableException("Refusing to drop partition {$name} on {$table}: it still holds non-COMPLETED rows that should have been extracted to the exceptions tables");
+                Log::warning("Refusing to drop aged partition {$name} on {$table}: it still holds non-COMPLETED rows that should have been extracted to the exceptions tables");
+
+                continue;
             }
 
             $this->dropPartition($table, $name);

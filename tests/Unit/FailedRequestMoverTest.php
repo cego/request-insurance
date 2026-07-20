@@ -4,9 +4,11 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\FailedRequestMover;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\RequestInsurance\RequestInsuranceCleaner;
 use Cego\RequestInsurance\Models\RequestInsuranceLog;
 use Cego\RequestInsurance\Models\RequestInsuranceFailed;
 
@@ -74,5 +76,50 @@ class FailedRequestMoverTest extends TestCase
         $this->assertNotNull($restored);
         $this->assertSame(State::READY, $restored->state);
         $this->assertNull(RequestInsuranceFailed::query()->find($requestInsurance->id));
+    }
+
+    public function test_restoring_an_already_restored_request_is_a_no_op(): void
+    {
+        $requestInsurance = RequestInsurance::factory()->create(['state' => State::READY]);
+        $requestInsurance->setState(State::FAILED);
+        $requestInsurance->save();
+        FailedRequestMover::moveToFailed($requestInsurance);
+
+        FailedRequestMover::restoreToActive($requestInsurance->id);
+        FailedRequestMover::restoreToActive($requestInsurance->id);
+
+        // Exactly one active copy — the second restore found no exceptions row.
+        $this->assertSame(1, DB::table(FailedRequestMover::mainTable())->where('id', $requestInsurance->id)->count());
+        $this->assertNull(RequestInsuranceFailed::query()->find($requestInsurance->id));
+    }
+
+    public function test_cleaner_moves_stranded_failed_rows_to_the_exceptions_table(): void
+    {
+        // A FAILED row still in the main table (its move was interrupted) is swept
+        // into the exceptions table by the cleaner.
+        $stranded = RequestInsurance::factory()->create(['state' => State::FAILED]);
+
+        RequestInsuranceCleaner::cleanUp();
+
+        $this->assertNull(RequestInsurance::query()->find($stranded->id));
+        $this->assertNotNull(RequestInsuranceFailed::query()->find($stranded->id));
+    }
+
+    public function test_one_unmovable_stranded_row_does_not_block_the_rest_of_the_cleaner_sweep(): void
+    {
+        $unmovable = RequestInsurance::factory()->create(['state' => State::FAILED]);
+        DB::table(FailedRequestMover::failedTable())->insert(
+            (array) DB::table(FailedRequestMover::mainTable())->where('id', $unmovable->id)->first()
+        );
+        DB::statement('CREATE UNIQUE INDEX failed_request_id_for_test ON ' . FailedRequestMover::failedTable() . ' (id)');
+        $movable = RequestInsurance::factory()->create(['state' => State::FAILED]);
+
+        Log::shouldReceive('error')->once();
+
+        RequestInsuranceCleaner::cleanUp();
+
+        $this->assertNotNull(RequestInsurance::query()->find($unmovable->id));
+        $this->assertNull(RequestInsurance::query()->find($movable->id));
+        $this->assertNotNull(RequestInsuranceFailed::query()->find($movable->id));
     }
 }

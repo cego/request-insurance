@@ -4,6 +4,7 @@ namespace Cego\RequestInsurance\Providers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\AuthenticationException;
 
 class CegoIdentityProvider implements IdentityProvider
 {
@@ -19,9 +20,15 @@ class CegoIdentityProvider implements IdentityProvider
         $user = Auth::user();
 
         if ($user === null) {
-            return '';
+            throw new AuthenticationException('Request Insurance could not resolve an authenticated admin identity.');
         }
 
-        return (string) ($user->name ?? $user->email ?? $user->getAuthIdentifier());
+        $identity = trim((string) ($user->name ?? $user->email ?? $user->getAuthIdentifier()));
+
+        if ($identity === '') {
+            throw new AuthenticationException('Request Insurance resolved an empty authenticated admin identity.');
+        }
+
+        return $identity;
     }
 }

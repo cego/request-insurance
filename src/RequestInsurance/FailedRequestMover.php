@@ -89,17 +89,23 @@ class FailedRequestMover
         $main = static::mainTable();
         $failed = static::failedTable();
 
-        $row = (array) $connection->table($failed)->where('id', $id)->first();
+        $connection->transaction(function () use ($connection, $main, $failed, $id) {
+            // Lock the row so a concurrent restore of the same id either waits and
+            // then sees it gone, or is waited for — never a duplicate main-table row.
+            $row = (array) $connection->table($failed)->where('id', $id)->lockForUpdate()->first();
 
-        $now = CarbonImmutable::now('UTC')->toDateTimeString('microsecond');
-        $row['state'] = State::READY;
-        $row['state_changed_at'] = $now;
-        $row['created_at'] = $now;
-        $row['updated_at'] = $now;
-        $row['retry_at'] = null;
-        $row['retry_count'] = 0;
+            if ($row === []) {
+                return; // already restored or removed by a concurrent process
+            }
 
-        $connection->transaction(function () use ($connection, $main, $failed, $id, $row) {
+            $now = CarbonImmutable::now('UTC')->toDateTimeString('microsecond');
+            $row['state'] = State::READY;
+            $row['state_changed_at'] = $now;
+            $row['created_at'] = $now;
+            $row['updated_at'] = $now;
+            $row['retry_at'] = null;
+            $row['retry_count'] = 0;
+
             $connection->table($main)->insert($row);
             $connection->table($failed)->where('id', $id)->delete();
         });

@@ -908,13 +908,16 @@ class RequestInsurance extends SaveRetryingModel
             // then mark the request as FAILED - To force human eyes to look at the request.
             if ($this->hasAnyOfStates([State::WAITING, State::READY]) && $response->wasNotSuccessful()) {
                 $this->setState(State::FAILED);
+                // moveToFailed() copies with INSERT ... SELECT, so the transition
+                // must be persisted before it reads and removes the main-table row.
+                $this->save();
             }
         }
 
         // FAILED requests are moved to the exceptions ("failed jobs") tables so the
         // partitioned main tables only ever hold the success lifecycle and whole
         // partitions can be dropped at retention. A failure here leaves the row
-        // FAILED in the main table; the retention guard will surface it.
+        // FAILED in the main table; the cleaner re-attempts the move on its next run.
         if ($this->hasState(State::FAILED)) {
             rescue(fn () => FailedRequestMover::moveToFailed($this));
         }

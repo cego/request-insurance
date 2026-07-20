@@ -7,12 +7,14 @@ use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\View\Factory;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\Cursor;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Pagination\CursorPaginator;
 use Cego\RequestInsurance\FailedRequestMover;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Providers\IdentityProvider;
@@ -41,23 +43,68 @@ class RequestInsuranceController extends Controller
             $perPage = 25;
         }
 
-        // The listing spans both the partitioned main table and the exceptions
-        // ("failed jobs") table, so FAILED/ABANDONED requests remain visible. Cursor
-        // pagination avoids an exact COUNT over the (large, partitioned) main table.
-        // The exceptions table is only unioned in once it exists (i.e. after the
-        // migration has run) so the page does not break during a rolling deploy.
-        $query = RequestInsurance::query()->filteredByRequest($request);
-
-        if (FailedRequestMover::isAvailable(DB::connection())) {
-            $query->unionAll(RequestInsuranceFailed::query()->filteredByRequest($request));
-        }
-
-        $paginator = $query->orderByDesc('id')->cursorPaginate($perPage)->withQueryString();
+        $paginator = $this->paginateAcrossStorageTables($request, $perPage);
 
         return view('request-insurance::index')->with([
             'requestInsurances' => $paginator,
             'perPage'           => $perPage,
         ]);
+    }
+
+    /**
+     * Fetch at most one page from each physical table and merge those small result
+     * sets in memory. This lets both queries use their id indexes and avoids a
+     * database-wide UNION + filesort over the complete request history.
+     */
+    private function paginateAcrossStorageTables(Request $request, int $perPage): CursorPaginator
+    {
+        $cursor = Cursor::fromEncoded($request->query('cursor'));
+        $cursorId = null;
+
+        if ($cursor !== null) {
+            try {
+                $candidate = $cursor->parameter('id');
+
+                if (is_numeric($candidate)) {
+                    $cursorId = (int) $candidate;
+                } else {
+                    $cursor = null;
+                }
+            } catch (\UnexpectedValueException) {
+                $cursor = null;
+            }
+        }
+
+        $ascending = $cursor?->pointsToPreviousItems() ?? false;
+        $fetch = function (string $modelClass) use ($request, $perPage, $cursorId, $ascending): Collection {
+            $query = $modelClass::query()->filteredByRequest($request);
+
+            if ($cursorId !== null) {
+                $query->where('id', $ascending ? '>' : '<', $cursorId);
+            }
+
+            return $query
+                ->orderBy('id', $ascending ? 'asc' : 'desc')
+                ->limit($perPage + 1)
+                ->get();
+        };
+
+        $items = $fetch(RequestInsurance::class);
+
+        if (FailedRequestMover::isAvailable(DB::connection())) {
+            $items = $items->concat($fetch(RequestInsuranceFailed::class));
+        }
+
+        $items = $items
+            ->sortBy(fn (RequestInsurance $requestInsurance) => $requestInsurance->id, SORT_REGULAR, ! $ascending)
+            ->take($perPage + 1)
+            ->values();
+
+        return (new CursorPaginator($items, $perPage, $cursor, [
+            'path'       => $request->url(),
+            'cursorName' => 'cursor',
+            'parameters' => ['id'],
+        ]))->appends($request->query());
     }
 
     /**
@@ -93,10 +140,17 @@ class RequestInsuranceController extends Controller
     {
         $ids = array_values(array_filter(array_map('intval', (array) $request->input('ids', []))));
 
-        foreach ($ids as $id) {
-            $requestInsurance = RequestInsurance::query()->find($id) ?? RequestInsuranceFailed::query()->find($id);
+        if (empty($ids)) {
+            return redirect()->back();
+        }
 
-            if ($requestInsurance !== null && $requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED)) {
+        // merge() dedupes by primary key, so a main-table row wins over an
+        // exceptions-table row with the same id.
+        $selected = RequestInsuranceFailed::query()->whereIn('id', $ids)->get()
+            ->merge(RequestInsurance::query()->whereIn('id', $ids)->get());
+
+        foreach ($selected as $requestInsurance) {
+            if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED)) {
                 $requestInsurance->abandon();
             }
         }

@@ -69,4 +69,22 @@ class EditFlowTest extends TestCase
         $this->assertSame('https://example.test/edited', RequestInsuranceFailed::query()->find($failed->id)->url, 'apply must write to the exceptions table');
         $this->assertNotNull($edit->fresh()->applied_at);
     }
+
+    public function test_applying_an_edit_after_retry_updates_the_active_request(): void
+    {
+        $this->actingAsUser('alice');
+        $failed = $this->failedRequest();
+
+        $this->post(route('request-insurance-edits.create', $failed))->assertRedirect();
+        $edit = RequestInsuranceEdit::query()->where('request_insurance_id', $failed->id)->firstOrFail();
+        $edit->update(['new_url' => 'https://example.test/edited-after-retry']);
+        $edit->approvals()->create(['approver_admin_user' => 'bob']);
+
+        RequestInsuranceFailed::query()->findOrFail($failed->id)->retryNow();
+
+        $this->post(route('request-insurances-edits.apply', $edit))->assertRedirect();
+
+        $this->assertSame('https://example.test/edited-after-retry', RequestInsurance::query()->findOrFail($failed->id)->url);
+        $this->assertNotNull($edit->fresh()->applied_at);
+    }
 }

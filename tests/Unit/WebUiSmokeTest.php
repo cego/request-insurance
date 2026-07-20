@@ -3,12 +3,18 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
+use Illuminate\Auth\GenericUser;
 use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\FailedRequestMover;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class WebUiSmokeTest extends TestCase
 {
+    private function authenticate(): void
+    {
+        $this->actingAs(new GenericUser(['id' => 1, 'name' => 'test-admin']));
+    }
+
     public function test_index_page_renders(): void
     {
         RequestInsurance::factory(3)->create(['state' => State::READY]);
@@ -28,6 +34,7 @@ class WebUiSmokeTest extends TestCase
 
     public function test_show_page_renders(): void
     {
+        $this->authenticate();
         $requestInsurance = RequestInsurance::factory()->create(['state' => State::READY]);
 
         $this->get(route('request-insurances.show', $requestInsurance))
@@ -37,6 +44,7 @@ class WebUiSmokeTest extends TestCase
 
     public function test_show_page_renders_for_a_failed_request_in_the_exceptions_table(): void
     {
+        $this->authenticate();
         // Inspecting a row in the exceptions table must resolve the logs/edits
         // relationships by request_insurance_id, not request_insurance_failed_id.
         $requestInsurance = RequestInsurance::factory()->create(['state' => State::READY]);
@@ -49,6 +57,7 @@ class WebUiSmokeTest extends TestCase
 
     public function test_edit_history_page_renders(): void
     {
+        $this->authenticate();
         $requestInsurance = RequestInsurance::factory()->create(['state' => State::READY]);
 
         $this->get(route('request-insurances.edit-history', $requestInsurance))

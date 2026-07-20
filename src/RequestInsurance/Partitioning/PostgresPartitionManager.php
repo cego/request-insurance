@@ -3,6 +3,7 @@
 namespace Cego\RequestInsurance\Partitioning;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Log;
 
 class PostgresPartitionManager extends PartitionManager
 {
@@ -58,6 +59,7 @@ class PostgresPartitionManager extends PartitionManager
         $this->connection->statement("ALTER TABLE \"{$table}\" RENAME TO \"{$legacy}\"");
         $this->connection->statement("CREATE TABLE \"{$table}\" (LIKE \"{$legacy}\" INCLUDING DEFAULTS INCLUDING GENERATED) PARTITION BY RANGE (created_at)");
         $this->connection->statement("ALTER TABLE \"{$table}\" ADD PRIMARY KEY (id, created_at)");
+        $this->cloneSecondaryIndexes($legacy, $table);
 
         // Re-own the legacy sequence to the new table's id column so identity keeps incrementing.
         $seqRow = $this->connection->selectOne('SELECT pg_get_serial_sequence(?, ?) AS s', [$legacy, 'id']);
@@ -147,6 +149,40 @@ class PostgresPartitionManager extends PartitionManager
         ));
     }
 
+    /**
+     * LIKE cannot include the legacy primary key because PostgreSQL requires every
+     * unique index on a partitioned table to contain the partition key. Recreate all
+     * non-unique secondary indexes explicitly instead, preserving expressions,
+     * INCLUDE columns and predicates from pg_get_indexdef().
+     */
+    private function cloneSecondaryIndexes(string $source, string $target): void
+    {
+        $indexes = $this->connection->select(
+            'SELECT i.relname AS name, pg_get_indexdef(i.oid) AS definition
+             FROM pg_index x
+             JOIN pg_class t ON t.oid = x.indrelid
+             JOIN pg_class i ON i.oid = x.indexrelid
+             WHERE t.relname = ? AND NOT x.indisprimary AND NOT x.indisunique',
+            [$source]
+        );
+
+        foreach ($indexes as $index) {
+            $name = substr($target . '_partitioned_' . substr(sha1($index->name), 0, 12), 0, 63);
+            $definition = preg_replace(
+                '/^CREATE INDEX \S+ ON (?:ONLY )?\S+ /',
+                sprintf('CREATE INDEX "%s" ON "%s" ', $name, $target),
+                $index->definition,
+                1
+            );
+
+            if ($definition === null || $definition === $index->definition) {
+                throw new \RuntimeException("Could not recreate PostgreSQL index {$index->name} on {$target}");
+            }
+
+            $this->connection->statement($definition);
+        }
+    }
+
     protected function isPartitioned(string $table): bool
     {
         $row = $this->connection->selectOne('SELECT relkind FROM pg_class WHERE relname = ?', [$table]);
@@ -187,6 +223,10 @@ class PostgresPartitionManager extends PartitionManager
             // bound looks like: FOR VALUES FROM ('2026-06-22 00:00:00') TO ('2026-06-23 00:00:00')
             if (preg_match("/FROM \\('([^']+)'\\) TO \\('([^']+)'\\)/", $r->bound, $m)) {
                 $ranges[$r->relname] = [CarbonImmutable::parse($m[1], 'UTC'), CarbonImmutable::parse($m[2], 'UTC')];
+            } else {
+                // An unparseable partition is left out of retention rather than
+                // guessed at — but never silently, or it would grow unbounded.
+                Log::warning("Could not parse partition bound for {$r->relname} on {$table}: {$r->bound}");
             }
         }
 

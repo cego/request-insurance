@@ -11,6 +11,7 @@ use Cego\RequestInsurance\Enums\State;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\Providers\IdentityProvider;
 use Cego\RequestInsurance\Models\RequestInsuranceEdit;
+use Cego\RequestInsurance\Models\RequestInsuranceFailed;
 
 class RequestInsuranceEditController extends Controller
 {
@@ -133,16 +134,30 @@ class RequestInsuranceEditController extends Controller
         }
 
         DB::transaction(function () use ($requestInsuranceEdit) {
-            $requestInsuranceEdit->update(['applied_at' => Carbon::now('UTC')]);
+            // Lock the edit so two apply requests cannot both pass the applied_at
+            // check, then find and lock the request wherever retry currently has it.
+            $edit = RequestInsuranceEdit::query()->lockForUpdate()->findOrFail($requestInsuranceEdit->getKey());
 
-            // Update the request insurance
-            $requestInsuranceEdit->requestInsurance()->update([
-                'priority' => $requestInsuranceEdit->new_priority,
-                'url'      => $requestInsuranceEdit->new_url,
-                'method'   => $requestInsuranceEdit->new_method,
-                'headers'  => $requestInsuranceEdit->new_headers,
-                'payload'  => $requestInsuranceEdit->new_payload,
+            if ($edit->applied_at !== null) {
+                return;
+            }
+
+            $requestInsurance = RequestInsurance::query()->lockForUpdate()->find($edit->request_insurance_id)
+                ?? RequestInsuranceFailed::query()->lockForUpdate()->find($edit->request_insurance_id);
+
+            if ($requestInsurance === null) {
+                throw new \RuntimeException("Cannot apply edit {$edit->getKey()}: request insurance {$edit->request_insurance_id} was not found in either storage table");
+            }
+
+            $requestInsurance->fill([
+                'priority' => $edit->new_priority,
+                'url'      => $edit->new_url,
+                'method'   => $edit->new_method,
+                'headers'  => $edit->new_headers,
+                'payload'  => $edit->new_payload,
             ]);
+            $requestInsurance->save();
+            $edit->update(['applied_at' => Carbon::now('UTC')]);
         });
 
         return redirect()->back();

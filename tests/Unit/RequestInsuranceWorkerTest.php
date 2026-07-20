@@ -202,6 +202,30 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertEquals(1, $requestInsurance->retry_count);
     }
 
+    public function test_retryable_response_with_a_throwing_listener_is_archived_as_failed_and_remains_retryable(): void
+    {
+        RequestInsuranceClient::fake(fn () => Http::response([], 500));
+        Event::listen(function (RequestFailed $event) {
+            throw new \InvalidArgumentException();
+        });
+
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('get')
+            ->create();
+
+        $this->runWorkerOnce();
+
+        $this->assertNull(RequestInsurance::query()->find($requestInsurance->id));
+        $failed = RequestInsuranceFailed::query()->findOrFail($requestInsurance->id);
+        $this->assertSame(State::FAILED, $failed->state);
+        $this->assertTrue($failed->isRetryable());
+
+        $failed->retryNow();
+
+        $this->assertSame(State::READY, RequestInsurance::query()->findOrFail($requestInsurance->id)->state);
+    }
+
     public function test_it_does_not_exit_processing_of_other_jobs_if_a_listener_throws_an_exception(): void
     {
         // Arrange

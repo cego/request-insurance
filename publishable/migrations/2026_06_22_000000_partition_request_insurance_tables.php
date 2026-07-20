@@ -38,6 +38,12 @@ class PartitionRequestInsuranceTables extends Migration
         // 2. Move existing FAILED/ABANDONED rows (and their logs) out of the main
         //    tables so they survive the partition drops and the main tables only
         //    hold the success lifecycle.
+        //
+        //    Operational assumption: services have a small FAILED/ABANDONED backlog
+        //    when this migration runs. The extraction below intentionally moves that
+        //    backlog in one operation; its cost includes every attempt log belonging
+        //    to those requests. Operators should check both the request count and its
+        //    associated log count before deploying this migration.
         $this->extractExisting($connection, $main, $mainLogs, $failed, $failedLogs, [State::FAILED, State::ABANDONED]);
 
         // 3. On supported drivers, convert the main tables to RANGE partitioning by

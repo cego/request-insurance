@@ -21,7 +21,7 @@ use \Cego\RequestInsurance\Enums\State;
         @keyframes riFlash { 0%{background:transparent} 45%{background:color-mix(in srgb, var(--accent) 18%, transparent)} 100%{background:transparent} }
         .backgroundAnimated{ animation: riFlash .8s ease-in-out; }
 
-        /* Modernised diff viewer (replaces the bundled jfcherng stylesheet); theme-aware. */
+        /* Theme-aware diff viewer styles. */
         .diff-wrapper.diff{
             width:100%; border-collapse:collapse; background:transparent; color:var(--ink);
             font-family:var(--font-mono); font-size:12px; line-height:1.55; word-break:break-all;
