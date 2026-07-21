@@ -103,12 +103,13 @@
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="w-full min-w-[72rem] text-left text-sm">
+                        {{-- No minimum table width: cells wrap instead of forcing a horizontal scrollbar. --}}
+                        <table class="w-full text-left text-sm">
                             <thead class="border-b bg-slate-50 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">
                                 <tr>
                                     <th class="w-9 px-4 py-3.5"><input type="checkbox" id="ri-selectall" class="size-4 accent-insurance align-middle" title="Select all on this page"></th>
                                     <th class="px-4 py-3.5">ID</th>
-                                    <th class="px-4 py-3.5">Pri</th>
+                                    <th class="px-4 py-3.5">Priority</th>
                                     <th class="px-4 py-3.5">Method</th>
                                     <th class="px-4 py-3.5">Code</th>
                                     <th class="px-4 py-3.5">Url</th>
@@ -122,22 +123,22 @@
                             </thead>
                             <tbody class="divide-y font-mono">
                                 @foreach($requestInsurances as $requestInsurance)
-                                    <tr class="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50 [&>td]:whitespace-nowrap [&>td]:px-4 [&>td]:py-2.5">
+                                    <tr class="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50 [&>td]:px-4 [&>td]:py-2.5">
                                         <td>
                                             @if($requestInsurance->doesNotHaveState(State::COMPLETED))
                                                 <input type="checkbox" name="ids[]" value="{{ $requestInsurance->id }}" form="ri-bulk" class="ri-select size-4 accent-insurance align-middle">
                                             @endif
                                         </td>
-                                        <td class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ $requestInsurance->id }}</td>
-                                        <td class="tabular-nums">{{ $requestInsurance->priority }}</td>
-                                        <td class="font-bold">{{ mb_strtoupper($requestInsurance->method) }}</td>
-                                        <td><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}" /></td>
-                                        <td class="w-full min-w-[20rem] max-w-0 !whitespace-normal text-slate-500 dark:text-slate-400" title="{{ urldecode($requestInsurance->url) }}"><span class="line-clamp-2 break-all">{{ urldecode($requestInsurance->url) }}</span></td>
-                                        <td><x-request-insurance-status :requestInsurance="$requestInsurance" /></td>
-                                        <td class="tabular-nums">{{ $requestInsurance->retry_count }}</td>
-                                        <td class="text-xs"><x-request-insurance-timestamp :value="$requestInsurance->retry_at" /></td>
-                                        <td class="text-xs text-slate-500 dark:text-slate-400"><x-request-insurance-timestamp :value="$requestInsurance->created_at" /></td>
-                                        <td class="text-right tabular-nums text-slate-500 dark:text-slate-400">{{ $requestInsurance->getTotalTime() < 0 ? '·' : number_format($requestInsurance->getTotalTime()) }}</td>
+                                        <td class="whitespace-nowrap text-xs font-semibold text-slate-500 dark:text-slate-400">{{ $requestInsurance->id }}</td>
+                                        <td class="whitespace-nowrap tabular-nums">{{ $requestInsurance->priority }}</td>
+                                        <td class="whitespace-nowrap font-bold">{{ mb_strtoupper($requestInsurance->method) }}</td>
+                                        <td class="whitespace-nowrap"><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}" /></td>
+                                        <td class="w-full min-w-[16rem] max-w-0 text-slate-500 dark:text-slate-400" title="{{ urldecode($requestInsurance->url) }}"><span class="line-clamp-2 break-all">{{ urldecode($requestInsurance->url) }}</span></td>
+                                        <td class="whitespace-nowrap"><x-request-insurance-status :requestInsurance="$requestInsurance" /></td>
+                                        <td class="whitespace-nowrap tabular-nums">{{ $requestInsurance->retry_count }}</td>
+                                        <td class="min-w-[7.5rem] text-xs"><x-request-insurance-timestamp :value="$requestInsurance->retry_at" /></td>
+                                        <td class="min-w-[7.5rem] text-xs text-slate-500 dark:text-slate-400"><x-request-insurance-timestamp :value="$requestInsurance->created_at" /></td>
+                                        <td class="whitespace-nowrap text-right tabular-nums text-slate-500 dark:text-slate-400">{{ $requestInsurance->getTotalTime() < 0 ? '·' : number_format($requestInsurance->getTotalTime()) }}</td>
                                         <td>
                                             <div class="grid grid-cols-[4.3rem_4.6rem_5rem_4.7rem] items-center gap-1.5">
                                                 @if($requestInsurance->isRetryable())
