@@ -108,12 +108,19 @@
             const t = s < 60 ? s + 's' : m < 60 ? m + 'm' : h + 'h';
             return deltaMs >= 0 ? t + ' ago' : 'in ' + t;
         }
+        const timestampFormat = new Intl.DateTimeFormat('sv-SE', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            timeZoneName: 'short',
+        });
         function upgradeTimestamps(root) {
             (root || document).querySelectorAll('time[data-ts]').forEach(el => {
                 const then = Date.parse(el.dataset.ts);
                 if (isNaN(then)) return;
+                // The viewer's own timezone, with the zone named; recent values read as relative.
+                el.title = timestampFormat.format(then);
                 const delta = Date.now() - then;
-                if (Math.abs(delta) < 86400000) el.textContent = relativeTime(delta); // within 24h
+                el.textContent = Math.abs(delta) < 86400000 ? relativeTime(delta) : timestampFormat.format(then);
             });
         }
         document.addEventListener('DOMContentLoaded', () => {
