@@ -128,7 +128,7 @@
                                         <td class="tabular-nums">{{ $requestInsurance->priority }}</td>
                                         <td class="font-bold">{{ mb_strtoupper($requestInsurance->method) }}</td>
                                         <td><x-request-insurance-http-code httpCode="{{ $requestInsurance->response_code }}" /></td>
-                                        <td class="w-full max-w-0 truncate text-slate-500 dark:text-slate-400" title="{{ urldecode($requestInsurance->url) }}">{{ urldecode($requestInsurance->url) }}</td>
+                                        <td class="w-full min-w-[20rem] max-w-0 !whitespace-normal text-slate-500 dark:text-slate-400" title="{{ urldecode($requestInsurance->url) }}"><span class="line-clamp-2 break-all">{{ urldecode($requestInsurance->url) }}</span></td>
                                         <td><x-request-insurance-status :requestInsurance="$requestInsurance" /></td>
                                         <td class="tabular-nums">{{ $requestInsurance->retry_count }}</td>
                                         <td class="text-xs"><x-request-insurance-timestamp :value="$requestInsurance->retry_at" /></td>

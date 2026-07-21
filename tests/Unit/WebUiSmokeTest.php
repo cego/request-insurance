@@ -50,6 +50,18 @@ class WebUiSmokeTest extends TestCase
             ->assertSee('#' . $requestInsurance->id, false);
     }
 
+    public function test_show_page_renders_with_a_pending_edit(): void
+    {
+        $this->authenticate();
+        $requestInsurance = RequestInsurance::factory()->create(['state' => State::FAILED]);
+
+        $this->post(route('request-insurance-edits.create', $requestInsurance))->assertRedirect();
+
+        $this->get(route('request-insurances.show', $requestInsurance))
+            ->assertOk()
+            ->assertSee('Pending edits');
+    }
+
     public function test_edit_history_page_renders(): void
     {
         $this->authenticate();
