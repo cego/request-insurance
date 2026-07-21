@@ -116,6 +116,13 @@
                     <table class="kv w-full font-mono text-[13px]">
                         <tbody>
                             <tr><td>Id</td><td>{{ $requestInsurance->id }}</td></tr>
+                            <tr><td>Trace id</td><td>
+                                @if(filled($requestInsurance->trace_id))
+                                    <a href="{{ route('request-insurances.index', ['trace_id' => $requestInsurance->trace_id]) }}" title="Show all requests with this trace id" class="break-all rounded text-insurance hover:underline">{{ $requestInsurance->trace_id }}</a>
+                                @else
+                                    <span class="text-slate-400 dark:text-slate-500">—</span>
+                                @endif
+                            </td></tr>
                             <tr><td>Priority</td><td>{{ $requestInsurance->priority }}</td></tr>
                             <tr><td>Method</td><td class="font-bold">{{ mb_strtoupper($requestInsurance->method) }}</td></tr>
                             <tr><td>Url (decoded)</td><td class="break-all">{{ urldecode($requestInsurance->url) }}</td></tr>
