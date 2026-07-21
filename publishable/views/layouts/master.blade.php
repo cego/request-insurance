@@ -117,10 +117,11 @@
             (root || document).querySelectorAll('time[data-ts]').forEach(el => {
                 const then = Date.parse(el.dataset.ts);
                 if (isNaN(then)) return;
-                // The viewer's own timezone, with the zone named; recent values read as relative.
-                el.title = timestampFormat.format(then);
+                // The viewer's own timezone, with the zone named; recent values also show the time since.
+                const absolute = timestampFormat.format(then);
+                el.title = absolute;
                 const delta = Date.now() - then;
-                el.textContent = Math.abs(delta) < 86400000 ? relativeTime(delta) : timestampFormat.format(then);
+                el.textContent = Math.abs(delta) < 86400000 ? `${absolute} (${relativeTime(delta)})` : absolute;
             });
         }
         document.addEventListener('DOMContentLoaded', () => {
