@@ -19,14 +19,17 @@
     @endphp
 
     <div class="space-y-8">
-        <section class="max-w-3xl">
-            <p class="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-insurance">Request pipeline</p>
-            <h1 class="text-4xl font-black tracking-[-0.04em] text-slate-950 sm:text-5xl dark:text-white">Every request lands.<br><span class="text-slate-400 dark:text-slate-500">Or you learn why.</span></h1>
-            <p class="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">Guaranteed asynchronous HTTP delivery — with retries, edits, approvals, and a full audit trail for every request.</p>
-        </section>
+        {{-- On wide screens the lifecycle strip sits beside the hero instead of
+             below it, so the listing starts a full section higher. --}}
+        <section class="grid items-center gap-6 xl:grid-cols-[minmax(24rem,0.9fr)_minmax(0,2.1fr)]">
+            <div class="max-w-3xl">
+                <p class="mb-3 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-insurance">Request pipeline</p>
+                <h1 class="text-3xl font-black tracking-[-0.04em] text-slate-950 sm:text-4xl dark:text-white">Every request lands.<br><span class="text-slate-400 dark:text-slate-500">Or you learn why.</span></h1>
+                <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Guaranteed asynchronous HTTP delivery — with retries, edits, approvals, and a full audit trail for every request.</p>
+            </div>
 
-        {{-- Lifecycle flow strip: success path, then a divergent exceptions branch. --}}
-        <section aria-label="Requests per state" class="overflow-hidden rounded-2xl border bg-white p-1 shadow-sm shadow-slate-900/5 dark:bg-slate-900">
+            {{-- Lifecycle flow strip: success path, then a divergent exceptions branch. --}}
+            <section aria-label="Requests per state" class="overflow-hidden rounded-2xl border bg-white p-1 shadow-sm shadow-slate-900/5 dark:bg-slate-900">
             <div class="flex items-stretch overflow-x-auto">
                 <div class="flex flex-1 items-stretch">
                     @foreach($stages as $i => $stage)
@@ -44,8 +47,9 @@
                             <div class="select-none self-center text-slate-300 dark:text-slate-700" aria-hidden="true">→</div>
                         @endif
                     @endforeach
+                    </div>
                 </div>
-            </div>
+            </section>
         </section>
 
         <section aria-labelledby="requests-heading">
