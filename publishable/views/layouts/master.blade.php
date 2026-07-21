@@ -84,7 +84,7 @@
 </head>
 <body class="min-h-full">
     <header class="border-b bg-white/90 backdrop-blur dark:bg-slate-950/90">
-        <div class="mx-auto flex max-w-[96rem] min-[1800px]:max-w-[120rem] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <div class="mx-auto flex max-w-[96rem] min-[1800px]:max-w-none min-[1800px]:px-12 items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
             <a href="{{ route('request-insurances.index') }}" class="group flex items-center gap-3 rounded-lg">
                 <span class="grid size-9 place-items-center rounded-xl bg-terminal text-sm font-black tracking-tight text-white shadow-sm shadow-slate-900/20 transition-transform group-hover:-rotate-3 dark:bg-white dark:text-slate-950">⇄</span>
                 <span>
@@ -96,7 +96,7 @@
         </div>
     </header>
 
-    <main class="mx-auto w-full max-w-[96rem] min-[1800px]:max-w-[120rem] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+    <main class="mx-auto w-full max-w-[96rem] min-[1800px]:max-w-none min-[1800px]:px-12 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
         @yield('content')
     </main>
 
