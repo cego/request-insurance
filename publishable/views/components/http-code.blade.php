@@ -1,3 +1,1 @@
-<div class="badge badge-{{ $badgeColor }}">
-    {{ $httpCode }}
-</div>
+<span class="chip chip-{{ $badgeColor ?: 'secondary' }} font-mono tabular-nums">{{ $httpCode ?: '·' }}</span>
