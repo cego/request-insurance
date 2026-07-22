@@ -33,14 +33,68 @@ class RequestInsuranceController extends Controller
         // Flash the request parameters, so we can redisplay the same filter parameters.
         $request->flash();
 
+        $perPage = (int) $request->input('per_page', 25);
+
+        if ( ! in_array($perPage, [25, 50, 100, 250, 500, 1000], true)) {
+            $perPage = 25;
+        }
+
+        // Cursor pagination keeps deep pages cheap: it seeks on the id index
+        // instead of scanning and discarding an ever-growing offset.
         $paginator = RequestInsurance::query()
             ->orderByDesc('id')
             ->filteredByRequest($request)
-            ->paginate(25);
+            ->cursorPaginate($perPage)
+            ->withQueryString();
 
         return view('request-insurance::index')->with([
             'requestInsurances' => $paginator,
+            'perPage'           => $perPage,
         ]);
+    }
+
+    /**
+     * Retries a batch of selected request insurances at once
+     *
+     * @param Request $request
+     *
+     * @return mixed
+     */
+    public function retrySelected(Request $request)
+    {
+        $ids = array_values(array_filter(array_map('intval', (array) $request->input('ids', []))));
+
+        if ( ! empty($ids)) {
+            RequestInsurance::query()
+                ->whereIn('id', $ids)
+                ->get()
+                ->filter(fn (RequestInsurance $requestInsurance) => $requestInsurance->isRetryable())
+                ->each(fn (RequestInsurance $requestInsurance) => $requestInsurance->retryNow());
+        }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Abandons a batch of selected request insurances at once
+     *
+     * @param Request $request
+     *
+     * @return mixed
+     */
+    public function abandonSelected(Request $request)
+    {
+        $ids = array_values(array_filter(array_map('intval', (array) $request->input('ids', []))));
+
+        if ( ! empty($ids)) {
+            RequestInsurance::query()
+                ->whereIn('id', $ids)
+                ->get()
+                ->filter(fn (RequestInsurance $requestInsurance) => $requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
+                ->each(fn (RequestInsurance $requestInsurance) => $requestInsurance->abandon());
+        }
+
+        return redirect()->back();
     }
 
     /**

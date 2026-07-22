@@ -3,9 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\VerifyCsrfToken;
 
+// The monitoring endpoints are fetched by the dashboard (asynchronously, so a slow
+// count never blocks page load), so they run under the same `web` session as the
+// dashboard rather than `api` — otherwise SSO/forward-auth redirects the XHR to the
+// login provider and the cross-origin redirect is blocked by CORS.
 Route::namespace('Cego\RequestInsurance\Controllers')
     ->prefix('vendor')
-    ->middleware('api')
+    ->middleware('web')
     ->group(function () {
         Route::get('request-insurances/load', [
             'uses' => 'RequestInsuranceController@load',
@@ -30,6 +34,16 @@ Route::namespace('Cego\RequestInsurance\Controllers')
         Route::resource('request-insurances', 'RequestInsuranceController')
             ->only(['index', 'show', 'destroy'])
             ->withoutMiddleware(VerifyCsrfToken::class);
+
+        Route::post('request-insurances/retry-selected', [
+            'uses' => 'RequestInsuranceController@retrySelected',
+            'as'   => 'request-insurances.retry-selected',
+        ])->withoutMiddleware(VerifyCsrfToken::class);
+
+        Route::post('request-insurances/abandon-selected', [
+            'uses' => 'RequestInsuranceController@abandonSelected',
+            'as'   => 'request-insurances.abandon-selected',
+        ])->withoutMiddleware(VerifyCsrfToken::class);
 
         Route::post('request-insurances/{request_insurance}/retry', [
             'uses' => 'RequestInsuranceController@retry',
