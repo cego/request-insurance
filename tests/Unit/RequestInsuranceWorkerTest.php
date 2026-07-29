@@ -361,4 +361,77 @@ class RequestInsuranceWorkerTest extends TestCase
         $this->assertTrue($requestInsurance->hasState(State::COMPLETED));
         $this->assertEquals('<REQUEST_IMAGE_GIF_RESPONSE : THIS MESSAGE WAS ADDED BY REQUEST INSURANCE>', $requestInsurance->response_body);
     }
+
+    public function test_timeout_diagnostic_message_includes_phase_and_request_ids(): void
+    {
+        $worker = new class () extends RequestInsuranceWorker {
+            public function exposeSetWorkerPhase(string $phase, $requestInsuranceIds = null): void
+            {
+                $this->setWorkerPhase($phase, $requestInsuranceIds);
+            }
+
+            public function exposeTimeoutDiagnosticMessage(): string
+            {
+                return $this->timeoutDiagnosticMessage();
+            }
+        };
+
+        $worker->exposeSetWorkerPhase('http_sending', [12, 34]);
+
+        $this->assertSame(
+            'Timeout handler was triggered indicating stuck worker during http_sending [request_insurance_ids: 12,34], exiting...',
+            $worker->exposeTimeoutDiagnosticMessage()
+        );
+
+        $worker->exposeSetWorkerPhase('cycle_sleep');
+
+        $this->assertSame(
+            'Timeout handler was triggered indicating stuck worker during cycle_sleep, exiting...',
+            $worker->exposeTimeoutDiagnosticMessage()
+        );
+    }
+
+    public function test_timeout_diagnostic_is_written_to_stdout_before_log(): void
+    {
+        $worker = new class () extends RequestInsuranceWorker {
+            public array $events = [];
+
+            public function exposeSetWorkerPhase(string $phase, $requestInsuranceIds = null): void
+            {
+                $this->setWorkerPhase($phase, $requestInsuranceIds);
+            }
+
+            public function exposeHandleTimeoutSignal(): void
+            {
+                $this->handleTimeoutSignal();
+            }
+
+            protected function writeTimeoutDiagnosticToStdout(string $message): void
+            {
+                $this->events[] = ['stdout', $message . "\n"];
+            }
+
+            protected function terminateWorkerAfterTimeout(): void
+            {
+                $this->events[] = ['terminate'];
+            }
+        };
+
+        \Illuminate\Support\Facades\Log::shouldReceive('debug')
+            ->once()
+            ->withArgs(function (string $message) use ($worker) {
+                $worker->events[] = ['log', $message];
+
+                return $message === 'Timeout handler was triggered indicating stuck worker during response_handling [request_insurance_ids: 7], exiting...';
+            });
+
+        $worker->exposeSetWorkerPhase('response_handling', [7]);
+        $worker->exposeHandleTimeoutSignal();
+
+        $this->assertSame([
+            ['stdout', "Timeout handler was triggered indicating stuck worker during response_handling [request_insurance_ids: 7], exiting...\n"],
+            ['log', 'Timeout handler was triggered indicating stuck worker during response_handling [request_insurance_ids: 7], exiting...'],
+            ['terminate'],
+        ], $worker->events);
+    }
 }
