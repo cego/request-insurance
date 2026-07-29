@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class RequestInsuranceWorker
 {
+    private const TIMEOUT_EXIT_CODE = 124;
+
     /**
      * Holds a hash identifier for the service instance once set
      *
@@ -42,6 +44,10 @@ class RequestInsuranceWorker
     protected array $secondIntervalTimestamp;
 
     protected RequestInsuranceClient $client;
+
+    protected string $currentPhase = 'idle';
+
+    protected ?string $currentRequestInsuranceIds = null;
 
     /**
      * RequestInsuranceService constructor.
@@ -72,18 +78,23 @@ class RequestInsuranceWorker
                 $this->registerTimeoutHandler();
 
                 if (Config::get('request-insurance.useDbReconnect')) {
+                    $this->setWorkerPhase('database_reconnect');
                     DB::reconnect();
                 }
 
                 $start = hrtime(true);
 
                 $this->processRequestInsurances();
-                $this->atMostOnceEverySecond(fn () => $this->readyWaitingRequestInsurances());
+                $this->atMostOnceEverySecond(function () {
+                    $this->setWorkerPhase('waiting_request_readiness_update');
+                    $this->readyWaitingRequestInsurances();
+                });
 
                 $executionTimeNs = hrtime(true) - $start;
 
                 $waitTime = (int) max(Config::get('request-insurance.microSecondsToWait') - ($executionTimeNs / 1000), 0);
 
+                $this->setWorkerPhase('cycle_sleep');
                 usleep($waitTime);
             } catch (Throwable $throwable) {
                 $this->resetTimeoutHandler(); // We need to reset here before logging the error and sleeping, otherwise the timeout handler might trigger while we are sleeping/logging, which is not desirable.
@@ -169,6 +180,8 @@ class RequestInsuranceWorker
      */
     protected function processRequestInsurances(): void
     {
+        $this->setWorkerPhase('request_acquisition');
+
         $this->getRequestsToProcess()
             ->chunk($this->getRequestChunkSize())
             ->each(fn (EloquentCollection $requestChunk) => rescue(function () use ($requestChunk) {
@@ -189,6 +202,8 @@ class RequestInsuranceWorker
     {
         // An event is dispatched before processing begins
         // allowing the application to abandon/complete/fail the requests before processing.
+        $this->setWorkerPhase('before_process_events', $requests->pluck('id'));
+
         $requests = $requests
             ->each(fn (RequestInsurance $requestInsurance) => Events\RequestBeforeProcess::dispatch($requestInsurance))
             ->filter(fn (RequestInsurance $requestInsurance) => $requestInsurance->hasState(State::PENDING));
@@ -198,12 +213,19 @@ class RequestInsuranceWorker
             return;
         }
 
+        $requestIds = $requests->pluck('id');
+
         // Increment the number of attempts and set state to PROCESSING as the very first action
+        $this->setWorkerPhase('state_transition', $requestIds);
         $this->setStateToProcessingAndIncrementAttempts($requests);
+
         // Send the requests concurrently
+        $this->setWorkerPhase('http_sending', $requestIds);
         $responses = $this->client->pool($requests);
 
         // Handle the responses sequentially - Rescue is used to avoid it breaking the handling of the full batch
+        $this->setWorkerPhase('response_handling', $requestIds);
+
         /** @var RequestInsurance $request */
         foreach ($requests as $request) {
             rescue(fn () => $request->handleResponse($responses->get($request)));
@@ -333,15 +355,66 @@ class RequestInsuranceWorker
         return $builder->pluck('id');
     }
 
+    protected function setWorkerPhase(string $phase, $requestInsuranceIds = null): void
+    {
+        $this->currentPhase = $phase;
+
+        if ($requestInsuranceIds === null) {
+            $this->currentRequestInsuranceIds = null;
+
+            return;
+        }
+
+        $this->currentRequestInsuranceIds = Collection::wrap($requestInsuranceIds)->implode(',');
+    }
+
+    protected function timeoutDiagnosticMessage(): string
+    {
+        $message = sprintf(
+            'Timeout handler was triggered indicating stuck worker during %s',
+            $this->currentPhase
+        );
+
+        if ($this->currentRequestInsuranceIds !== null && $this->currentRequestInsuranceIds !== '') {
+            $message .= sprintf(' [request_insurance_ids: %s]', $this->currentRequestInsuranceIds);
+        }
+
+        return $message . ', exiting...';
+    }
+
+    protected function writeTimeoutDiagnosticToStdout(string $message): void
+    {
+        fwrite(STDOUT, $message . "\n");
+    }
+
+    protected function handleTimeoutSignal(): void
+    {
+        $message = $this->timeoutDiagnosticMessage();
+
+        try {
+            $this->writeTimeoutDiagnosticToStdout($message);
+        } catch (Throwable) {
+        }
+
+        try {
+            Log::debug($message);
+        } finally {
+            $this->terminateWorkerAfterTimeout();
+        }
+    }
+
+    protected function terminateWorkerAfterTimeout(): void
+    {
+        if (($pid = getmypid()) === false) {
+            posix_kill($pid, SIGKILL);
+        }
+        exit(self::TIMEOUT_EXIT_CODE);
+    }
+
     private function registerTimeoutHandler()
     {
         pcntl_signal(SIGALRM, function () {
-            Log::debug('Timeout handler was triggered indicating stuck worker, exiting...');
-
-            if (($pid = getmypid()) === false) {
-                posix_kill($pid, SIGKILL);
-            }
-            exit(1);
+            $this->handleTimeoutSignal();
         });
         pcntl_alarm(Config::integer('request-insurance.maximumSecondsPerWorkerCycle', 120));
     }
