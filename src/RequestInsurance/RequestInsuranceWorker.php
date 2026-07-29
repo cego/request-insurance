@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class RequestInsuranceWorker
 {
+    private const TIMEOUT_EXIT_CODE = 124;
+
     /**
      * Holds a hash identifier for the service instance once set
      *
@@ -406,7 +408,7 @@ class RequestInsuranceWorker
         if (($pid = getmypid()) === false) {
             posix_kill($pid, SIGKILL);
         }
-        exit(1);
+        exit(self::TIMEOUT_EXIT_CODE);
     }
 
     private function registerTimeoutHandler()
