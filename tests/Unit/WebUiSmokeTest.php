@@ -32,6 +32,35 @@ class WebUiSmokeTest extends TestCase
             ->assertOk();
     }
 
+    public function test_index_page_falls_back_to_default_page_size_for_invalid_per_page(): void
+    {
+        RequestInsurance::factory(1)->create(['state' => State::READY]);
+
+        $this->get(route('request-insurances.index', ['per_page' => 123]))
+            ->assertOk()
+            ->assertViewHas('perPage', 25);
+    }
+
+    public function test_index_filters_on_from_and_to_as_full_datetimes(): void
+    {
+        $old = RequestInsurance::factory()->create(['state' => State::READY, 'created_at' => '2026-07-18 15:00:00']);
+        // Time-of-day (08:00) earlier than the filter's (14:30) — must still
+        // match a from on an earlier date.
+        $recent = RequestInsurance::factory()->create(['state' => State::READY, 'created_at' => '2026-07-20 08:00:00']);
+
+        $ids = collect($this->get(route('request-insurances.index', ['from' => '2026-07-19T14:30']))
+            ->assertOk()->viewData('requestInsurances')->items())->pluck('id');
+
+        $this->assertTrue($ids->contains($recent->id));
+        $this->assertFalse($ids->contains($old->id));
+
+        $ids = collect($this->get(route('request-insurances.index', ['to' => '2026-07-19T14:30']))
+            ->assertOk()->viewData('requestInsurances')->items())->pluck('id');
+
+        $this->assertTrue($ids->contains($old->id));
+        $this->assertFalse($ids->contains($recent->id));
+    }
+
     public function test_show_page_renders(): void
     {
         $this->authenticate();

@@ -1,1 +1,5 @@
-<span class="chip rounded px-1.5 py-0.5 font-mono text-[12px] tabular-nums" style="--chip:var(--c-{{ $badgeColor ?: 'secondary' }})">{{ $httpCode ?: '·' }}</span>
+@if($httpCode)
+    <span class="chip chip-{{ $badgeColor ?: 'secondary' }} font-mono tabular-nums">{{ $httpCode }}</span>
+@else
+    <span class="font-mono text-slate-400 dark:text-slate-500" title="No response yet">—</span>
+@endif

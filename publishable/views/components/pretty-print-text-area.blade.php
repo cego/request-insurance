@@ -1,4 +1,4 @@
 <textarea name="{{ $name }}" @disabled($disabled)
-    class="w-full rounded-lg border border-line bg-surface-2 p-3 font-mono text-[12px] focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:opacity-70"
+    class="w-full rounded-xl border bg-white p-3 font-mono text-xs text-slate-950 shadow-xs disabled:opacity-60 dark:bg-slate-950 dark:text-white"
     oninput="this.style.overflow='hidden';this.style.height=0;this.style.height=this.scrollHeight+'px'"
     onfocus="this.style.overflow='hidden';this.style.height=0;this.style.height=this.scrollHeight+'px'">{{ $content }}</textarea>
