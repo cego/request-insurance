@@ -2,8 +2,11 @@
 
 namespace Tests\Unit;
 
+use Exception;
+use Throwable;
 use Tests\TestCase;
 use GuzzleHttp\Psr7\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
@@ -433,5 +436,101 @@ class RequestInsuranceWorkerTest extends TestCase
             ['log', 'Timeout handler was triggered indicating stuck worker during response_handling [request_insurance_ids: 7], exiting...'],
             ['terminate'],
         ], $worker->events);
+    }
+
+    public function test_the_request_chunk_size_defaults_to_the_batch_size(): void
+    {
+        Config::set('request-insurance.batchSize', 42);
+        Config::set('request-insurance.concurrentHttpChunkSize', null);
+
+        $this->assertSame(42, $this->getWorkerProbe()->exposeGetRequestChunkSize());
+    }
+
+    public function test_the_request_chunk_size_can_be_set_below_the_batch_size(): void
+    {
+        Config::set('request-insurance.batchSize', 42);
+        Config::set('request-insurance.concurrentHttpChunkSize', 7);
+
+        $this->assertSame(7, $this->getWorkerProbe()->exposeGetRequestChunkSize());
+    }
+
+    public function test_the_deprecated_concurrent_http_enabled_flag_still_disables_concurrency(): void
+    {
+        Config::set('request-insurance.batchSize', 42);
+        Config::set('request-insurance.concurrentHttpEnabled', false);
+
+        $this->assertSame(1, $this->getWorkerProbe()->exposeGetRequestChunkSize());
+    }
+
+    public function test_it_recovers_quietly_from_a_lost_database_connection(): void
+    {
+        $worker = $this->getWorkerProbe();
+
+        Log::shouldReceive('debug')
+            ->once()
+            ->with('RequestInsurance Worker (#' . $worker->exposeRunningHash() . ') lost its database connection during idle and is reconnecting (1 in a row)');
+
+        Log::shouldReceive('error')->never();
+
+        $worker->exposeReportCycleFailure(new Exception('Cycle failed', 0, new Exception('MySQL server has gone away')));
+
+        $this->assertSame(1, $worker->reconnects);
+    }
+
+    public function test_it_reports_lost_database_connections_that_keep_happening(): void
+    {
+        $worker = $this->getWorkerProbe();
+
+        Log::shouldReceive('debug')->times(3);
+        Log::shouldReceive('error')->twice();
+
+        foreach (range(1, 5) as $ignored) {
+            $worker->exposeReportCycleFailure(new Exception('Lost connection to server'));
+        }
+
+        $this->assertSame(5, $worker->reconnects);
+    }
+
+    public function test_it_reports_cycle_failures_that_are_not_lost_connections(): void
+    {
+        $worker = $this->getWorkerProbe();
+        $throwable = new Exception('Something else went wrong');
+
+        Log::shouldReceive('error')->once()->with($throwable);
+        Log::shouldReceive('debug')->never();
+
+        $worker->exposeReportCycleFailure($throwable);
+
+        $this->assertSame(0, $worker->reconnects);
+    }
+
+    /**
+     * Returns a worker exposing the internals needed to assert on cycle failure handling
+     */
+    private function getWorkerProbe(): RequestInsuranceWorker
+    {
+        return new class () extends RequestInsuranceWorker {
+            public int $reconnects = 0;
+
+            public function exposeGetRequestChunkSize(): int
+            {
+                return $this->getRequestChunkSize();
+            }
+
+            public function exposeReportCycleFailure(Throwable $throwable): void
+            {
+                $this->handleCycleFailure($throwable);
+            }
+
+            public function exposeRunningHash(): ?string
+            {
+                return $this->runningHash;
+            }
+
+            protected function reconnectToDatabase(): void
+            {
+                $this->reconnects++;
+            }
+        };
     }
 }

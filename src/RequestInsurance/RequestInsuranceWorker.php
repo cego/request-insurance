@@ -13,13 +13,22 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Database\DetectsLostConnections;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class RequestInsuranceWorker
 {
+    use DetectsLostConnections;
+
     private const TIMEOUT_EXIT_CODE = 124;
+
+    /**
+     * The number of consecutive lost database connections to recover from quietly,
+     * before treating them as an outage worth reporting
+     */
+    private const QUIET_LOST_CONNECTION_RECOVERIES = 3;
 
     /**
      * Holds a hash identifier for the service instance once set
@@ -48,6 +57,8 @@ class RequestInsuranceWorker
     protected string $currentPhase = 'idle';
 
     protected ?string $currentRequestInsuranceIds = null;
+
+    protected int $consecutiveLostConnections = 0;
 
     /**
      * RequestInsuranceService constructor.
@@ -79,7 +90,7 @@ class RequestInsuranceWorker
 
                 if (Config::get('request-insurance.useDbReconnect')) {
                     $this->setWorkerPhase('database_reconnect');
-                    DB::reconnect();
+                    $this->reconnectToDatabase();
                 }
 
                 $start = hrtime(true);
@@ -90,6 +101,8 @@ class RequestInsuranceWorker
                     $this->readyWaitingRequestInsurances();
                 });
 
+                $this->consecutiveLostConnections = 0;
+
                 $executionTimeNs = hrtime(true) - $start;
 
                 $waitTime = (int) max(Config::get('request-insurance.microSecondsToWait') - ($executionTimeNs / 1000), 0);
@@ -99,7 +112,7 @@ class RequestInsuranceWorker
             } catch (Throwable $throwable) {
                 $this->resetTimeoutHandler(); // We need to reset here before logging the error and sleeping, otherwise the timeout handler might trigger while we are sleeping/logging, which is not desirable.
 
-                Log::error($throwable);
+                $this->handleCycleFailure($throwable);
 
                 if ($runOnlyOnce) {
                     throw $throwable;
@@ -112,6 +125,72 @@ class RequestInsuranceWorker
         } while ( ! $runOnlyOnce && ! $this->shutdownSignalReceived);
 
         Log::info(sprintf('RequestInsurance Worker (#%s) has gracefully stopped', $this->runningHash));
+    }
+
+    /**
+     * Handles a failed worker cycle
+     *
+     * A dropped database connection is expected of a long-lived worker, and is recovered from
+     * without noise, until it keeps happening and starts looking like an outage instead.
+     *
+     * @param Throwable $throwable
+     *
+     * @return void
+     */
+    protected function handleCycleFailure(Throwable $throwable): void
+    {
+        if ( ! $this->wasCausedByLostConnection($throwable)) {
+            $this->consecutiveLostConnections = 0;
+
+            Log::error($throwable);
+
+            return;
+        }
+
+        $this->consecutiveLostConnections++;
+
+        $message = sprintf(
+            'RequestInsurance Worker (#%s) lost its database connection during %s and is reconnecting (%d in a row)',
+            $this->runningHash,
+            $this->currentPhase,
+            $this->consecutiveLostConnections
+        );
+
+        if ($this->consecutiveLostConnections > self::QUIET_LOST_CONNECTION_RECOVERIES) {
+            Log::error($message, ['exception' => $throwable]);
+        } else {
+            Log::debug($message);
+        }
+
+        rescue(fn () => $this->reconnectToDatabase(), null, false);
+    }
+
+    /**
+     * Tells if the given throwable, or anything it wraps, was caused by a lost database connection
+     *
+     * @param Throwable $throwable
+     *
+     * @return bool
+     */
+    protected function wasCausedByLostConnection(Throwable $throwable): bool
+    {
+        for ($exception = $throwable; $exception !== null; $exception = $exception->getPrevious()) {
+            if ($this->causedByLostConnection($exception)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Reconnects the database connection holding the request insurance tables
+     *
+     * @return void
+     */
+    protected function reconnectToDatabase(): void
+    {
+        DB::reconnect(resolve(RequestInsurance::class)->getConnectionName());
     }
 
     /**
@@ -264,17 +343,21 @@ class RequestInsuranceWorker
     }
 
     /**
-     * Returns the concurrent request chunk size
+     * Returns the number of requests to send concurrently
      *
      * @return int
      */
     protected function getRequestChunkSize(): int
     {
-        if (Config::get('request-insurance.concurrentHttpEnabled', false)) {
-            return Config::get('request-insurance.concurrentHttpChunkSize', 5);
+        // Deprecated flag, still honoured for configs that set it explicitly
+        if (Config::get('request-insurance.concurrentHttpEnabled') === false) {
+            return 1;
         }
 
-        return 1;
+        $chunkSize = Config::get('request-insurance.concurrentHttpChunkSize')
+            ?? Config::get('request-insurance.batchSize', 100);
+
+        return max(1, (int) $chunkSize);
     }
 
     /**
@@ -416,7 +499,7 @@ class RequestInsuranceWorker
         pcntl_signal(SIGALRM, function () {
             $this->handleTimeoutSignal();
         });
-        pcntl_alarm(Config::integer('request-insurance.maximumSecondsPerWorkerCycle', 120));
+        pcntl_alarm((int) Config::get('request-insurance.maximumSecondsPerWorkerCycle', 120));
     }
 
     private function resetTimeoutHandler(): void

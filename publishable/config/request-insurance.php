@@ -65,16 +65,23 @@ return [
     'batchSize' => env('REQUEST_INSURANCE_BATCH_SIZE', 100),
 
     /*
-    | Determines if concurrent http requests are enabled or not
+    | The maximum number of http requests to send concurrently.
+    |
+    | Null sends the entire batch at once. A value of 1 sends requests one at a time,
+    | in priority order, at the cost of a worker cycle long enough to do so - see
+    | maximumSecondsPerWorkerCycle.
     */
 
-    'concurrentHttpEnabled' => false,
+    'concurrentHttpChunkSize' => env('REQUEST_INSURANCE_CONCURRENT_HTTP_CHUNK_SIZE'),
 
     /*
-    | The maximum number of http requests to send concurrently
+    | Sets how long a single worker cycle may take, before the worker considers itself
+    | stuck and exits. A cycle must be able to send a full batch within the budget:
+    |
+    |     ceil(batchSize / concurrentHttpChunkSize) * timeoutInSeconds
     */
 
-    'concurrentHttpChunkSize' => 5,
+    'maximumSecondsPerWorkerCycle' => env('REQUEST_INSURANCE_MAX_SECONDS_PER_WORKER_CYCLE', 120),
 
     /*
      | Set the concrete implementation for HttpRequest
@@ -106,7 +113,15 @@ return [
     'table_edits'          => null,
     'table_edit_approvals' => null,
 
-    'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true),
+    /*
+     | Sets if the worker should reconnect to the database at the start of every cycle.
+     |
+     | Lost connections are detected and recovered from either way, so this is only needed
+     | to stop workers from holding on to a connection they should not keep - such as one
+     | pinned to a single node behind a load balancer.
+     */
+
+    'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', false),
 
     /*
      | Using skip locked optimizes request insurance to run with multiple worker threads,
