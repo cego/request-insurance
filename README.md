@@ -19,7 +19,8 @@ own process dies mid-request — webhooks, downstream service calls, third-party
 |-----------------|------------------------|--------|
 | ^1              | ^7.4, ^8.0             | Security and bug fixes only |
 | ^2              | ^8.3                   | Security and bug fixes only |
-| ^3              | ^8.3                   | Active development |
+| ^3              | ^8.3                   | Security and bug fixes only |
+| ^4              | ^8.3                   | Active development |
 
 ## Installation
 
@@ -62,8 +63,30 @@ php artisan process:request-insurances
 ```
 
 Run one or many — workers coordinate through row locking (`SELECT … FOR UPDATE SKIP LOCKED` on
-MySQL 8+), pick requests in priority order, and process them in batches (`batchSize`, optionally
-with concurrent HTTP via `concurrentHttpEnabled`).
+MySQL 8+) and claim requests in priority order, `batchSize` at a time.
+
+### Cycle budget
+
+Each batch is sent concurrently in chunks of `concurrentHttpChunkSize`, which defaults to the whole
+batch. A cycle has `maximumSecondsPerWorkerCycle` (120s) to finish, after which the worker considers
+itself stuck and exits — leaving the chunk it was sending to be recovered by
+`request-insurance:unstuck-processing` some minutes later. The worst case is:
+
+```
+ceil(batchSize / concurrentHttpChunkSize) * timeoutInSeconds
+```
+
+The defaults therefore need a single `timeoutInSeconds` (20s) at worst, well inside the budget, while
+lowering the chunk size means checking that arithmetic against it. A chunk size of `1` sends requests
+strictly one at a time in priority order, which only fits a small batch or a short timeout.
+
+Concurrency also means requests within a batch complete in whatever order the receivers respond, so
+`priority` orders which requests get claimed, not which arrive first. The same goes for running more
+than one worker: a single worker with a chunk size of `1` is the only setup that delivers in strict
+order.
+
+The deprecated `concurrentHttpEnabled` setting is still honoured when set to `false`, which does the
+same thing as a chunk size of `1`.
 
 ### Lifecycle
 
