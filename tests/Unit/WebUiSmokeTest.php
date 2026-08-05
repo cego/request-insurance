@@ -40,6 +40,35 @@ class WebUiSmokeTest extends TestCase
             ->assertViewHas('perPage', 25);
     }
 
+    public function test_page_size_selector_submits_the_filter_form(): void
+    {
+        RequestInsurance::factory(30)->create(['state' => State::READY]);
+
+        $html = $this->get(route('request-insurances.index', ['per_page' => 50]))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('<form method="get" id="ri-filters"', $html);
+        $this->assertMatchesRegularExpression('/<select[^>]*name="per_page"[^>]*form="ri-filters"/', $html);
+        // The selector must be the only per_page control, or the form serializes a
+        // stale page size alongside the chosen one.
+        $this->assertSame(1, substr_count($html, 'name="per_page"'));
+        $this->assertStringContainsString('<option value="50" selected>', $html);
+    }
+
+    public function test_page_size_applies_when_submitted_with_blank_filter_fields(): void
+    {
+        RequestInsurance::factory(30)->create(['state' => State::READY]);
+
+        // The shape the filter form submits: every unused field present but empty.
+        $paginator = $this->get(route('request-insurances.index', [
+            'trace_id' => '', 'url' => '', 'from' => '', 'to' => '', 'per_page' => 50,
+        ]))->assertOk()->viewData('requestInsurances');
+
+        $this->assertSame(50, $paginator->perPage());
+        $this->assertCount(30, $paginator->items());
+    }
+
     public function test_show_page_renders(): void
     {
         $this->authenticate();
