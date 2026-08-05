@@ -98,5 +98,9 @@ return [
     'table_edits'          => null,
     'table_edit_approvals' => null,
 
-    'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true)
+    'useDbReconnect' => env('REQUEST_INSURANCE_WORKER_USE_DB_RECONNECT', true),
+
+    'useForceIndex' => env('REQUEST_INSURANCE_WORKER_USE_FORCE_INDEX', false),
+
+    'forceIndexName' => env('REQUEST_INSURANCE_WORKER_FORCE_INDEX_NAME')
 ];

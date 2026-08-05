@@ -5,6 +5,7 @@ namespace Cego\RequestInsurance\Commands;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Cego\RequestInsurance\Enums\State;
+use Cego\RequestInsurance\TransactionIsolation;
 use Cego\RequestInsurance\Models\RequestInsurance;
 
 class UnlockBlockedRequestInsurances extends Command
@@ -30,6 +31,8 @@ class UnlockBlockedRequestInsurances extends Command
      */
     public function handle(): int
     {
+        TransactionIsolation::readCommittedForNextTransaction();
+
         RequestInsurance::query()
             ->where('state', State::PENDING)
             ->where('state_changed_at', '<', Carbon::now('UTC')->subMinutes(5))
