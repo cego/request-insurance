@@ -438,17 +438,10 @@ class RequestInsuranceWorker
      */
     public function getIdsOfReadyRequests()
     {
-        $model = resolve(RequestInsurance::class);
-
-        $builder = $model::query()
+        $builder = resolve(RequestInsurance::class)::query()
             ->select('id')
             ->readyToBeProcessed()
             ->take(Config::get('request-insurance.batchSize'));
-
-        if (Config::get('request-insurance.useForceIndex', true) && $model->getConnection()->getDriverName() === 'mysql') {
-            $indexName = Config::get('request-insurance.forceIndexName') ?? sprintf('%s_state_priority_index', $model->getTable());
-            $builder->from(DB::raw(sprintf('`%s` FORCE INDEX (`%s`)', $model->getTable(), $indexName)));
-        }
 
         if (config('request-insurance.useSkipLocked')) {
             $builder->lock('FOR UPDATE SKIP LOCKED');
