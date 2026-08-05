@@ -130,4 +130,6 @@ return [
     'useSkipLocked' => env('REQUEST_INSURANCE_WORKER_USE_SKIP_LOCKED', true),
 
     'useForceIndex' => env('REQUEST_INSURANCE_WORKER_USE_FORCE_INDEX', true),
+
+    'forceIndexName' => env('REQUEST_INSURANCE_WORKER_FORCE_INDEX_NAME'),
 ];

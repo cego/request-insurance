@@ -436,7 +436,8 @@ class RequestInsuranceWorker
             ->take(Config::get('request-insurance.batchSize'));
 
         if (Config::get('request-insurance.useForceIndex', true) && $model->getConnection()->getDriverName() === 'mysql') {
-            $builder->from(DB::raw(sprintf('`%s` FORCE INDEX (`%s_state_priority_index`)', $model->getTable(), $model->getTable())));
+            $indexName = Config::get('request-insurance.forceIndexName') ?? sprintf('%s_state_priority_index', $model->getTable());
+            $builder->from(DB::raw(sprintf('`%s` FORCE INDEX (`%s`)', $model->getTable(), $indexName)));
         }
 
         if (config('request-insurance.useSkipLocked')) {
