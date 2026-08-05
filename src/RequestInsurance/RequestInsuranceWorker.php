@@ -246,6 +246,8 @@ class RequestInsuranceWorker
      */
     protected function readyWaitingRequestInsurances(): void
     {
+        TransactionIsolation::readCommittedForNextTransaction();
+
         RequestInsurance::query()
             ->where('state', State::WAITING)
             ->where('retry_at', '<=', Carbon::now('UTC'))
@@ -391,6 +393,8 @@ class RequestInsuranceWorker
      */
     public function acquireLockOnRowsToProcess(): Collection
     {
+        TransactionIsolation::readCommittedForNextTransaction();
+
         return DB::transaction(function () {
             $requestIds = $this->getIdsOfReadyRequests();
 
@@ -424,10 +428,16 @@ class RequestInsuranceWorker
      */
     public function getIdsOfReadyRequests()
     {
-        $builder = resolve(RequestInsurance::class)::query()
+        $model = resolve(RequestInsurance::class);
+
+        $builder = $model::query()
             ->select('id')
             ->readyToBeProcessed()
             ->take(Config::get('request-insurance.batchSize'));
+
+        if (Config::get('request-insurance.useForceIndex', true) && $model->getConnection()->getDriverName() === 'mysql') {
+            $builder->from(DB::raw(sprintf('`%s` FORCE INDEX (`%s_state_priority_index`)', $model->getTable(), $model->getTable())));
+        }
 
         if (config('request-insurance.useSkipLocked')) {
             $builder->lock('FOR UPDATE SKIP LOCKED');
