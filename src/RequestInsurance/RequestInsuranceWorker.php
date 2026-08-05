@@ -246,12 +246,24 @@ class RequestInsuranceWorker
      */
     protected function readyWaitingRequestInsurances(): void
     {
-        TransactionIsolation::readCommittedForNextTransaction();
+        do {
+            $ids = RequestInsurance::query()
+                ->select('id')
+                ->where('state', State::WAITING)
+                ->where('retry_at', '<=', Carbon::now('UTC'))
+                ->take(1000)
+                ->pluck('id');
 
-        RequestInsurance::query()
-            ->where('state', State::WAITING)
-            ->where('retry_at', '<=', Carbon::now('UTC'))
-            ->update(['state' => State::READY, 'state_changed_at' => Carbon::now('UTC'), 'retry_at' => null]);
+            if ($ids->isEmpty()) {
+                return;
+            }
+
+            RequestInsurance::query()
+                ->whereIn('id', $ids)
+                ->where('state', State::WAITING)
+                ->where('retry_at', '<=', Carbon::now('UTC'))
+                ->update(['state' => State::READY, 'state_changed_at' => Carbon::now('UTC'), 'retry_at' => null]);
+        } while ($ids->count() === 1000);
     }
 
     /**
@@ -393,8 +405,6 @@ class RequestInsuranceWorker
      */
     public function acquireLockOnRowsToProcess(): Collection
     {
-        TransactionIsolation::readCommittedForNextTransaction();
-
         return DB::transaction(function () {
             $requestIds = $this->getIdsOfReadyRequests();
 
