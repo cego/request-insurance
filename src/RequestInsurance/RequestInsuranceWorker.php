@@ -247,6 +247,7 @@ class RequestInsuranceWorker
     protected function readyWaitingRequestInsurances(): void
     {
         RequestInsurance::query()
+            ->forceIndex('covering_index')
             ->where('state', State::WAITING)
             ->where('retry_at', '<=', Carbon::now('UTC'))
             ->update(['state' => State::READY, 'state_changed_at' => Carbon::now('UTC'), 'retry_at' => null]);
@@ -425,6 +426,7 @@ class RequestInsuranceWorker
     public function getIdsOfReadyRequests()
     {
         $builder = resolve(RequestInsurance::class)::query()
+            ->forceIndex('request_insurances_state_priority_index')
             ->select('id')
             ->readyToBeProcessed()
             ->take(Config::get('request-insurance.batchSize'));

@@ -44,7 +44,9 @@ class FailOrReadyProcessingRequestInsurances extends Command
      */
     protected function unstuckProcessingRequestInsurances(): void
     {
-        RequestInsurance::query()->where('state', State::PROCESSING)
+        RequestInsurance::query()
+            ->forceIndex('request_insurances_state_priority_index')
+            ->where('state', State::PROCESSING)
             ->where('state_changed_at', '<', Carbon::now('UTC')->subMinutes(10))
             ->cursor()
             ->each(function (RequestInsurance $requestInsurance) {

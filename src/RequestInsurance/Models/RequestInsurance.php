@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use GuzzleHttp\TransferStats;
 use Cego\RequestInsurance\Events;
 use Illuminate\Support\Enumerable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Crypt;
@@ -578,6 +579,15 @@ class RequestInsurance extends SaveRetryingModel
     protected function usesEncryption(): bool
     {
         return $this->encrypted_fields != null;
+    }
+
+    public function scopeForceIndex(Builder $query, string $indexName)
+    {
+        if ($this->getConnection()->getDriverName() !== 'mysql') {
+            return $query;
+        }
+
+        return $query->from(DB::raw(sprintf('`%s` FORCE INDEX (`%s`)', $this->getTable(), $indexName)));
     }
 
     /**

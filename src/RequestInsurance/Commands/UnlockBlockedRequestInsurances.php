@@ -31,6 +31,7 @@ class UnlockBlockedRequestInsurances extends Command
     public function handle(): int
     {
         RequestInsurance::query()
+            ->forceIndex('request_insurances_state_priority_index')
             ->where('state', State::PENDING)
             ->where('state_changed_at', '<', Carbon::now('UTC')->subMinutes(5))
             ->update(['state' => State::READY, 'state_changed_at' => Carbon::now('UTC')]);
