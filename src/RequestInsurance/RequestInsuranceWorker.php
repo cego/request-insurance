@@ -139,29 +139,29 @@ class RequestInsuranceWorker
      */
     protected function handleCycleFailure(Throwable $throwable): void
     {
-        if ( ! $this->wasCausedByLostConnection($throwable)) {
+        if ($this->wasCausedByLostConnection($throwable)) {
+            $this->consecutiveLostConnections++;
+
+            $message = sprintf(
+                'RequestInsurance Worker (#%s) lost its database connection during %s and is reconnecting (%d in a row)',
+                $this->runningHash,
+                $this->currentPhase,
+                $this->consecutiveLostConnections
+            );
+
+            if ($this->consecutiveLostConnections > self::QUIET_LOST_CONNECTION_RECOVERIES) {
+                Log::error($message, ['exception' => $throwable]);
+            } else {
+                Log::debug($message);
+            }
+        } else {
             $this->consecutiveLostConnections = 0;
 
             Log::error($throwable);
-
-            return;
         }
 
-        $this->consecutiveLostConnections++;
-
-        $message = sprintf(
-            'RequestInsurance Worker (#%s) lost its database connection during %s and is reconnecting (%d in a row)',
-            $this->runningHash,
-            $this->currentPhase,
-            $this->consecutiveLostConnections
-        );
-
-        if ($this->consecutiveLostConnections > self::QUIET_LOST_CONNECTION_RECOVERIES) {
-            Log::error($message, ['exception' => $throwable]);
-        } else {
-            Log::debug($message);
-        }
-
+        // The connection is given up on no matter what failed the cycle, since a failure can leave it in a
+        // state it never recovers from on its own, such as a transaction its driver still considers open.
         rescue(fn () => $this->reconnectToDatabase(), null, false);
     }
 

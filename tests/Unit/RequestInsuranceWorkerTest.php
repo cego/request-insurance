@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Exception;
 use Throwable;
+use PDOException;
 use Tests\TestCase;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Log;
@@ -501,7 +502,20 @@ class RequestInsuranceWorkerTest extends TestCase
 
         $worker->exposeReportCycleFailure($throwable);
 
-        $this->assertSame(0, $worker->reconnects);
+        $this->assertSame(1, $worker->reconnects);
+    }
+
+    public function test_it_gives_up_on_a_connection_holding_a_stranded_transaction(): void
+    {
+        $worker = $this->getWorkerProbe();
+
+        Log::shouldReceive('error')->times(5);
+
+        foreach (range(1, 5) as $ignored) {
+            $worker->exposeReportCycleFailure(new PDOException('There is already an active transaction'));
+        }
+
+        $this->assertSame(5, $worker->reconnects);
     }
 
     /**
