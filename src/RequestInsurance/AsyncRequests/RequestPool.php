@@ -7,10 +7,12 @@ use JsonException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
 use GuzzleHttp\TransferStats;
+use OpenTelemetry\Context\Context;
 use Illuminate\Support\Facades\Config;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Cego\RequestInsurance\Models\RequestInsurance;
+use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 
 class RequestPool
 {
@@ -76,13 +78,44 @@ class RequestPool
      */
     private function convertRequestToPromise(Client $client, RequestInsurance $requestInsurance): PromiseInterface
     {
-        return $client->requestAsync(mb_strtoupper($requestInsurance->method), $requestInsurance->url, [
-            'headers'     => array_merge($requestInsurance->getHeadersCastToArray(), ['User-Agent' => sprintf('RequestInsurance %s', Config::get('app.name', 'unknown'))]),
+        $headers = $requestInsurance->getHeadersCastToArray();
+
+        $send = fn () => $client->requestAsync(mb_strtoupper($requestInsurance->method), $requestInsurance->url, [
+            'headers'     => array_merge($headers, ['User-Agent' => sprintf('RequestInsurance %s', Config::get('app.name', 'unknown'))]),
             'body'        => $requestInsurance->payload,
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
             'on_stats'    => fn (TransferStats $stats) => $requestInsurance->setTimings($stats),
             'http_errors' => false,
         ]);
+
+        return $this->withTraceContextOf($headers, $send);
+    }
+
+    /**
+     * Runs the given callback with the trace context stored on the request insurance as the active context
+     *
+     * Auto-instrumentation strips the stored traceparent off the outgoing request and re-injects
+     * one built from the active context. Without this, every request in a chunk is sent under the
+     * worker's own span instead of under the trace that created the row.
+     *
+     * @param array<string, string> $headers
+     * @param callable(): PromiseInterface $callback
+     *
+     * @return PromiseInterface
+     */
+    private function withTraceContextOf(array $headers, callable $callback): PromiseInterface
+    {
+        if ( ! class_exists(TraceContextPropagator::class)) {
+            return $callback();
+        }
+
+        $scope = Context::storage()->attach(TraceContextPropagator::getInstance()->extract($headers));
+
+        try {
+            return $callback();
+        } finally {
+            $scope->detach();
+        }
     }
 
     /**
