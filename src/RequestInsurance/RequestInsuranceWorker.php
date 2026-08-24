@@ -391,6 +391,11 @@ class RequestInsuranceWorker
      */
     public function acquireLockOnRowsToProcess(): Collection
     {
+        // Avoid gap locks while moving claimed rows between state ranges.
+        if (DB::getDriverName() === 'mysql' && DB::transactionLevel() === 0) {
+            DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+        }
+
         return DB::transaction(function () {
             $requestIds = $this->getIdsOfReadyRequests();
 
