@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Log;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\DetectsLostConnections;
-use Illuminate\Database\DetectsConcurrencyErrors;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Cego\RequestInsurance\AsyncRequests\RequestInsuranceClient;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -22,7 +21,6 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 class RequestInsuranceWorker
 {
     use DetectsLostConnections;
-    use DetectsConcurrencyErrors;
 
     private const TIMEOUT_EXIT_CODE = 124;
 
@@ -378,7 +376,7 @@ class RequestInsuranceWorker
         }
 
         // Gets requests to process ordered by priority and id
-        return resolve(RequestInsurance::class)->newQuery()
+        return resolve(RequestInsurance::class)::query()
             ->whereIn('id', $requestIds)
             ->get()
             ->sortBy(['priority', 'id']);
@@ -393,11 +391,13 @@ class RequestInsuranceWorker
      */
     public function acquireLockOnRowsToProcess(): Collection
     {
-        $requestInsurance = resolve(RequestInsurance::class);
-        $connection = $requestInsurance->getConnection();
-        $maxAttempts = 5;
-        $claim = function () use ($requestInsurance) {
-            $requestIds = $this->getIdsOfReadyRequests($requestInsurance);
+        // Avoid gap locks while moving claimed rows between state ranges.
+        if (DB::getDriverName() === 'mysql' && DB::transactionLevel() === 0) {
+            DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+        }
+
+        return DB::transaction(function () {
+            $requestIds = $this->getIdsOfReadyRequests();
 
             // Bail if no request are ready to be processed
             if ($requestIds->isEmpty()) {
@@ -407,7 +407,7 @@ class RequestInsuranceWorker
             // Mark the selected jobs as PENDING so other workers do not try to consume them
             $now = CarbonImmutable::now();
 
-            $locksWereObtained = $requestInsurance->newQuery()
+            $locksWereObtained = resolve(RequestInsurance::class)::query()
                 ->whereIn('id', $requestIds)
                 ->update([
                     'state'            => State::PENDING,
@@ -419,26 +419,7 @@ class RequestInsuranceWorker
             }
 
             return $requestIds;
-        };
-
-        if ($connection->transactionLevel() > 0 || ! in_array($connection->getDriverName(), ['mysql', 'mariadb'], true)) {
-            return $connection->transaction($claim, $maxAttempts);
-        }
-
-        // Avoid retaining gap locks while claimed rows move between state-index ranges.
-        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
-            $connection->statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
-
-            try {
-                return $connection->transaction($claim);
-            } catch (Throwable $throwable) {
-                if ($attempt === $maxAttempts || ! $this->causedByConcurrencyError($throwable)) {
-                    throw $throwable;
-                }
-            }
-        }
-
-        throw new \LogicException('RequestInsurance claim transaction exhausted its attempts');
+        }, 5);
     }
 
     /**
@@ -446,9 +427,9 @@ class RequestInsuranceWorker
      *
      * @return mixed
      */
-    public function getIdsOfReadyRequests(?RequestInsurance $requestInsurance = null)
+    public function getIdsOfReadyRequests()
     {
-        $builder = ($requestInsurance ?? resolve(RequestInsurance::class))->newQuery()
+        $builder = resolve(RequestInsurance::class)::query()
             ->select('id')
             ->readyToBeProcessed()
             ->take(Config::get('request-insurance.batchSize'));
