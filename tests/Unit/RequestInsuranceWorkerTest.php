@@ -2,17 +2,20 @@
 
 namespace Tests\Unit;
 
+use Closure;
 use Exception;
 use Throwable;
 use PDOException;
 use Tests\TestCase;
 use GuzzleHttp\Psr7\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
 use Cego\RequestInsurance\Enums\State;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Database\SQLiteConnection;
 use GuzzleHttp\Exception\ConnectException;
 use Cego\RequestInsurance\Events\RequestFailed;
 use Cego\RequestInsurance\RequestInsuranceWorker;
@@ -177,6 +180,75 @@ class RequestInsuranceWorkerTest extends TestCase
         $requestInsurance2->refresh();
 
         $this->assertCount(1, RequestInsurance::query()->where('state', '!=', State::COMPLETED)->get());
+    }
+
+    public function test_claiming_uses_read_committed_on_the_model_connection_for_mysql(): void
+    {
+        $connection = $this->registerWorkerConnection('mysql');
+        $model = $this->getModelForConnection($connection);
+        $requestId = $this->insertReadyRequest($connection);
+        $defaultTransactionLevel = DB::connection()->transactionLevel();
+        $this->assertSame($connection, $model->getConnection());
+        $this->app->instance(RequestInsurance::class, $model);
+
+        $requestIds = (new RequestInsuranceWorker())->acquireLockOnRowsToProcess();
+
+        $this->assertSame([$requestId], $requestIds->all());
+        $this->assertSame([1], $connection->transactionArguments);
+        $this->assertSame([
+            'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
+        ], $connection->statements);
+        $this->assertSame($defaultTransactionLevel, DB::connection()->transactionLevel());
+        $this->assertSame(0, $connection->transactionLevel());
+        $this->assertSame(State::PENDING, $model->newQuery()->find($requestId)->state);
+    }
+
+    public function test_claiming_reapplies_read_committed_after_a_concurrency_retry(): void
+    {
+        $connection = $this->registerWorkerConnection('mysql');
+        $connection->failFirstTransaction = true;
+        $model = $this->getModelForConnection($connection);
+        $requestId = $this->insertReadyRequest($connection);
+        $this->app->instance(RequestInsurance::class, $model);
+
+        $requestIds = (new RequestInsuranceWorker())->acquireLockOnRowsToProcess();
+
+        $this->assertSame([$requestId], $requestIds->all());
+        $this->assertSame([1, 1], $connection->transactionArguments);
+        $this->assertSame([
+            'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
+            'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
+        ], $connection->statements);
+    }
+
+    public function test_claiming_does_not_change_isolation_for_sqlite(): void
+    {
+        $connection = $this->registerWorkerConnection('sqlite');
+        $model = $this->getModelForConnection($connection);
+        $requestId = $this->insertReadyRequest($connection);
+        $this->app->instance(RequestInsurance::class, $model);
+
+        (new RequestInsuranceWorker())->acquireLockOnRowsToProcess();
+
+        $this->assertSame([], $connection->statements);
+        $this->assertSame([5], $connection->transactionArguments);
+        $this->assertSame(State::PENDING, $model->newQuery()->find($requestId)->state);
+    }
+
+    public function test_claiming_does_not_set_isolation_inside_an_existing_transaction(): void
+    {
+        $connection = $this->registerWorkerConnection('mysql');
+        $model = $this->getModelForConnection($connection);
+        $this->insertReadyRequest($connection);
+        $this->app->instance(RequestInsurance::class, $model);
+        $connection->beginTransaction();
+
+        (new RequestInsuranceWorker())->acquireLockOnRowsToProcess();
+
+        $this->assertSame([], $connection->statements);
+        $this->assertSame(1, $connection->transactionLevel());
+
+        $connection->rollBack();
     }
 
     public function test_it_pauses_requests_with_listeners_that_throw_exceptions_when_the_response_is_not_200(): void
@@ -546,5 +618,84 @@ class RequestInsuranceWorkerTest extends TestCase
                 $this->reconnects++;
             }
         };
+    }
+
+    private function registerWorkerConnection(string $driver): SQLiteConnection
+    {
+        $connection = new class (
+            new \PDO('sqlite:file:worker-test-' . uniqid('', true) . '?mode=memory&cache=shared'),
+            'worker-test',
+            '',
+            ['driver' => $driver, 'name' => 'worker-test']
+        ) extends SQLiteConnection {
+            public array $statements = [];
+
+            public array $transactionArguments = [];
+
+            public bool $failFirstTransaction = false;
+
+            public function statement($query, $bindings = [])
+            {
+                if ($query === 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED') {
+                    $this->statements[] = $query;
+
+                    return true;
+                }
+
+                return parent::statement($query, $bindings);
+            }
+
+            public function transaction(Closure $callback, $attempts = 1)
+            {
+                $this->transactionArguments[] = $attempts;
+
+                if ($this->failFirstTransaction && count($this->transactionArguments) === 1) {
+                    throw new PDOException('Deadlock found when trying to get lock');
+                }
+
+                return parent::transaction($callback, $attempts);
+            }
+        };
+
+        $connection->getSchemaBuilder()->create('request_insurances', function ($table): void {
+            $table->increments('id');
+            $table->unsignedInteger('priority');
+            $table->string('state');
+            $table->timestamp('retry_at')->nullable();
+            $table->timestamp('state_changed_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
+        });
+
+        return $connection;
+    }
+
+    private function getModelForConnection(SQLiteConnection $connection): RequestInsurance
+    {
+        $model = new class () extends RequestInsurance {
+            public static SQLiteConnection $workerConnection;
+
+            public function getConnection()
+            {
+                return static::$workerConnection;
+            }
+
+            public function getTable(): string
+            {
+                return 'request_insurances';
+            }
+        };
+
+        $model::$workerConnection = $connection;
+
+        return $model;
+    }
+
+    private function insertReadyRequest(SQLiteConnection $connection): int
+    {
+        return $connection->table('request_insurances')->insertGetId([
+            'priority'         => 0,
+            'state'            => State::READY,
+            'state_changed_at' => now(),
+        ]);
     }
 }
