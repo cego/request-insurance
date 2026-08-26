@@ -15,6 +15,15 @@ return [
     'enabled' => env('REQUEST_INSURANCE_ENABLED', true),
 
     /*
+    | Middleware applied to every route the package registers.
+    |
+    | The default expects a `tool-admin` ability defined by the application;
+    | replace the stack to match how the service gates its internal tooling.
+    */
+
+    'middleware' => ['web', 'can:tool-admin'],
+
+    /*
     | Sets the default value for the retry_inconsistent option on new request insurances.
     | When enabled, request insurances that end up in an inconsistent state are retried by
     | default instead of failed. This can still be overridden per request via the builder.

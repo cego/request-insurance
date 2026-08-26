@@ -2,8 +2,10 @@
 
 namespace Tests;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Cego\RequestInsurance\RequestInsuranceWorker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Cego\RequestInsurance\RequestInsuranceServiceProvider;
@@ -25,6 +27,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Gate::define('tool-admin', fn (?Authenticatable $user) => true);
     }
 
     /**
