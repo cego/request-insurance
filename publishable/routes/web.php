@@ -9,7 +9,7 @@ use App\Http\Middleware\VerifyCsrfToken;
 // login provider and the cross-origin redirect is blocked by CORS.
 Route::namespace('Cego\RequestInsurance\Controllers')
     ->prefix('vendor')
-    ->middleware('web')
+    ->middleware((array) config('request-insurance.middleware'))
     ->group(function () {
         Route::get('request-insurances/load', [
             'uses' => 'RequestInsuranceController@load',
@@ -29,7 +29,7 @@ Route::namespace('Cego\RequestInsurance\Controllers')
 
 Route::namespace('Cego\RequestInsurance\Controllers')
     ->prefix('vendor')
-    ->middleware('web')
+    ->middleware((array) config('request-insurance.middleware'))
     ->group(function () {
         Route::resource('request-insurances', 'RequestInsuranceController')
             ->only(['index', 'show', 'destroy'])

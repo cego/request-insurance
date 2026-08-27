@@ -169,15 +169,35 @@ The package ships a web UI at `/vendor/request-insurances` (route name
 - Editing of failed requests (method, url, payload, headers, priority) gated behind
   four-eyes approval, with a diff view and an audit trail of applied edits
 
-Protect the `/vendor` path with your application's own auth middleware — the package does not
-impose any.
+### Authorization
+
+Every route the package registers runs the middleware stack from
+`config('request-insurance.middleware')`, which defaults to:
+
+```php
+'middleware' => ['web', 'can:tool-admin'],
+```
+
+Define a `tool-admin` gate in the application to grant access:
+
+```php
+Gate::define('tool-admin', fn ($user) => $user->isToolAdmin());
+```
+
+Or publish the config and replace the stack with whatever the application already uses:
+
+```bash
+php artisan vendor:publish --provider="Cego\RequestInsurance\RequestInsuranceServiceProvider"
+```
 
 ## Monitoring
 
 JSON endpoints suitable for dashboards and alerting: `/vendor/request-insurances/load` (worker
 load), `/monitor` (active/failed totals), and `/monitor_segmented` (per-state counts). If
 [spatie/laravel-prometheus](https://github.com/spatie/laravel-prometheus) is installed, matching
-Prometheus gauges are registered automatically.
+Prometheus gauges are registered automatically. They sit behind the same middleware as the
+rest of the UI, so a scraper that is not a browser session needs its own entry in
+`request-insurance.middleware`.
 
 ## Development
 
