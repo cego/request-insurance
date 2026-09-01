@@ -12,7 +12,7 @@
         applyColorScheme(colorScheme);
         colorScheme.addEventListener('change', applyColorScheme);
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss-browser/4.3.2/index.global.min.js" integrity="sha512-zGa8OZQnDW3gAFAZxYlhn2UfSEKvU2M1UXwbKzw7OB4ZyQJ6qPf9Lt1BQwZ3ZsbW5YycTkSgitvHfgbCWPUt4Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss-browser/4.3.2/index.global.js" integrity="sha512-oAMEDsKlcD/m6HPnoUeWWHvMmRLxiqHFWBJJpeQufPs1s9EpRwth89/jYYbKRspAwyzrRBmjTV0zYVI+mB3lWQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style type="text/tailwindcss">
         @custom-variant dark (&:where(.dark, .dark *));
 
