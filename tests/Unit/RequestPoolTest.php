@@ -31,6 +31,36 @@ class RequestPoolTest extends TestCase
         $this->assertMethodGivenToClient('DeLeTe', 'DELETE');
     }
 
+    public function test_it_normalizes_header_values_before_sending(): void
+    {
+        $requestInsurance = RequestInsurance::getBuilder()
+            ->url('https://test.lupinsdev.dk')
+            ->method('POST')
+            ->headers([
+                'X-Integer'  => 123,
+                'X-Multiple' => [456, 'value'],
+                'X-Empty'    => [],
+            ])
+            ->create();
+
+        $client = new class () extends Client {
+            public array $headers = [];
+
+            public function requestAsync(string $method, $uri = '', array $options = []): PromiseInterface
+            {
+                $this->headers = $options['headers'];
+
+                return new FulfilledPromise(new Response(200));
+            }
+        };
+
+        (new RequestPool($client, new Collection([$requestInsurance])))->getResponses();
+
+        $this->assertSame('123', $client->headers['X-Integer']);
+        $this->assertSame(['456', 'value'], $client->headers['X-Multiple']);
+        $this->assertSame('', $client->headers['X-Empty']);
+    }
+
     public function test_it_sends_a_request_under_the_trace_context_stored_on_it(): void
     {
         // Arrange

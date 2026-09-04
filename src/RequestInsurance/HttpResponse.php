@@ -7,15 +7,17 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Client\NetworkExceptionInterface;
 
 class HttpResponse
 {
     protected Response $response;
     protected ConnectException $connectException;
     protected RequestException $requestException;
+    protected NetworkExceptionInterface $networkException;
 
     /**
-     * @param Response|ConnectException|RequestException $response
+     * @param Response|ConnectException|RequestException|NetworkExceptionInterface|null $response
      */
     public function __construct($response)
     {
@@ -23,6 +25,8 @@ class HttpResponse
             $this->connectException = $response;
         } elseif ($response instanceof RequestException) {
             $this->requestException = $response;
+        } elseif ($response instanceof NetworkExceptionInterface) {
+            $this->networkException = $response;
         } elseif ($response !== null) {
             $this->response = $response;
         }
@@ -98,7 +102,13 @@ class HttpResponse
             return;
         }
 
-        Log::error('No response object, connect exception nor request exception was received for request');
+        if (isset($this->networkException)) {
+            Log::error($this->networkException);
+
+            return;
+        }
+
+        Log::error('No response object or exception was received for request');
     }
 
     /**

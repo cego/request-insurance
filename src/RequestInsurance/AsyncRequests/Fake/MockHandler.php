@@ -8,18 +8,19 @@ use Psr\Http\Message\RequestInterface;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Handler\MockHandler as GuzzleMockHandler;
 
-class MockHandler extends GuzzleMockHandler
+class MockHandler
 {
     /**
      * @var Closure|Response[]
      */
     private $responses;
 
+    private GuzzleMockHandler $handler;
+
     public function __construct($responses)
     {
-        parent::__construct(is_callable($responses) ? [] : $responses);
-
         $this->responses = $responses;
+        $this->handler = new GuzzleMockHandler(is_callable($responses) ? [] : $responses);
     }
 
     /**
@@ -33,9 +34,9 @@ class MockHandler extends GuzzleMockHandler
     public function __invoke(RequestInterface $request, array $options): PromiseInterface
     {
         if (is_callable($this->responses)) {
-            $this->append(call_user_func($this->responses));
+            $this->handler->append(call_user_func($this->responses));
         }
 
-        return parent::__invoke($request, $options);
+        return ($this->handler)($request, $options);
     }
 }

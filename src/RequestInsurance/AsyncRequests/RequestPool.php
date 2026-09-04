@@ -78,7 +78,7 @@ class RequestPool
      */
     private function convertRequestToPromise(Client $client, RequestInsurance $requestInsurance): PromiseInterface
     {
-        $headers = $requestInsurance->getHeadersCastToArray();
+        $headers = $this->normalizeHeaders($requestInsurance->getHeadersCastToArray());
 
         $send = fn () => $client->requestAsync(mb_strtoupper($requestInsurance->method), $requestInsurance->url, [
             'headers'     => array_merge($headers, ['User-Agent' => sprintf('RequestInsurance %s', Config::get('app.name', 'unknown'))]),
@@ -89,6 +89,24 @@ class RequestPool
         ]);
 
         return $this->withTraceContextOf($headers, $send);
+    }
+
+    /**
+     * @param array<array-key, mixed> $headers
+     *
+     * @return array<array-key, string|array<array-key, string>>
+     */
+    private function normalizeHeaders(array $headers): array
+    {
+        foreach ($headers as &$value) {
+            $value = is_array($value)
+                ? ($value === [] ? '' : array_map(static fn ($item) => (string) $item, $value))
+                : (string) $value;
+        }
+
+        unset($value);
+
+        return $headers;
     }
 
     /**
