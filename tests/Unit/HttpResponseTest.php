@@ -36,7 +36,7 @@ class HttpResponseTest extends TestCase
     public function test_it_can_initialize_with_a_network_exception()
     {
         $request = new Request('GET', 'www.notaplaceforsho.dk');
-        $exception = new class('F', $request) extends RuntimeException implements NetworkExceptionInterface {
+        $exception = new class ('F', $request) extends RuntimeException implements NetworkExceptionInterface {
             public function __construct(string $message, private RequestInterface $request)
             {
                 parent::__construct($message);

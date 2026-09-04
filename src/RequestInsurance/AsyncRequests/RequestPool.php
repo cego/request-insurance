@@ -84,7 +84,7 @@ class RequestPool
             'headers'     => array_merge($headers, ['User-Agent' => sprintf('RequestInsurance %s', Config::get('app.name', 'unknown'))]),
             'body'        => $requestInsurance->payload,
             'timeout'     => $requestInsurance->getEffectiveTimeout(),
-            'on_stats'    => fn (TransferStats $stats)    => $requestInsurance->setTimings($stats),
+            'on_stats'    => fn (TransferStats $stats) => $requestInsurance->setTimings($stats),
             'http_errors' => false,
         ]);
 

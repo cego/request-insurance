@@ -43,7 +43,7 @@ class RequestPoolTest extends TestCase
             ])
             ->create();
 
-        $client = new class() extends Client {
+        $client = new class () extends Client {
             public array $headers = [];
 
             public function requestAsync(string $method, $uri = '', array $options = []): PromiseInterface
@@ -105,7 +105,7 @@ class RequestPoolTest extends TestCase
      */
     protected function captureActiveSpanContextWhileSending(RequestInsurance $requestInsurance): SpanContextInterface
     {
-        $client = new class() extends Client {
+        $client = new class () extends Client {
             public ?SpanContextInterface $spanContext = null;
 
             public function requestAsync(string $method, $uri = '', array $options = []): PromiseInterface
@@ -142,7 +142,7 @@ class RequestPoolTest extends TestCase
             ->method($storedMethod)
             ->create();
 
-        $client = new class() extends Client {
+        $client = new class () extends Client {
             /** @var string[] */
             public array $methods = [];
 
