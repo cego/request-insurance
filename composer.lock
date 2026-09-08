@@ -10555,16 +10555,16 @@
         },
         {
             "name": "spatie/laravel-prometheus",
-            "version": "1.6.1",
+            "version": "1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-prometheus.git",
-                "reference": "754501373782778117ff2a82dae02bb0bcfcd891"
+                "reference": "6565b788a6a778dee9fe96e478ae5d4d9d3b2d05"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-prometheus/zipball/754501373782778117ff2a82dae02bb0bcfcd891",
-                "reference": "754501373782778117ff2a82dae02bb0bcfcd891",
+                "url": "https://api.github.com/repos/spatie/laravel-prometheus/zipball/6565b788a6a778dee9fe96e478ae5d4d9d3b2d05",
+                "reference": "6565b788a6a778dee9fe96e478ae5d4d9d3b2d05",
                 "shasum": ""
             },
             "require": {
@@ -10625,9 +10625,9 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-prometheus/issues",
-                "source": "https://github.com/spatie/laravel-prometheus/tree/1.6.1"
+                "source": "https://github.com/spatie/laravel-prometheus/tree/1.7.0"
             },
-            "time": "2026-07-13T08:08:14+00:00"
+            "time": "2026-09-08T12:21:29+00:00"
         },
         {
             "name": "staabm/side-effects-detector",
