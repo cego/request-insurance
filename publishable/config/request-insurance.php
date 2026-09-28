@@ -92,6 +92,8 @@ return [
 
     'maximumSecondsPerWorkerCycle' => env('REQUEST_INSURANCE_MAX_SECONDS_PER_WORKER_CYCLE', 120),
 
+    'maximumSecondsPerConnection' => env('REQUEST_INSURANCE_MAX_SECONDS_PER_CONNECTION', 60),
+
     /*
      | Set the concrete implementation for HttpRequest
      */

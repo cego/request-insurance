@@ -5,6 +5,7 @@ namespace Cego\RequestInsurance\AsyncRequests;
 use Closure;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Collection;
 use Cego\RequestInsurance\AsyncRequests\Fake\MockHandler;
 
@@ -19,7 +20,7 @@ class RequestInsuranceClient
     {
         $this->guzzle = new Client([
             'http_errors' => false,
-            'curl'        => [CURLOPT_MAXLIFETIME_CONN => 60],
+            'curl'        => [CURLOPT_MAXLIFETIME_CONN => (int) Config::get('request-insurance.maximumSecondsPerConnection')],
         ]);
     }
 
