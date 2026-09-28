@@ -19,6 +19,7 @@ class RequestInsuranceClient
     {
         $this->guzzle = new Client([
             'http_errors' => false,
+            'curl'        => [CURLOPT_MAXLIFETIME_CONN => 60],
         ]);
     }
 
