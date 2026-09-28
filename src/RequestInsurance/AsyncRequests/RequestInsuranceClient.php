@@ -20,7 +20,7 @@ class RequestInsuranceClient
     {
         $this->guzzle = new Client([
             'http_errors' => false,
-            'curl'        => [CURLOPT_MAXLIFETIME_CONN => (int) Config::get('request-insurance.maximumSecondsPerConnection')],
+            'curl'        => [CURLOPT_MAXLIFETIME_CONN => Config::integer('request-insurance.maximumSecondsPerConnection')],
         ]);
     }
 
