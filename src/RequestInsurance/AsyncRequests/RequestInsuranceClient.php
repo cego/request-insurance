@@ -5,6 +5,7 @@ namespace Cego\RequestInsurance\AsyncRequests;
 use Closure;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
+use InvalidArgumentException;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Collection;
 use Cego\RequestInsurance\AsyncRequests\Fake\MockHandler;
@@ -18,9 +19,15 @@ class RequestInsuranceClient
      */
     public function __construct()
     {
+        $maximumSecondsPerConnection = Config::get('request-insurance.maximumSecondsPerConnection');
+
+        if ( ! is_int($maximumSecondsPerConnection)) {
+            throw new InvalidArgumentException(sprintf('Configuration value for key [request-insurance.maximumSecondsPerConnection] must be an integer, %s given.', gettype($maximumSecondsPerConnection)));
+        }
+
         $this->guzzle = new Client([
             'http_errors' => false,
-            'curl'        => [CURLOPT_MAXLIFETIME_CONN => Config::integer('request-insurance.maximumSecondsPerConnection')],
+            'curl'        => [CURLOPT_MAXLIFETIME_CONN => $maximumSecondsPerConnection],
         ]);
     }
 
