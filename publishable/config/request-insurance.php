@@ -92,8 +92,6 @@ return [
 
     'maximumSecondsPerWorkerCycle' => env('REQUEST_INSURANCE_MAX_SECONDS_PER_WORKER_CYCLE', 120),
 
-    'maximumSecondsPerConnection' => filter_var(env('REQUEST_INSURANCE_MAX_SECONDS_PER_CONNECTION', 60), FILTER_VALIDATE_INT),
-
     /*
      | Set the concrete implementation for HttpRequest
      */
