@@ -190,6 +190,13 @@ Or publish the config and replace the stack with whatever the application alread
 php artisan vendor:publish --provider="Cego\RequestInsurance\RequestInsuranceServiceProvider"
 ```
 
+### Edit authorship
+
+Edits require approval from someone other than their author. The user is the `username` of the
+authenticated user, falling back to the `remote-user` header set by an authenticating proxy.
+Requests without either cannot create, approve, or apply edits. To identify users differently,
+bind your own `Cego\RequestInsurance\Providers\IdentityProvider` in the container.
+
 ## Monitoring
 
 JSON endpoints suitable for dashboards and alerting: `/vendor/request-insurances/load` (worker

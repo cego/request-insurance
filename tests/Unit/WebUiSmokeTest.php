@@ -11,7 +11,7 @@ class WebUiSmokeTest extends TestCase
 {
     private function authenticate(): void
     {
-        $this->actingAs(new GenericUser(['id' => 1, 'name' => 'test-admin']));
+        $this->actingAs(new GenericUser(['id' => 1, 'name' => 'test-admin', 'username' => 'test-admin']));
     }
 
     public function test_index_page_renders(): void

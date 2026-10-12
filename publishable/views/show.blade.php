@@ -93,7 +93,7 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2">
-                @if ($requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
+                @if ($user !== '' && $requestInsurance->doesNotHaveState(State::COMPLETED) && $requestInsurance->doesNotHaveState(State::ABANDONED))
                     <form method="POST" action="{{ route('request-insurance-edits.create', $requestInsurance) }}">@csrf
                         <button class="{{ $btnPrimary }}" type="submit">Edit request</button>
                     </form>
@@ -168,8 +168,8 @@
                 <div class="space-y-6 border-t p-5 sm:p-6">
                     @foreach($pendingEdits->get() as $edit)
                         @php
-                            $canModifyEdit = $edit->applied_at == null && $edit->admin_user == $user;
-                            $canApproveEdit = $edit->applied_at == null && ! $canModifyEdit;
+                            $canModifyEdit = $edit->applied_at == null && $user !== '' && $edit->admin_user === $user;
+                            $canApproveEdit = $edit->applied_at == null && $user !== '' && $edit->admin_user !== $user;
                             $canApplyEdit = $edit->applied_at == null && $edit->approvals->count() >= $edit->required_number_of_approvals && $canModifyEdit;
                         @endphp
                         <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
