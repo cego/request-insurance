@@ -23,8 +23,11 @@ class RequestInsuranceEditController extends Controller
      */
     public function create(Request $request, RequestInsurance $requestInsurance, IdentityProvider $identityProvider)
     {
-        // Only allow updates for requests that have not completed or been abandoned
-        if ($requestInsurance->inOneOfStates(State::COMPLETED, State::ABANDONED)) {
+        $user = $identityProvider->getUser($request);
+
+        // Only allow updates for requests that have not completed or been abandoned, and from an identified user,
+        // since an anonymous author would be indistinguishable from an anonymous approver
+        if ($user === '' || $requestInsurance->inOneOfStates(State::COMPLETED, State::ABANDONED)) {
             // This should not be possible from the view, so we don't send any error messages
             return redirect()->back();
         }
@@ -43,7 +46,7 @@ class RequestInsuranceEditController extends Controller
             'new_payload'          => $requestInsurance->getOriginal('payload'),
             'old_encrypted_fields' => $requestInsurance->encrypted_fields,
             'new_encrypted_fields' => $requestInsurance->encrypted_fields,
-            'admin_user'           => $identityProvider->getUser($request),
+            'admin_user'           => $user,
         ]);
 
         return redirect()->back();
@@ -59,7 +62,7 @@ class RequestInsuranceEditController extends Controller
     public function destroy(Request $request, RequestInsuranceEdit $requestInsuranceEdit, IdentityProvider $identityProvider)
     {
         // Only allow delete if not already applied and request is from the edit author
-        if ($requestInsuranceEdit->applied_at != null || $identityProvider->getUser($request) != $requestInsuranceEdit->admin_user) {
+        if ($requestInsuranceEdit->applied_at != null || ! $this->isEditAuthor($request, $requestInsuranceEdit, $identityProvider)) {
             // Both these cases should not be possible from the view, so we don't send any error message
             return redirect()->back();
         }
@@ -78,7 +81,7 @@ class RequestInsuranceEditController extends Controller
     public function update(Request $request, RequestInsuranceEdit $requestInsuranceEdit, IdentityProvider $identityProvider)
     {
         // Only allow updates if it has not been applied and the updating user is the edit author
-        if ($requestInsuranceEdit->applied_at != null || $identityProvider->getUser($request) != $requestInsuranceEdit->admin_user) {
+        if ($requestInsuranceEdit->applied_at != null || ! $this->isEditAuthor($request, $requestInsuranceEdit, $identityProvider)) {
             // Both these cases should not be possible from the view, so we don't send any error message
             return redirect()->back();
         }
@@ -110,7 +113,7 @@ class RequestInsuranceEditController extends Controller
     public function apply(Request $request, RequestInsuranceEdit $requestInsuranceEdit, IdentityProvider $identityProvider)
     {
         // If already applied or if the applier is not the edit author, do nothing
-        if ($requestInsuranceEdit->applied_at != null || $identityProvider->getUser($request) != $requestInsuranceEdit->admin_user) {
+        if ($requestInsuranceEdit->applied_at != null || ! $this->isEditAuthor($request, $requestInsuranceEdit, $identityProvider)) {
             // Both these cases should not be possible from the view, so we don't send any error message
             return redirect()->back();
         }
@@ -146,6 +149,22 @@ class RequestInsuranceEditController extends Controller
         });
 
         return redirect()->back();
+    }
+
+    /**
+     * Returns whether the request is from the identified author of the edit
+     *
+     * @param Request $request
+     * @param RequestInsuranceEdit $requestInsuranceEdit
+     * @param IdentityProvider $identityProvider
+     *
+     * @return bool
+     */
+    private function isEditAuthor(Request $request, RequestInsuranceEdit $requestInsuranceEdit, IdentityProvider $identityProvider): bool
+    {
+        $user = $identityProvider->getUser($request);
+
+        return $user !== '' && $user === $requestInsuranceEdit->admin_user;
     }
 
     /**
