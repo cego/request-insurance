@@ -2456,16 +2456,16 @@
         },
         {
             "name": "nesbot/carbon",
-            "version": "3.13.2",
+            "version": "3.15.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CarbonPHP/carbon.git",
-                "reference": "a1c54919f5fff9800cd03c32bd01defd5a4061cb"
+                "reference": "217d38553209bdb44e01590d9e9a2e4df8354cce"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CarbonPHP/carbon/zipball/a1c54919f5fff9800cd03c32bd01defd5a4061cb",
-                "reference": "a1c54919f5fff9800cd03c32bd01defd5a4061cb",
+                "url": "https://api.github.com/repos/CarbonPHP/carbon/zipball/217d38553209bdb44e01590d9e9a2e4df8354cce",
+                "reference": "217d38553209bdb44e01590d9e9a2e4df8354cce",
                 "shasum": ""
             },
             "require": {
@@ -2475,6 +2475,7 @@
                 "psr/clock": "^1.0",
                 "symfony/clock": "^6.3.12 || ^7.0 || ^8.0",
                 "symfony/polyfill-mbstring": "^1.0",
+                "symfony/polyfill-time": "^1.0",
                 "symfony/translation": "^4.4.18 || ^5.2.1 || ^6.0 || ^7.0 || ^8.0"
             },
             "provide": {
@@ -2485,7 +2486,7 @@
                 "doctrine/orm": "^2.15.2 || ^3.0",
                 "friendsofphp/php-cs-fixer": "^v3.87.1",
                 "kylekatarnls/multi-tester": "^2.5.3",
-                "phpmd/phpmd": "^2.15.0",
+                "phpmd/phpmd": "^3.0@dev",
                 "phpstan/extension-installer": "^1.4.3",
                 "phpstan/phpstan": "^2.1.22",
                 "phpunit/phpunit": "^10.5.53",
@@ -2557,7 +2558,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-08T11:40:35+00:00"
+            "time": "2026-10-18T18:27:53+00:00"
         },
         {
             "name": "nette/schema",
@@ -5305,6 +5306,89 @@
                 }
             ],
             "time": "2026-07-02T13:42:24+00:00"
+        },
+        {
+            "name": "symfony/polyfill-time",
+            "version": "v1.42.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-time.git",
+                "reference": "ac9f1ed802dd58f37e720388130c088434aa09fc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-time/zipball/ac9f1ed802dd58f37e720388130c088434aa09fc",
+                "reference": "ac9f1ed802dd58f37e720388130c088434aa09fc",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Polyfill\\Time\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ignace Philippe Nyamagana Butera",
+                    "email": "nyamsprod@gmail.com"
+                },
+                {
+                    "name": "Tim Düsterhus",
+                    "email": "tim@tideways-gmbh.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for the Time API added to PHP 8.6",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "duration",
+                "polyfill",
+                "portable",
+                "shim",
+                "time"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-time/tree/v1.42.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-08-07T13:08:13+00:00"
         },
         {
             "name": "symfony/polyfill-uuid",
