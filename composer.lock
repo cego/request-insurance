@@ -1265,20 +1265,21 @@
                     "type": "custom"
                 }
             ],
-            "time": "2021-05-27T02:45:54+00:00"
+            "time": "2021-05-27T02:45:54+00:00",
+            "published-time": "2021-05-27T02:45:07+00:00"
         },
         {
             "name": "jfcherng/php-diff",
-            "version": "6.16.2",
+            "version": "6.16.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jfcherng/php-diff.git",
-                "reference": "7f46bcfc582e81769237d0b3f6b8a548efe8799d"
+                "reference": "6d7332b6080cdd50011a364b58f24c8d0cdeb5da"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jfcherng/php-diff/zipball/7f46bcfc582e81769237d0b3f6b8a548efe8799d",
-                "reference": "7f46bcfc582e81769237d0b3f6b8a548efe8799d",
+                "url": "https://api.github.com/repos/jfcherng/php-diff/zipball/6d7332b6080cdd50011a364b58f24c8d0cdeb5da",
+                "reference": "6d7332b6080cdd50011a364b58f24c8d0cdeb5da",
                 "shasum": ""
             },
             "require": {
@@ -1323,7 +1324,7 @@
             ],
             "support": {
                 "issues": "https://github.com/jfcherng/php-diff/issues",
-                "source": "https://github.com/jfcherng/php-diff/tree/6.16.2"
+                "source": "https://github.com/jfcherng/php-diff/tree/6.16.3"
             },
             "funding": [
                 {
@@ -1331,7 +1332,8 @@
                     "type": "custom"
                 }
             ],
-            "time": "2024-03-10T17:40:29+00:00"
+            "time": "2026-06-22T13:08:56+00:00",
+            "published-time": "2026-06-22T13:09:38+00:00"
         },
         {
             "name": "jfcherng/php-mb-string",
@@ -1387,7 +1389,8 @@
                     "type": "custom"
                 }
             ],
-            "time": "2023-04-17T14:23:16+00:00"
+            "time": "2023-04-17T14:23:16+00:00",
+            "published-time": "2023-04-18T04:58:13+00:00"
         },
         {
             "name": "jfcherng/php-sequence-matcher",
@@ -1443,7 +1446,8 @@
                     "type": "custom"
                 }
             ],
-            "time": "2023-05-21T07:57:08+00:00"
+            "time": "2023-05-21T07:57:08+00:00",
+            "published-time": "2023-05-21T07:57:36+00:00"
         },
         {
             "name": "laravel/framework",
@@ -11229,5 +11233,5 @@
         "ext-posix": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }
