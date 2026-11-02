@@ -392,7 +392,7 @@ class RequestInsuranceWorker
     public function acquireLockOnRowsToProcess(): Collection
     {
         // Avoid gap locks while moving claimed rows between state ranges.
-        if (DB::getDriverName() === 'mysql' && DB::transactionLevel() === 0) {
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true) && DB::transactionLevel() === 0) {
             DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
         }
 
