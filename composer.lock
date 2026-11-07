@@ -8964,7 +8964,8 @@
                 "issues": "https://github.com/PromPHP/prometheus_client_php/issues",
                 "source": "https://github.com/PromPHP/prometheus_client_php/tree/v2.15.1"
             },
-            "time": "2026-05-28T07:51:04+00:00"
+            "time": "2026-05-28T07:51:04+00:00",
+            "published-time": "2026-05-28T07:52:01+00:00"
         },
         {
             "name": "psy/psysh",
@@ -10551,20 +10552,21 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-26T09:13:25+00:00"
+            "time": "2026-08-26T09:13:25+00:00",
+            "published-time": "2026-08-26T09:16:51+00:00"
         },
         {
             "name": "spatie/laravel-prometheus",
-            "version": "1.6.1",
+            "version": "1.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-prometheus.git",
-                "reference": "754501373782778117ff2a82dae02bb0bcfcd891"
+                "reference": "ae6a0f251207ceedf8d5a03a98c52e8a4ffb6ae8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-prometheus/zipball/754501373782778117ff2a82dae02bb0bcfcd891",
-                "reference": "754501373782778117ff2a82dae02bb0bcfcd891",
+                "url": "https://api.github.com/repos/spatie/laravel-prometheus/zipball/ae6a0f251207ceedf8d5a03a98c52e8a4ffb6ae8",
+                "reference": "ae6a0f251207ceedf8d5a03a98c52e8a4ffb6ae8",
                 "shasum": ""
             },
             "require": {
@@ -10625,9 +10627,10 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-prometheus/issues",
-                "source": "https://github.com/spatie/laravel-prometheus/tree/1.6.1"
+                "source": "https://github.com/spatie/laravel-prometheus/tree/1.7.1"
             },
-            "time": "2026-07-13T08:08:14+00:00"
+            "time": "2026-09-28T07:22:57+00:00",
+            "published-time": "2026-09-28T07:23:08+00:00"
         },
         {
             "name": "staabm/side-effects-detector",
@@ -11229,5 +11232,5 @@
         "ext-posix": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }
