@@ -8964,7 +8964,8 @@
                 "issues": "https://github.com/PromPHP/prometheus_client_php/issues",
                 "source": "https://github.com/PromPHP/prometheus_client_php/tree/v2.15.1"
             },
-            "time": "2026-05-28T07:51:04+00:00"
+            "time": "2026-05-28T07:51:04+00:00",
+            "published-time": "2026-05-28T07:52:01+00:00"
         },
         {
             "name": "psy/psysh",
@@ -10551,20 +10552,21 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-26T09:13:25+00:00"
+            "time": "2026-08-26T09:13:25+00:00",
+            "published-time": "2026-08-26T09:16:51+00:00"
         },
         {
             "name": "spatie/laravel-prometheus",
-            "version": "1.6.1",
+            "version": "1.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-prometheus.git",
-                "reference": "754501373782778117ff2a82dae02bb0bcfcd891"
+                "reference": "fb7e6dc110f35f4410f137941ea253133eea28cf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-prometheus/zipball/754501373782778117ff2a82dae02bb0bcfcd891",
-                "reference": "754501373782778117ff2a82dae02bb0bcfcd891",
+                "url": "https://api.github.com/repos/spatie/laravel-prometheus/zipball/fb7e6dc110f35f4410f137941ea253133eea28cf",
+                "reference": "fb7e6dc110f35f4410f137941ea253133eea28cf",
                 "shasum": ""
             },
             "require": {
@@ -10582,9 +10584,9 @@
                 "laravel/pint": "^1.10",
                 "mockery/mockery": "^1.6",
                 "orchestra/testbench": "^10.0|^11.0",
-                "pestphp/pest": "^4.4",
-                "pestphp/pest-plugin-arch": "^4.0",
-                "pestphp/pest-plugin-laravel": "^4.1",
+                "pestphp/pest": "^4.4|^5.3",
+                "pestphp/pest-plugin-arch": "^4.0|^5.0",
+                "pestphp/pest-plugin-laravel": "^4.1|^5.0",
                 "spatie/laravel-ray": "^1.32.4",
                 "spatie/pest-plugin-snapshots": "^2.0"
             },
@@ -10625,9 +10627,10 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-prometheus/issues",
-                "source": "https://github.com/spatie/laravel-prometheus/tree/1.6.1"
+                "source": "https://github.com/spatie/laravel-prometheus/tree/1.7.2"
             },
-            "time": "2026-07-13T08:08:14+00:00"
+            "time": "2026-11-13T09:24:11+00:00",
+            "published-time": "2026-11-13T09:25:31+00:00"
         },
         {
             "name": "staabm/side-effects-detector",
@@ -11229,5 +11232,5 @@
         "ext-posix": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }
